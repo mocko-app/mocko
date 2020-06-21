@@ -1,12 +1,12 @@
 import {IRouter} from "./utils/router";
-import {CatRouter} from "./api/cat/cat.router";
 import {Provider} from "./utils/decorators/provider";
+import {ProxyRouter} from "./api/proxy/proxy.router";
 
 @Provider()
 export class MainRouter implements IRouter {
     constructor(
-        private readonly catRouter: CatRouter,
+        private readonly proxyRouter: ProxyRouter,
     ) { }
 
-    readonly routes = [...this.catRouter.routes];
+    readonly routes = [...this.proxyRouter.routes];
 }
