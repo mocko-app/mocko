@@ -1,11 +1,15 @@
 import React from 'react';
-import {Input, KeyValueView, KVIcon} from "./styles";
+import {KeyValueView, KVIcon} from "./styles";
+import {Input} from "../input/styles";
 
-export function KeyValueInput({ onRemove }) {
+export function KeyValueInput({ keyStr, value, onRemove, onChange }) {
+    const changeKey = event => onChange(event.target.value, value);
+    const changeValue = event => onChange(keyStr, event.target.value);
+
     return (
         <KeyValueView>
-            <Input placeholder="Content-Type"/>
-            <Input placeholder="application/json"/>
+            <Input value={ keyStr } onChange={ changeKey }/>
+            <Input value={ value } onChange={ changeValue }/>
             <KVIcon onClick={ onRemove }>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM8 9H16V19H8V9ZM15.5 4L14.5 3H9.5L8.5 4H5V6H19V4H15.5Z" fill="white"/>

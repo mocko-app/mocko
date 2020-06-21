@@ -8,4 +8,5 @@ export const AppView = styled.div`
     height: 100%;
     background-color: #151515;
     padding-top: 5rem;
+    overflow: auto;
 `;
