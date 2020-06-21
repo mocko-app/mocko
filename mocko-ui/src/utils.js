@@ -1,3 +1,5 @@
+import * as axios from 'axios';
+
 export const SPACES = {
     xs:   '0.25rem',
     s:    '0.5rem',
@@ -17,3 +19,7 @@ export function decodeSpacing(spacing) {
 export const sleep = time => new Promise(resolve => setTimeout(resolve, time));
 
 export const trace = tag => x => console.log(tag, x) || x;
+
+export const client = axios.create({
+    baseURL: 'http://localhost:8080/'
+});
