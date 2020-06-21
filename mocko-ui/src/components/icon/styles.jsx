@@ -3,10 +3,11 @@ import styled from "styled-components";
 export const IconView = styled.button`
     background-color: rgba(255, 255, 255, 0);
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0;
+    right: 0;
     width: 2.5rem;
     height: 2.5rem;
+    margin: 0.5rem;
     border: none;
     outline: none;
     cursor: pointer;
