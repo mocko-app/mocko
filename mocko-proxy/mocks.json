@@ -1,0 +1,23 @@
+{
+  "mocks": [{
+    "method": "GET",
+    "path": "/cats/{name}",
+    "response": {
+      "code": 404,
+      "body": "{\"message\": \"Cat not found\"}",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  }, {
+    "method": "GET",
+    "path": "/cats/george",
+    "response": {
+      "code": 200,
+      "body": "{\"id\": 1, \"name\": \"George\"}",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  }]
+}
