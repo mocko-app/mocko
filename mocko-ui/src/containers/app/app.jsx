@@ -1,5 +1,8 @@
 import React, {useEffect} from 'react';
 import {AppView} from "./styles";
+import {Navbar} from "../../components/navbar/navbar";
+import {List} from "../../components/list/list";
+import {MockItem} from "../mock-item/mock-item";
 
 export function App() {
     useEffect(() => {
@@ -8,6 +11,12 @@ export function App() {
     }, []);
 
     return (
-        <AppView/>
+        <AppView>
+            <Navbar>Mocko</Navbar>
+            <List>
+                <MockItem method="GET" path="/cats/{name}"/>
+                <MockItem method="POST" path="/cats"/>
+            </List>
+        </AppView>
     );
 }

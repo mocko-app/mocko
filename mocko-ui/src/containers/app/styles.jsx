@@ -6,5 +6,6 @@ export const AppView = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1E1E1E;
+    background-color: #151515;
+    padding-top: 5rem;
 `;

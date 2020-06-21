@@ -27,7 +27,7 @@ html {
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
-    --radius: 0.5rem;
+    --radius: 0.25rem;
 }
 @media screen and (min-width: 1400px){
     html { font-size: 20px; }
