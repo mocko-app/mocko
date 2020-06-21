@@ -8,6 +8,7 @@ import {Button} from "../../components/button/button";
 import {HeaderInputGroup} from "./header-input";
 import {PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
+import {client} from "../../utils";
 
 const DEFAULT_HEADERS = [{
     id: Date.now(),
@@ -76,5 +77,14 @@ export function DumbNewMockCard({ onDeploy }) {
 }
 
 export function NewMockCard() {
-    return <DumbNewMockCard onDeploy={ console.log }/>
+    const deploy = async (headers, body, status, method, path) => {
+        await client.post('/mocks', {
+            method, path, response: {
+                body, headers, code: status
+            }
+        });
+        window.location.reload();
+    };
+
+    return <DumbNewMockCard onDeploy={ deploy }/>
 }
