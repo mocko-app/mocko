@@ -22,7 +22,10 @@ export class Server {
         this.logger.info('Creating the server');
         this.app = new Hapi.Server({
             host: this.config.get('SERVER_HOST'),
-            port: this.config.getNumber('SERVER_PORT')
+            port: this.config.getNumber('SERVER_PORT'),
+            routes: {
+                cors: this.config.getBoolean('SERVER_ALLOW-CORS'),
+            }
         });
 
         this.logger.info('Mapping routes');
