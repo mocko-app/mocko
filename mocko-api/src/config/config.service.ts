@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import {CONFIG_PATH, DEFAULT_CONFIG_PATH} from "./config.constants";
+import {RedisOptions} from "ioredis";
 
 export class ConfigService {
     private readonly config: Record<string, string>;
@@ -41,6 +42,17 @@ export class ConfigService {
         }
 
         return obj;
+    }
+
+    getRedisConfig(): RedisOptions {
+        return {
+            port: this.getNumber('REDIS_PORT'),
+            host: this.get('REDIS_HOST'),
+            password: this.get('REDIS_PASSWORD'),
+            db: this.getNumber('REDIS_DATABASE'),
+            keyPrefix: this.get('REDIS_PREFIX'),
+            lazyConnect: true,
+        };
     }
 
     private getOptional(key: string): string | undefined {
