@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import {CONFIG_PATH, DEFAULT_CONFIG_PATH} from "./config.constants";
 import {Provider} from "../utils/decorators/provider";
+import {RedisOptions} from "ioredis";
 
 @Provider()
 export class ConfigProvider {
@@ -32,6 +33,16 @@ export class ConfigProvider {
 
     getBoolean(key: string): boolean {
         return this.get(key).toLowerCase() === 'true';
+    }
+
+    getRedisConfig(): RedisOptions {
+        return {
+            port: this.getNumber('REDIS_PORT'),
+            host: this.get('REDIS_HOST'),
+            password: this.get('REDIS_PASSWORD'),
+            db: this.getNumber('REDIS_DATABASE'),
+            keyPrefix: this.get('REDIS_PREFIX'),
+        };
     }
 
     private getOptional(key: string): string | undefined {
