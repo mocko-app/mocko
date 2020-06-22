@@ -5,6 +5,7 @@ import {ConfigProvider} from "./config/config.service";
 import * as Hapi from '@hapi/hapi';
 import {MainRouter} from "./main.router";
 import {PluginProvider} from "./plugins";
+import {ServerRoute} from "@hapi/hapi";
 
 @Provider()
 export class Server {
@@ -29,7 +30,8 @@ export class Server {
         });
 
         this.logger.info('Mapping routes');
-        this.app.route(await this.router.getRoutes());
+        const routes = await this.router.getRoutes();
+        routes.forEach(route => this.registerRoute(route));
 
         this.logger.info('Registering plugins');
         const pluginRegistrationTasks = this.pluginProvider.plugins.map(plugin => this.app.register(plugin));
@@ -47,5 +49,14 @@ export class Server {
         await this.app.stop();
         this.logger.info('Bye :)');
         process.exit(0);
+    }
+
+    private registerRoute(route: ServerRoute) {
+        try {
+            this.logger.info(`Mapping '${route.method} ${route.path}'`);
+            this.app.route(route);
+        } catch (e) {
+            this.logger.warn(`Failed to map '${route.method} ${route.path}': ${e.message}`);
+        }
     }
 }
