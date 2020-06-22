@@ -1,7 +1,8 @@
 import {Injectable} from "@nestjs/common";
 import {RedisProvider} from "../redis/redis.provider";
 import {Mock} from "./data/mock.entity";
-import {REDIS_MOCK_KEY} from "./mock.constants";
+import {REDIS_MOCK_KEY, REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
+import {MockOptions} from "./data/mock-options.entity";
 
 @Injectable()
 export class MockRepository {
@@ -20,5 +21,9 @@ export class MockRepository {
     async listMocks(): Promise<Mock[]> {
         const mocks = await this.redis.getAll<Mock>(REDIS_MOCK_KEY);
         return Object.values(mocks);
+    }
+
+    async setOptions(options: MockOptions) {
+        await this.redis.set(REDIS_OPTIONS_DEPLOYMENT, options);
     }
 }
