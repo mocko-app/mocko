@@ -8,5 +8,7 @@ export class MockRouter implements IRouter {
         private readonly service: MockService,
     ) { }
 
-    readonly routes = this.service.routes;
+    getRoutes() {
+        return this.service.getRoutes();
+    }
 }

@@ -29,7 +29,7 @@ export class Server {
         });
 
         this.logger.info('Mapping routes');
-        this.app.route(this.router.routes);
+        this.app.route(await this.router.getRoutes());
 
         this.logger.info('Registering plugins');
         const pluginRegistrationTasks = this.pluginProvider.plugins.map(plugin => this.app.register(plugin));

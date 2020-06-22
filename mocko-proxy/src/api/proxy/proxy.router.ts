@@ -8,15 +8,17 @@ export class ProxyRouter implements IRouter {
         private readonly controller: ProxyController,
     ) { }
 
-    readonly routes = [{
-        method: '*',
-        path: '/{any*}',
-        handler: this.controller.proxyRequest.bind(this.controller),
-        config: {
-            payload: {
-                output: 'stream',
-                parse: false
+    async getRoutes() {
+        return [{
+            method: '*',
+            path: '/{any*}',
+            handler: this.controller.proxyRequest.bind(this.controller),
+            config: {
+                payload: {
+                    output: 'stream',
+                    parse: false
+                }
             }
-        }
-    }];
+        }];
+    }
 }

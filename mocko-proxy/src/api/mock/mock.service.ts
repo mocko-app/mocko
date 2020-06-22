@@ -1,19 +1,18 @@
 import {Service} from "../../utils/decorators/service";
-import {MockOptions, MockResponse} from "./data/mock-options";
-import * as fs from 'fs';
+import {MockResponse} from "./data/mock-options";
 import {Lifecycle, Request, ResponseObject, ResponseToolkit, ServerRoute} from "@hapi/hapi";
+import {MockRepository} from "./mock.repository";
 
 @Service()
 export class MockService {
-    private readonly mockOptions: MockOptions;
+    constructor(
+        private readonly repository: MockRepository,
+    ) { }
 
-    constructor() {
-        const mockOptions = fs.readFileSync('./mocks.json').toString();
-        this.mockOptions = JSON.parse(mockOptions) as MockOptions;
-    }
+    async getRoutes(): Promise<ServerRoute[]> {
+        const options = await this.repository.getMockOptions();
 
-    get routes(): ServerRoute[] {
-        return this.mockOptions.mocks.map(({ method, path, response }) => ({
+        return options.mocks.map(({ method, path, response }) => ({
             method, path, handler: this.buildHandler(response)
         }));
     }

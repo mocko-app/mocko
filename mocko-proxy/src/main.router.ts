@@ -10,5 +10,12 @@ export class MainRouter implements IRouter {
         private readonly mockRouter: MockRouter,
     ) { }
 
-    readonly routes = [...this.proxyRouter.routes, ...this.mockRouter.routes];
+    async getRoutes() {
+        const routes = await Promise.all([
+            this.proxyRouter.getRoutes(),
+            this.mockRouter.getRoutes(),
+        ]);
+
+        return routes.flat();
+    }
 }
