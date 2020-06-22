@@ -17,4 +17,9 @@ export class RedisProvider {
     isEnabled() {
         return this.config.getBoolean('REDIS_ENABLED');
     }
+
+    async get<T>(key: string): Promise<T> {
+        const str = await this.connector.get(key);
+        return JSON.parse(str) as T;
+    }
 }
