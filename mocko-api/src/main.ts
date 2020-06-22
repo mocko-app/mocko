@@ -12,6 +12,7 @@ async function bootstrap() {
 
     app.use(morgan(LOGGING_LEVEL));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.enableCors();
 
     await app.listen(PORT);
 }

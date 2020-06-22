@@ -25,6 +25,7 @@
     "fs": "0.0.1-security",
     "ioredis": "^4.17.3",
     "morgan": "^1.10.0",
+    "node-uuid": "^1.4.8",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.5.4"

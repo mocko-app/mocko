@@ -1,4 +1,6 @@
 import {HttpMethod} from "./http-method";
+import {CreateMockRequestDto} from "./create-mock-request.dto";
+import {v4 as uuidv4} from 'node-uuid';
 
 export class Response {
     constructor(
@@ -15,4 +17,9 @@ export class Mock {
         public readonly path: string,
         public readonly response: Response,
     ) { }
+
+    static ofDto(dto: CreateMockRequestDto): Mock {
+        const response = new Response(dto.response.code, dto.response.body, dto.response.headers);
+        return new Mock(uuidv4(), dto.method, dto.path, response);
+    }
 }

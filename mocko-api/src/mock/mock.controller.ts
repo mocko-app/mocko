@@ -20,7 +20,7 @@ export class MockController {
         await this.service.create(body);
     }
 
-    @Delete('{id}')
+    @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     async deleteOne(@Param('id') id: string): Promise<void> {
         await this.service.deleteOne(id);
