@@ -36,4 +36,8 @@ export class RedisProvider {
 
         return Object.fromEntries(entries);
     }
+
+    async publish(channel: string, message = '') {
+        await this.connector.publish(channel, message);
+    }
 }

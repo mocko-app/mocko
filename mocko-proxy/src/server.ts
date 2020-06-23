@@ -6,6 +6,8 @@ import * as Hapi from '@hapi/hapi';
 import {MainRouter} from "./main.router";
 import {PluginProvider} from "./plugins";
 import {ServerRoute} from "@hapi/hapi";
+import {ListenerProvider} from "./listeners";
+import {RedisProvider} from "./redis/redis.provider";
 
 @Provider()
 export class Server {
@@ -17,9 +19,32 @@ export class Server {
         private readonly config: ConfigProvider,
         private readonly router: MainRouter,
         private readonly pluginProvider: PluginProvider,
+        private readonly listenerProvider: ListenerProvider,
+        private readonly redisProvider: RedisProvider,
     ) { }
 
     async start(): Promise<Server> {
+        this.logger.info('Registering listeners');
+        const listenerRegistrationTasks = this.listenerProvider.listeners
+            .map(l => this.redisProvider.registerListener(l, this));
+        await Promise.all(listenerRegistrationTasks);
+        return await this.startServer();
+    }
+
+    async stop() {
+        this.logger.info('Stopping the server');
+        await this.app.stop();
+        this.logger.info('Bye :)');
+        process.exit(0);
+    }
+
+    async restart(): Promise<Server> {
+        this.logger.info('Restarting the server');
+        await this.app.stop();
+        return await this.startServer();
+    }
+
+    private async startServer(): Promise<Server> {
         this.logger.info('Creating the server');
         this.app = new Hapi.Server({
             host: this.config.get('SERVER_HOST'),
@@ -34,7 +59,8 @@ export class Server {
         routes.forEach(route => this.registerRoute(route));
 
         this.logger.info('Registering plugins');
-        const pluginRegistrationTasks = this.pluginProvider.plugins.map(plugin => this.app.register(plugin));
+        const pluginRegistrationTasks = this.pluginProvider.plugins
+            .map(plugin => this.app.register(plugin));
         await Promise.all(pluginRegistrationTasks);
 
         this.logger.info('Starting the server');
@@ -42,13 +68,6 @@ export class Server {
 
         this.logger.info('Server is running on ' + this.app.info.uri);
         return this;
-    }
-
-    async stop() {
-        this.logger.info('Stopping the server');
-        await this.app.stop();
-        this.logger.info('Bye :)');
-        process.exit(0);
     }
 
     private registerRoute(route: ServerRoute) {

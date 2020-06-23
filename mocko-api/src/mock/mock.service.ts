@@ -3,11 +3,14 @@ import {Mock} from "./data/mock.entity";
 import {CreateMockRequestDto} from "./data/create-mock-request.dto";
 import {MockRepository} from "./mock.repository";
 import {MockOptions} from "./data/mock-options.entity";
+import {RedisProvider} from "../redis/redis.provider";
+import {DEPLOY_CHANNEL} from "./mock.constants";
 
 @Injectable()
 export class MockService {
     constructor(
         private readonly repository: MockRepository,
+        private readonly redisProvider: RedisProvider,
     ) { }
 
     async listAll(): Promise<Mock[]> {
@@ -30,5 +33,6 @@ export class MockService {
         const options = new MockOptions(mocks);
 
         await this.repository.setOptions(options);
+        await this.redisProvider.publish(DEPLOY_CHANNEL);
     }
 }
