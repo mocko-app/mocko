@@ -1,25 +1,18 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
-  "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
+  "short_name": "Mocko",
+  "name": "Mocko - Mocking made easy",
+  "icons": [{
+      "src": "https://cdn.codetunnel.net/cdt/icon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "32x32"
     },
     {
-      "src": "logo512.png",
+      "src": "https://cdn.codetunnel.net/cdt/logo.png",
       "type": "image/png",
       "sizes": "512x512"
-    }
-  ],
+    }],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#4CAF50",
+  "background_color": "#151515"
 }
