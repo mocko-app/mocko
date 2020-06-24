@@ -1,0 +1,37 @@
+# Name override for the chart
+name: ""
+# Mock version to use
+version: latest
+
+proxy:
+  # URL of your actual API which will be proxied by mocko
+  uri: "https://jsonplaceholder.typicode.com"
+  # Set to true to override the cors rules defined by the API. Set to false to proxy OPTIONS requests to the API
+  cors: true
+  # Number of proxy replicas
+  replicas: 1
+
+redis:
+  host: "redis-headless.default.svc.cluster.local"
+  port: 6379
+  password: ""
+  database: 0
+
+# Proxy service to be exposed
+service:
+  type: ClusterIP
+  port: 8080
+
+# Proxy resources, we recommend to increase it for higher loads
+resources:
+   requests:
+     cpu: 50m
+     memory: 30Mi
+   limits:
+     cpu: 500m
+     memory: 70Mi
+
+# Selectors, tolerations and affinity for all pods
+nodeSelector: {}
+tolerations: []
+affinity: {}

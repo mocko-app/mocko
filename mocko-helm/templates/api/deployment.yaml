@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mocko.fullname" . }}-api
+  labels:
+    app.kubernetes.io/name: mocko-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mocko-api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mocko-api
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: mocko-api
+          image: "gabrielctpinheiro/mocko-api:{{ .Values.version }}"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+# TODO probes
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 50Mi
+            limits:
+              cpu: 150m
+              memory: 70Mi
+          volumeMounts:
+          - name: config-volume
+            mountPath: "/home/mocko/.env"
+            subPath: ".env"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "mocko.fullname" . }}-api-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

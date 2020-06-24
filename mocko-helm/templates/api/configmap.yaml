@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mocko.fullname" . }}-api-config
+data:
+  .env: |
+    SERVER_PORT=8080
+    # Morgan logging level configuration, check available tokens: https://github.com/expressjs/morgan#tokens
+    SERVER_LOGGING-LEVEL=[:date[clf]] ":method :url" :status :response-time ms :res[content-length] bytes
+
+    REDIS_PORT={{ .Values.redis.port }}
+    REDIS_HOST={{ .Values.redis.host }}
+    REDIS_PASSWORD={{ .Values.redis.password }}
+    REDIS_DATABASE={{ .Values.redis.database }}
+    REDIS_PREFIX={{ include "mocko.fullname" . }}

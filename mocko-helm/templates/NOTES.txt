@@ -1,0 +1,7 @@
+1. Access the UI by running this command:
+kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "mocko.fullname" . }}-ui 4000:8080
+And opening http://localhost:4000/ in your browser
+
+2. Access the proxy and mocks by running this command:
+kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "mocko.fullname" . }}-proxy 8080:{{ .Values.service.port }}
+And use localhost:8080 as it's host

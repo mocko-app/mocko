@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mocko.fullname" . }}-proxy-config
+data:
+  .env: |
+    SERVER_HOST=0.0.0.0
+    SERVER_PORT=8080
+    SERVER_ALLOW-CORS={{ .Values.proxy.cors }}
+    SERVER_LOG-FORMAT=[:time[iso] response] ":method :url" :status :responseTime ms :res[content-length] bytes
+
+    PROXY_BASE-URI={{ .Values.proxy.uri }}
+
+    REDIS_ENABLED=true
+    REDIS_PORT={{ .Values.redis.port }}
+    REDIS_HOST={{ .Values.redis.host }}
+    REDIS_PASSWORD={{ .Values.redis.password }}
+    REDIS_DATABASE={{ .Values.redis.database }}
+    REDIS_PREFIX={{ include "mocko.fullname" . }}
