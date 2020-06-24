@@ -13,6 +13,5 @@ RUN npm run build
 
 FROM nginx:1.16.1-alpine
 
-COPY --from=builder /home/mocko/nginx.conf /etc/nginx
 COPY --from=builder /home/mocko/build /usr/share/nginx/html/build
 RUN rm /usr/share/nginx/html/*.html
