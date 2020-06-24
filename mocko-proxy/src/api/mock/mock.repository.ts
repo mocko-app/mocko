@@ -19,7 +19,13 @@ export class MockRepository {
     }
 
     async getRedisMockOptions(): Promise<MockOptions> {
-        return await this.redis.get<MockOptions>(REDIS_OPTIONS_DEPLOYMENT);
+        const mocks = await this.redis.get<MockOptions>(REDIS_OPTIONS_DEPLOYMENT);
+
+        if(!mocks) {
+            return { mocks: [] };
+        }
+
+        return mocks;
     }
 
     async getMockOptions(): Promise<MockOptions> {
