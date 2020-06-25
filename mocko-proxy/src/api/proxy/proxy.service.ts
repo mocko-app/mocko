@@ -1,13 +1,16 @@
 import {Service} from "../../utils/decorators/service";
-import {ConfigProvider} from "../../config/config.service";
+import {configProvider} from "../../config/config.service";
+
+const BASE_URI = configProvider.get('PROXY_BASE-URI');
 
 @Service()
 export class ProxyService {
-    constructor(
-        private readonly config: ConfigProvider,
-    ) { }
+
+    isProxyEnabled(): boolean {
+        return Boolean(BASE_URI.trim());
+    }
 
     getProxyUri(): string {
-        return this.config.get('PROXY_BASE-URI') + '{path}';
+        return BASE_URI + '{path}';
     }
 }

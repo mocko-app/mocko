@@ -10,6 +10,7 @@ data:
     SERVER_LOG-FORMAT=[:time[iso] response] ":method :url" :status :responseTime ms :res[content-length] bytes
 
     PROXY_BASE-URI={{ .Values.proxy.uri }}
+    PROXY_TIMEOUT-MILLIS={{ .Values.proxy.timeoutMillis }}
 
     REDIS_ENABLED=true
     REDIS_PORT={{ .Values.redis.port }}

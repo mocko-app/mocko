@@ -4,8 +4,10 @@ name: ""
 version: latest
 
 proxy:
-  # URL of your actual API which will be proxied by mocko
-  uri: "https://jsonplaceholder.typicode.com"
+  # URL of your actual API which will be proxied by mocko, leave it blank to disable proxying
+  uri: ""
+  # Milliseconds to wait for a response before replying with 504 Gateway Timeout
+  timeoutMillis: 180000
   # Set to true to override the cors rules defined by the API. Set to false to proxy OPTIONS requests to the API
   cors: true
   # Number of proxy replicas
