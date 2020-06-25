@@ -16,4 +16,4 @@ data:
     REDIS_HOST={{ .Values.redis.host }}
     REDIS_PASSWORD={{ .Values.redis.password }}
     REDIS_DATABASE={{ .Values.redis.database }}
-    REDIS_PREFIX={{ include "mocko.fullname" . }}
+    REDIS_PREFIX={{ include "mocko.fullname" . }}:
