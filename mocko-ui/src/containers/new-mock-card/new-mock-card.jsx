@@ -58,7 +58,7 @@ export function DumbNewMockCard({ onDeploy }) {
                 <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
                 <Column>
                     <CardText>Response code</CardText>
-                    <StatusInput type="number" value={status} onChange={e => setStatus(e.target.value)}/>
+                    <StatusInput type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
                     <CardText>Headers</CardText>
                     <HeaderInputGroup
                         headers={headers}
