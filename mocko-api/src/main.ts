@@ -10,7 +10,7 @@ const LOGGING_LEVEL = configService.get('SERVER_LOGGING-LEVEL');
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    app.use(morgan(LOGGING_LEVEL));
+    app.use(morgan(LOGGING_LEVEL, { skip: req => req.url === '/health' }));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     app.enableCors();
 

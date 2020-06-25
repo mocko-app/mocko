@@ -41,4 +41,8 @@ export class RedisProvider {
             listener.onMessage(message, server);
         });
     }
+
+    async ping() {
+        return await this.connector.ping();
+    }
 }

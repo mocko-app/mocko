@@ -40,4 +40,8 @@ export class RedisProvider {
     async publish(channel: string, message = '') {
         await this.connector.publish(channel, message);
     }
+
+    async ping() {
+        return await this.connector.ping();
+    }
 }

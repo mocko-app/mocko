@@ -24,15 +24,20 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
-# TODO probes
-#          livenessProbe:
-#            httpGet:
-#              path: /
-#              port: http
-#          readinessProbe:
-#            httpGet:
-#              path: /
-#              port: http
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 4
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            failureThreshold: 2
+            httpGet:
+              path: /health
+              port: http
           volumeMounts:
             - name: config-volume
               mountPath: "/home/mocko/.env"
