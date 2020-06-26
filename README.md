@@ -23,10 +23,10 @@ Installation on your Kubernetes cluster using helm is pretty simple:
 ```
 helm repo add cdt https://cdn.codetunnel.net/helm
 
-helm install cdt/mocko -n mocko --set \
-        redis.host=YOUR.REDIS.HOST, \
-        redis.password=YOUR_REDIS_PASSWORD, \
-        proxy.uri=http://your-real-api.url/v1
+helm install mocko cdt/mocko --set \
+redis.host=YOUR.REDIS.HOST,\
+redis.password=YOUR_REDIS_PASSWORD,\
+proxy.uri=http://your-real-api.url/v1
 ```
 The other chart values you might want to change are:
 | **Chart Value**     | **Description**                                                                                              | **Default**                              |
