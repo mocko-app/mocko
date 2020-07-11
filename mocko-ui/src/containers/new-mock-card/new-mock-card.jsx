@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {Card} from "../../components/card/card";
 import {Column, Split} from "../../layouts/split/styles";
 import {CardText} from "../../components/card/styles";
@@ -8,7 +8,7 @@ import {Button} from "../../components/button/button";
 import {HeaderInputGroup} from "./header-input";
 import {PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
-import {client} from "../../utils";
+import {Mocks} from "../../contexts/mock";
 
 const DEFAULT_HEADERS = [{
     id: Date.now(),
@@ -20,13 +20,14 @@ const DEFAULT_HEADERS = [{
     value: ''
 }];
 
-export function DumbNewMockCard({ onDeploy }) {
+export function NewMockCard() {
     const [headers, setHeaders] = useState(DEFAULT_HEADERS);
     const [body, setBody] = useState('{\n  "foo": "bar"\n}\n');
     const [status, setStatus] = useState(200);
     const [method, setMethod] = useState('GET');
     const [path, setPath] = useState('/cats/{name}');
     const [isLoading, setLoading] = useState(false);
+    const { createMock } = useContext(Mocks);
 
     const buildHeaders = () => Object.fromEntries(headers
         .filter(h => h.key && h.value)
@@ -46,7 +47,11 @@ export function DumbNewMockCard({ onDeploy }) {
         }
 
         setLoading(true);
-        await onDeploy(buildHeaders(), body, status, method, path);
+        await createMock({
+            method, path, response: {
+                body, headers: buildHeaders(), code: status
+            }
+        }).catch(() => alert('Oops, failed to create mock'));
         reset();
     };
 
@@ -74,17 +79,4 @@ export function DumbNewMockCard({ onDeploy }) {
             </Split>
         </Card>
     );
-}
-
-export function NewMockCard() {
-    const deploy = async (headers, body, status, method, path) => {
-        await client.post('/mocks', {
-            method, path, response: {
-                body, headers, code: status
-            }
-        });
-        window.location.reload();
-    };
-
-    return <DumbNewMockCard onDeploy={ deploy }/>
 }
