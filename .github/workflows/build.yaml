@@ -1,0 +1,48 @@
+name: Build and publish
+
+on:
+  push:
+    tags:
+      - 1.*
+
+jobs:
+
+  publish-api:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker build and push
+      uses: docker/build-push-action@v1
+      with:
+        username: gabrielctpinheiro
+        password: ${{ secrets.DOCKERHUB_SECRET }}
+        repository: gabrielctpinheiro/mocko-api
+        tags: latest
+        tag_with_ref: true
+        path: mocko-api
+  publish-proxy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker build and push
+      uses: docker/build-push-action@v1
+      with:
+        username: gabrielctpinheiro
+        password: ${{ secrets.DOCKERHUB_SECRET }}
+        repository: gabrielctpinheiro/mocko-proxy
+        tags: latest
+        tag_with_ref: true
+        path: mocko-proxy
+  publish-ui:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker build and push
+      uses: docker/build-push-action@v1
+      with:
+        username: gabrielctpinheiro
+        password: ${{ secrets.DOCKERHUB_SECRET }}
+        repository: gabrielctpinheiro/mocko-ui
+        tags: latest
+        tag_with_ref: true
+        path: mocko-ui
