@@ -1,9 +1,9 @@
-import {Inject, Injectable} from '@nestjs/common';
+import {Inject, Injectable, OnApplicationShutdown} from '@nestjs/common';
 import * as Redis from 'ioredis';
 import {REDIS_CONNECTOR} from './redis.constants';
 
 @Injectable()
-export class RedisProvider {
+export class RedisProvider implements OnApplicationShutdown {
     constructor(
         @Inject(REDIS_CONNECTOR)
         private readonly connector: Redis.Redis,
@@ -43,5 +43,9 @@ export class RedisProvider {
 
     async ping() {
         return await this.connector.ping();
+    }
+
+    onApplicationShutdown() {
+        this.connector.disconnect();
     }
 }

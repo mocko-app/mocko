@@ -13,6 +13,7 @@ async function bootstrap() {
     app.use(morgan(LOGGING_LEVEL, { skip: req => req.url === '/health' }));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     app.enableCors();
+    app.enableShutdownHooks();
 
     await app.listen(PORT);
 }
