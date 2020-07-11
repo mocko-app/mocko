@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  redis:
+    image: 'redis:6-alpine'
+
+  mocko-api:
+    build: '../mocko-api'
+    ports:
+    - '8081:8080'
+    environment:
+      - REDIS_HOST=redis
