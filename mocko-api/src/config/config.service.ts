@@ -8,7 +8,7 @@ export class ConfigService {
 
     constructor(configPath: string, defaultConfigPath: string) {
         this.assertConfig(configPath, defaultConfigPath);
-        this.config = this.fromFile(configPath);
+        this.config = { ...this.fromFile(configPath), ...process.env };
     }
 
     get(key: string): string {
