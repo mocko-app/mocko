@@ -6,3 +6,4 @@
 .settings/
 *.sublime-workspace
 .vscode/*
+/compose/data

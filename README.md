@@ -41,7 +41,17 @@ The other chart values you might want to change are:
 | redis.database      | Redis database                                                                                               | 0                                        |
 
 ### Docker Compose complete stack
-Not documented yet 😬
+Clone this repository and start docker compose:
+```
+git clone https://github.com/gabriel-pinheiro/mocko.git
+cd mocko
+sudo docker-compose up
+```
+
+Access http://localhost:8080/ for the UI. Mocks will be served on `localhost:8081`
+
+To change settings, modify the configuration files on `./compose/config`. You might want to change
+`./compose/config/proxy/.env` to enable proxied mode.
 
 ### Docker Compose standalone mode
 Not documented yet 😬

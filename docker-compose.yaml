@@ -1,0 +1,28 @@
+version: '2'
+
+services:
+  redis:
+    image: 'redis:6-alpine'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - './compose/data/redis:/bitnami/redis/data'
+
+  mocko-ui:
+    image: 'gabrielctpinheiro/mocko-ui:1.0.0'
+    ports:
+      - '8080:80'
+    volumes:
+      - './compose/config/ui/nginx.conf:/etc/nginx/nginx.conf'
+
+  mocko-api:
+    image: 'gabrielctpinheiro/mocko-api:1.0.0'
+    volumes:
+      - './compose/config/api/.env:/home/mocko/.env'
+
+  mocko-proxy:
+    image: 'gabrielctpinheiro/mocko-proxy:1.0.0'
+    ports:
+      - '8081:8080'
+    volumes:
+      - './compose/config/proxy/.env:/home/mocko/.env'
