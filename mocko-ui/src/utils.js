@@ -21,5 +21,5 @@ export const sleep = time => new Promise(resolve => setTimeout(resolve, time));
 export const trace = tag => x => console.log(tag, x) || x;
 
 export const client = axios.create({
-    baseURL: '/_'
+    baseURL: process.env.REACT_APP_API_URL
 });
