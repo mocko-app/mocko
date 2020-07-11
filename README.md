@@ -54,7 +54,25 @@ To change settings, modify the configuration files on `./compose/config`. You mi
 `./compose/config/proxy/.env` to enable proxied mode.
 
 ### Docker Compose standalone mode
-Not documented yet 😬
+Copy the `./mocko-proxy/mocks.json` file to your project root and add this service to your compose:
+```yaml
+version: '2'
+
+services:
+  mocko-proxy:
+    image: 'gabrielctpinheiro/mocko-proxy:1.0.0'
+    environment:
+      - PROXY_BASE-URI=
+    ports:
+      - '8080:8080'
+    volumes:
+      - 'mocks.json:/home/mocko/mocks.json'
+```
+You can set your API URL in the environment variable `PROXY_BASE-URI`.
+
+Any setting can be changed from the environment variables.
+
+Change the mocks.json file to update your mocks.
 
 
 ## Usage
