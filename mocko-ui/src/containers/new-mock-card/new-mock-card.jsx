@@ -2,13 +2,16 @@ import React, {useContext, useState} from 'react';
 import {Card} from "../../components/card/card";
 import {Column, Split} from "../../layouts/split/styles";
 import {CardText} from "../../components/card/styles";
-import {TextArea} from "../../components/text-area/text-area";
 import {Right} from "../../layouts/right/right";
 import {Button} from "../../components/button/button";
 import {HeaderInputGroup} from "./header-input";
 import {PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
 import {Mocks} from "../../contexts/mock";
+import AceEditor from "react-ace";
+
+import "ace-builds/src-noconflict/mode-json";
+import "ace-builds/src-noconflict/theme-tomorrow_night_eighties";
 
 const DEFAULT_HEADERS = [{
     id: Date.now(),
@@ -20,9 +23,11 @@ const DEFAULT_HEADERS = [{
     value: ''
 }];
 
+const DEFAULT_BODY = '{\n  "foo": "bar"\n}\n';
+
 export function NewMockCard() {
     const [headers, setHeaders] = useState(DEFAULT_HEADERS);
-    const [body, setBody] = useState('{\n  "foo": "bar"\n}\n');
+    const [body, setBody] = useState(DEFAULT_BODY);
     const [status, setStatus] = useState(200);
     const [method, setMethod] = useState('GET');
     const [path, setPath] = useState('/cats/{name}');
@@ -71,7 +76,21 @@ export function NewMockCard() {
                 </Column>
                 <Column>
                     <CardText>Response body</CardText>
-                    <TextArea value={body} onChange={e => setBody(e.target.value)}/>
+                    <AceEditor
+                        placeholder={DEFAULT_BODY}
+                        mode="json"
+                        theme="tomorrow_night_eighties"
+                        name="body-editor"
+                        value={body}
+                        onChange={setBody}
+                        fontSize={16}
+                        height="12rem"
+                        width="100%"
+                        setOptions={{
+                            enableLiveAutocompletion: true,
+                            enableBasicAutocompletion: true,
+                            tabSize: 2,
+                        }}/>
                 </Column>
                 <Right padding="m">
                     <Button onClick={ deploy }>Save & Deploy</Button>

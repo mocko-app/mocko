@@ -53,6 +53,18 @@ html {
     transform: scale(0.8);
 }
 
+.ace_editor * {
+    font-family: "Roboto Mono", monospace;
+}
+
+.ace_editor {
+    display: block;
+    width: 100%;
+    margin: 0.5rem auto;
+    font-family: 'Roboto Mono', monospace;
+    border-radius: var(--radius);
+}
+
 ::-webkit-scrollbar {
     width: 0.5rem;
     height: 0.5rem;
