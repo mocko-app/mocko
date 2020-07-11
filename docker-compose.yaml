@@ -3,10 +3,8 @@ version: '2'
 services:
   redis:
     image: 'redis:6-alpine'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
     volumes:
-      - './compose/data/redis:/bitnami/redis/data'
+      - './compose/data/redis:/data'
 
   mocko-ui:
     image: 'gabrielctpinheiro/mocko-ui:1.0.1'
