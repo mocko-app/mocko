@@ -80,3 +80,6 @@ You can create, delete and update mocks in the UI when using the complete stack
 mode (or when installing with helm).
 
 For standalone mode, check [mocko-proxy's README.md](https://github.com/gabriel-pinheiro/mocko/blob/master/mocko-proxy/README.md)
+
+## For installation, usage or any help, email me:
+![](https://cdn.codetunnel.net/gabrielpinheiro/email.png)
