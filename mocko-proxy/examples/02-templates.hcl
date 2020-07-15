@@ -1,13 +1,6 @@
 # Mocking cat resources
 mock "GET /cats/{name}" {
-  # For templating the status, you can set it to a string and use handlerbars with handlerbars-helpers functions
-  status = <<-EOF
-  {{#startsWith 'g' (downcase request.params.name) }}
-    200
-  {{else}}
-    404
-  {{/startsWith}}
-  EOF
+  status = 200
 
   headers {
     Content-Type    = "application/json"
@@ -15,6 +8,9 @@ mock "GET /cats/{name}" {
 
   # Response body accepts handlebars syntax with handlebars-helpers functions, available fields are:
   # request: { params, headers, query, body }
+  # For documentation check:
+  # https://handlebarsjs.com/guide/#nested-input-objects
+  # https://github.com/helpers/handlebars-helpers
   body = <<-EOF
   {{#startsWith 'g' (downcase request.params.name) }}
     {
@@ -22,6 +18,8 @@ mock "GET /cats/{name}" {
       "name": "{{capitalizeAll request.params.name }}"
     }
   {{else}}
+    {{! You can set the status conditionally from here with the 'setStatus' helper }}
+    {{setStatus 404}}
     {
       "error": "Not found error",
       "message": "Cat not found"

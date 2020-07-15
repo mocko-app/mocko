@@ -1,7 +1,7 @@
 import mock = jest.mock;
 
 export type MockResponse = {
-    code: number | string,
+    code: number,
     body: string,
     headers: Record<string, string>
 };

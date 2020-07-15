@@ -22,22 +22,19 @@ export class MockService {
 
     private buildHandler(response: MockResponse): Lifecycle.Method {
         const bodyTemplate = Handlebars.compile(response.body);
-        const statusTemplate = typeof response.code === 'string' && Handlebars.compile(response.code);
 
         return (request: Request, h: ResponseToolkit): ResponseObject => {
             const { params, headers, query, payload: body } = request;
-            const context = {
-                request: { params, headers, query, body }
-            };
+            const { code: status } = response;
 
-            let status = response.code;
-            if(typeof status === 'string') {
-                status = Number(statusTemplate(context));
-            }
+            const context = {
+                request: { params, headers, query, body },
+		        response: { status },
+            };
 
             const res = h
                 .response(bodyTemplate(context))
-                .code(status);
+                .code(context.response.status);
 
             Object.entries(response.headers).forEach(([key, value]) =>
                 res.header(key, value));
@@ -53,6 +50,13 @@ export class MockService {
             'number', 'object', 'path', 'regex', 'string', 'url'
         ],{
             handlebars: Handlebars,
+        });
+
+        Handlebars.registerHelper('setStatus', function(status) {
+            // TODO throw error when setting to string or invalid number
+            // TODO extract to helpers
+		
+            this.response.status = status;
         });
     }
 }
