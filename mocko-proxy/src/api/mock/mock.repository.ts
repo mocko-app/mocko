@@ -1,9 +1,10 @@
 import {Provider} from "../../utils/decorators/provider";
 import * as fs from "fs";
-import {MockOptions} from "./data/mock-options";
+import {MockOptions, optionsFromConfig} from "./data/mock-options";
 import {promisify} from "util";
 import {RedisProvider} from "../../redis/redis.provider";
 import {REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
+import {parse} from 'hcl-parser';
 
 const readFile = promisify(fs.readFile);
 
@@ -14,8 +15,10 @@ export class MockRepository {
     ) { }
 
     async getFileMockOptions(): Promise<MockOptions> {
-        const buffer = await readFile('./mocks.json');
-        return JSON.parse(buffer.toString()) as MockOptions;
+        const buffer = await readFile('./mocks.hcl');
+        const data = parse(buffer.toString());
+
+        return optionsFromConfig(data[0]);
     }
 
     async getRedisMockOptions(): Promise<MockOptions> {

@@ -18,6 +18,6 @@ WORKDIR /home/mocko
 COPY --from=builder /home/prod_modules ./node_modules
 COPY --from=builder /home/mocko/dist ./dist
 COPY default.env .
-COPY mocks.json .
+COPY mocks.hcl .
 
 CMD ["node", "dist/main"]

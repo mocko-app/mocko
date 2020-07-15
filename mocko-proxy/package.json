@@ -43,6 +43,7 @@
     "@hapi/hapi": "^19.1.1",
     "dotenv": "^8.2.0",
     "fs": "0.0.1-security",
+    "hcl-parser": "^0.1.1",
     "inversify": "^5.0.1",
     "ioredis": "^4.17.3",
     "laabr": "^6.1.1",
