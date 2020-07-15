@@ -43,6 +43,8 @@
     "@hapi/hapi": "^19.1.1",
     "dotenv": "^8.2.0",
     "fs": "0.0.1-security",
+    "handlebars": "^4.7.6",
+    "handlebars-helpers": "^0.10.0",
     "hcl-parser": "^0.1.1",
     "inversify": "^5.0.1",
     "ioredis": "^4.17.3",
@@ -53,6 +55,8 @@
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
+    "@types/handlebars": "^4.1.0",
+    "@types/handlebars-helpers": "^0.5.2",
     "@types/hapi": "^18.0.3",
     "@types/hapi__boom": "^9.0.1",
     "@types/hapi__h2o2": "^8.3.1",
