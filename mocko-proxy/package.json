@@ -7,7 +7,7 @@
     "prebuild": "rimraf dist",
     "build": "tsc",
     "start": "node dist/main",
-    "start:dev": "ts-node src/main.ts",
+    "start:dev": "nodemon --config nodemon.json",
     "start:prod": "node dist/main",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -65,6 +65,7 @@
     "@types/jest": "^26.0.0",
     "@types/node": "^14.0.13",
     "jest": "^26.0.1",
+    "nodemon": "^2.0.4",
     "ts-jest": "^26.1.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
