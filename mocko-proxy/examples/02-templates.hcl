@@ -3,7 +3,7 @@ mock "GET /cats/{name}" {
   status = 200
 
   headers {
-    Content-Type    = "application/json"
+    Content-Type = "application/json"
   }
 
   # Response body accepts handlebars syntax with handlebars-helpers functions, available fields are:

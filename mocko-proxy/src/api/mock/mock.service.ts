@@ -16,11 +16,11 @@ export class MockService {
         this.registerHandlebarsHelpers();
 
         return options.mocks.map(({ method, path, response }) => ({
-            method, path, handler: this.buildHandler(response)
+            method, path, handler: this.buildHandler(response, options.data)
         }));
     }
 
-    private buildHandler(response: MockResponse): Lifecycle.Method {
+    private buildHandler(response: MockResponse, data: Record<string, any> = {}): Lifecycle.Method {
         const bodyTemplate = Handlebars.compile(response.body);
 
         return (request: Request, h: ResponseToolkit): ResponseObject => {
@@ -30,6 +30,7 @@ export class MockService {
             const context = {
                 request: { params, headers, query, body },
 		        response: { status },
+                data
             };
 
             const res = h
