@@ -23,7 +23,7 @@ const DEFAULT_HEADERS = [{
     value: ''
 }];
 
-const DEFAULT_BODY = '{\n  "foo": "bar"\n}\n';
+const DEFAULT_BODY = '{\n  "name": "{{ request.params.name }}"\n}\n';
 
 export function NewMockCard() {
     const [headers, setHeaders] = useState(DEFAULT_HEADERS);
