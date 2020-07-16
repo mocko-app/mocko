@@ -1,6 +1,6 @@
 {
   "name": "mocko-proxy",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined",
   "main": "src/main.ts",
   "scripts": {
