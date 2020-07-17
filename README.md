@@ -66,7 +66,7 @@ services:
     ports:
       - '8080:8080'
     volumes:
-      - 'mocks.hcl:/home/mocko/mocks.hcl'
+      - './mocks.hcl:/home/mocko/mocks.hcl'
 ```
 You can set your API URL in the environment variable `PROXY_BASE-URI`.
 
@@ -79,7 +79,11 @@ Change the mocks.hcl file to update your mocks.
 You can create, delete and update mocks in the UI when using the complete stack
 mode (or when installing with helm).
 
-For standalone mode, check [mocko-proxy's README.md](https://github.com/gabriel-pinheiro/mocko/blob/master/mocko-proxy/README.md)
+For standalone mode check
+[mocko-proxy's README.md](https://github.com/gabriel-pinheiro/mocko/blob/master/mocko-proxy/README.md)
+
+For templating examples check
+[mocko-proxy's examples](https://github.com/gabriel-pinheiro/mocko/tree/master/mocko-proxy/examples)
 
 ## For installation, usage or any help, email me:
 ![](https://cdn.codetunnel.net/gabrielpinheiro/email.png)
