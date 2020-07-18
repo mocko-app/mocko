@@ -2,11 +2,12 @@ import React from 'react';
 import {Portal} from "../../layouts/portal/portal";
 import {Backdrop, CtxIcon, CtxNavbar} from "./styles";
 import {Link} from "react-router-dom";
+import {withAnimation} from "../../hoc/with-animation";
 
-export function Context({ title, children }) {
+function BaseContext({ title, children, visibility }) {
     return (
     <Portal>
-        <CtxNavbar>
+        <CtxNavbar visibility={ visibility }>
             <Link to="/">
                 <CtxIcon>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,9 +17,11 @@ export function Context({ title, children }) {
             </Link>
             { title }
         </CtxNavbar>
-        <Backdrop>
+        <Backdrop visibility={ visibility }>
             { children }
         </Backdrop>
     </Portal>
     );
 }
+
+export const Context = withAnimation(300, 150, true)(BaseContext);

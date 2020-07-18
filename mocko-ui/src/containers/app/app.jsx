@@ -21,10 +21,9 @@ export function App() {
                 <AppView>
                     <Navbar>Mocko</Navbar>
                     <MockList/>
-                    <Route path="/new-mock">
-                        <NewMockCtx/>
-                    </Route>
                 </AppView>
+
+                <NewMockCtx/>
             </BrowserRouter>
         </Mocks.Provider>
     );
