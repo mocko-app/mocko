@@ -3,6 +3,7 @@ import {List} from "../../components/list/list";
 import {MockItem} from "../mock-item/mock-item";
 import {Spinner} from "../../components/spinner/spinner";
 import {Mocks} from "../../contexts/mock";
+import {NewMock} from "./new-mock";
 
 export function MockList() {
     const { mocks, isLoading, hasError, removeMock } = useContext(Mocks);
@@ -18,6 +19,7 @@ export function MockList() {
         <List>
             {mocks.map(mock =>
                 <MockItem key={mock.id} method={mock.method} path={mock.path} onRemove={() => removeMock(mock.id)}/>)}
+            <NewMock/>
         </List>
     );
 }

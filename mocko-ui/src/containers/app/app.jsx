@@ -18,7 +18,6 @@ export function App() {
             <AppView>
                 <Navbar>Mocko</Navbar>
                 <MockList/>
-                <NewMockCard/>
             </AppView>
         </Mocks.Provider>
     );
