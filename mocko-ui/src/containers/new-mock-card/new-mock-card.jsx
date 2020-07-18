@@ -9,6 +9,7 @@ import {PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
 import {Mocks} from "../../contexts/mock";
 import AceEditor from "react-ace";
+import {useHistory} from "react-router-dom";
 
 import "ace-builds/src-noconflict/mode-json";
 import "ace-builds/src-noconflict/theme-tomorrow_night_eighties";
@@ -33,18 +34,11 @@ export function NewMockCard() {
     const [path, setPath] = useState('/cats/{name}');
     const [isLoading, setLoading] = useState(false);
     const { createMock } = useContext(Mocks);
+    const history = useHistory();
 
     const buildHeaders = () => Object.fromEntries(headers
         .filter(h => h.key && h.value)
         .map(h => [h.key, h.value]));
-
-    const reset = () => {
-        setLoading(false);
-        setHeaders(DEFAULT_HEADERS);
-        setBody('');
-        setStatus(200);
-        setPath('');
-    };
 
     const deploy = async () => {
         if(isLoading) {
@@ -57,11 +51,11 @@ export function NewMockCard() {
                 body, headers: buildHeaders(), code: status
             }
         }).catch(() => alert('Oops, failed to create mock'));
-        reset();
+        history.push("/");
     };
 
     return (
-        <Card title="New mock" isLoading={ isLoading }>
+        <Card isLoading={ isLoading }>
             <Split>
                 <CardText>Method and path</CardText><br/>
                 <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>

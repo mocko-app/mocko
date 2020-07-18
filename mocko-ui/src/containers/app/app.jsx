@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
 import {AppView} from "./styles";
 import {Navbar} from "../../components/navbar/navbar";
-import {NewMockCard} from "../new-mock-card/new-mock-card";
 import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
+import {BrowserRouter} from "react-router-dom";
+import Route from "react-router-dom/es/Route";
+import {NewMockCtx} from "../new-mock-ctx/new-mock-ctx";
 
 export function App() {
     const mocks = useMocks();
@@ -15,10 +17,15 @@ export function App() {
 
     return (
         <Mocks.Provider value={mocks}>
-            <AppView>
-                <Navbar>Mocko</Navbar>
-                <MockList/>
-            </AppView>
+            <BrowserRouter>
+                <AppView>
+                    <Navbar>Mocko</Navbar>
+                    <MockList/>
+                    <Route path="/new-mock">
+                        <NewMockCtx/>
+                    </Route>
+                </AppView>
+            </BrowserRouter>
         </Mocks.Provider>
     );
 }
