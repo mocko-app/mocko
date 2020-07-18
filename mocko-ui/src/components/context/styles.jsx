@@ -1,11 +1,10 @@
 import styled from "styled-components";
 import {NavbarView} from "../navbar/styles";
 import {IconView} from "../icon/styles";
-import {AppView} from "../../containers/app/styles";
 import {HIDING, SHOWING} from "../../hoc/with-animation";
 
 export const CtxNavbar = styled(NavbarView)`
-  background-color: #323232;
+  background-color: #424242;
   padding-left: 4rem;
   transition: 500ms opacity cubic-bezier(0.4, 0.0, 0.2, 1);
 
