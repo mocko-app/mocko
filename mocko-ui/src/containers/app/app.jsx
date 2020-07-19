@@ -4,7 +4,6 @@ import {Navbar} from "../../components/navbar/navbar";
 import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
 import {BrowserRouter} from "react-router-dom";
-import Route from "react-router-dom/es/Route";
 import {NewMockCtx} from "../new-mock-ctx/new-mock-ctx";
 
 export function App() {
