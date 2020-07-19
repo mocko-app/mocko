@@ -5,7 +5,6 @@ import {useLocation} from 'react-router-dom';
 
 export function NewMockCtx() {
     const location = useLocation();
-    console.log(location);
 
     return (
     <Context title="New mock" isShown={location.pathname === '/new-mock'}>
