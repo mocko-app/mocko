@@ -4,6 +4,7 @@ import {Lifecycle, Request, ResponseObject, ResponseToolkit, ServerRoute} from "
 import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
 import * as helpers from 'handlebars-helpers';
+import {sleep} from "../../utils/utils";
 
 @Service()
 export class MockService {
@@ -23,7 +24,7 @@ export class MockService {
     private buildHandler(response: MockResponse, data: Record<string, any> = {}): Lifecycle.Method {
         const bodyTemplate = Handlebars.compile(response.body);
 
-        return (request: Request, h: ResponseToolkit): ResponseObject => {
+        return async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
             const { params, headers, query, payload: body } = request;
             const { code: status } = response;
 
@@ -32,6 +33,10 @@ export class MockService {
 		        response: { status },
                 data
             };
+
+            if(response.delay) {
+                await sleep(response.delay);
+            }
 
             const res = h
                 .response(bodyTemplate(context))

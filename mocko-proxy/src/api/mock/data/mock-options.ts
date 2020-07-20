@@ -1,7 +1,6 @@
-import mock = jest.mock;
-
 export type MockResponse = {
     code: number,
+    delay?: number,
     body: string,
     headers: Record<string, string>
 };
@@ -30,7 +29,8 @@ const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
         method, path,
         response: {
             code,
-            body: res?.[0]?.body,
+            delay: res?.[0]?.delay,
+            body: res?.[0]?.body || "",
             headers: headers,
         },
     };
