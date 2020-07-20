@@ -2,7 +2,7 @@ import {Provider} from "../../utils/decorators/provider";
 import * as Hapi from '@hapi/hapi';
 import {ProxyService} from "./proxy.service";
 import * as Boom from "@hapi/boom";
-import {configProvider, ConfigProvider} from "../../config/config.service";
+import {configProvider} from "../../config/config.service";
 
 const TIMEOUT = configProvider.getNumber('PROXY_TIMEOUT-MILLIS');
 

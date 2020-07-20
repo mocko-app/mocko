@@ -5,11 +5,13 @@ import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
 import * as helpers from 'handlebars-helpers';
 import {sleep} from "../../utils/utils";
+import {ProxyController} from "../proxy/proxy.controller";
 
 @Service()
 export class MockService {
     constructor(
         private readonly repository: MockRepository,
+        private readonly proxyController: ProxyController,
     ) { }
 
     async getRoutes(): Promise<ServerRoute[]> {
@@ -30,7 +32,7 @@ export class MockService {
 
             const context = {
                 request: { params, headers, query, body },
-		        response: { status },
+		        response: { status, mustProxy: false },
                 data
             };
 
@@ -38,8 +40,14 @@ export class MockService {
                 await sleep(response.delay);
             }
 
+            const resBody = bodyTemplate(context);
+
+            if(context.response.mustProxy) {
+                return await this.proxyController.proxyRequest(request, h);
+            }
+
             const res = h
-                .response(bodyTemplate(context))
+                .response(resBody)
                 .code(context.response.status);
 
             Object.entries(response.headers).forEach(([key, value]) =>
@@ -61,8 +69,14 @@ export class MockService {
         Handlebars.registerHelper('setStatus', function(status) {
             // TODO throw error when setting to string or invalid number
             // TODO extract to helpers
-		
+
             this.response.status = status;
+        });
+
+        Handlebars.registerHelper('proxy', function() {
+            // TODO extract to helpers
+
+            this.response.mustProxy = true;
         });
     }
 }
