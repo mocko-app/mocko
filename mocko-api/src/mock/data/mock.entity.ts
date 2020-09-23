@@ -13,6 +13,7 @@ export class Response {
 export class Mock {
     constructor(
         public readonly id: string,
+        public readonly name: string,
         public readonly method: HttpMethod,
         public readonly path: string,
         public readonly response: Response,
@@ -20,6 +21,6 @@ export class Mock {
 
     static ofDto(dto: CreateMockRequestDto): Mock {
         const response = new Response(dto.response.code, dto.response.body, dto.response.headers);
-        return new Mock(uuidv4(), dto.method, dto.path, response);
+        return new Mock(uuidv4(), dto.name, dto.method, dto.path, response);
     }
 }

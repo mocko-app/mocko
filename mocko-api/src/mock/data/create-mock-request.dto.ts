@@ -1,9 +1,13 @@
 import {HttpMethod} from "./http-method";
 import {ResponseDto} from "./response.dto";
-import {IsEnum, IsNotEmpty, IsString, ValidateNested} from "class-validator";
+import {IsEnum, IsNotEmpty, IsString, Length, ValidateNested} from "class-validator";
 import {Type} from "class-transformer";
 
 export class CreateMockRequestDto {
+
+    @IsString()
+    @Length(1, 24)
+    name: string;
 
     @IsEnum(HttpMethod)
     method: HttpMethod;
