@@ -38,9 +38,20 @@ export const ListItemView = styled.li`
     }
 `;
 
-export const ListItemText = styled.div`
+export const ListItemContent = styled.div`
     display: inline-block;
+    vertical-align: middle;
+`;
+
+export const ListItemTitle = styled.span`
+    font-family: Montserrat, Roboto, Arial, sans-serif;
+    font-size: 1.25rem;
     color: #FFF;
     width: 100%;
-    vertical-align: middle;
+`;
+
+export const ListItemText = styled.span`
+    color: #FFF;
+    opacity: 0.64;
+    width: 100%;
 `;

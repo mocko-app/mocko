@@ -1,10 +1,14 @@
 import React from 'react';
-import {ListItemText, ListItemView} from './styles';
+import {ListItemText, ListItemTitle, ListItemContent, ListItemView} from './styles';
 
-export function ListItem({ children, onClick }) {
+export function ListItem({ title, description, button, onClick }) {
     return (
         <ListItemView onClick={ onClick }>
-            <ListItemText>{ children }</ListItemText>
+            <ListItemContent>
+                <ListItemTitle>{ title }</ListItemTitle><br/>
+                <ListItemText>{ description }</ListItemText>
+            </ListItemContent>
+            { button }
         </ListItemView>
     );
 }

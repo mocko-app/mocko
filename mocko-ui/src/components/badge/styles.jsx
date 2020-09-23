@@ -6,6 +6,7 @@ export const BadgeView = styled.span`
     margin: 0 0.25rem;
     border-radius: 1rem;
     font-weight: 500;
+    font-size: 1rem;
 
     color: #fff;
     background-color:rgba(255, 255, 255, 0.2);
