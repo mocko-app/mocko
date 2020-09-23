@@ -5,7 +5,7 @@ import {CardText} from "../../components/card/styles";
 import {Right} from "../../layouts/right/right";
 import {Button} from "../../components/button/button";
 import {HeaderInputGroup} from "./header-input";
-import {PathInput, StatusInput} from "./styles";
+import {NameInput, PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
 import {Mocks} from "../../contexts/mock";
 import AceEditor from "react-ace";
@@ -30,6 +30,7 @@ export function NewMockCard() {
     const [headers, setHeaders] = useState(DEFAULT_HEADERS);
     const [body, setBody] = useState(DEFAULT_BODY);
     const [status, setStatus] = useState(200);
+    const [name, setName] = useState('Cat resource');
     const [method, setMethod] = useState('GET');
     const [path, setPath] = useState('/cats/{name}');
     const [isLoading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ export function NewMockCard() {
 
         setLoading(true);
         await createMock({
-            method, path, response: {
+            name, method, path, response: {
                 body, headers: buildHeaders(), code: status
             }
         }).catch(() => alert('Oops, failed to create mock'));
@@ -57,6 +58,8 @@ export function NewMockCard() {
     return (
         <Card isLoading={ isLoading }>
             <Split>
+                <CardText>Short description</CardText>
+                <NameInput type="text" value={name} onChange={e => setName(e.target.value)}/>
                 <CardText>Method and path</CardText><br/>
                 <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
                 <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
