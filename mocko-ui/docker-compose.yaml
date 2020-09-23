@@ -6,7 +6,14 @@ services:
 
   mocko-api:
     build: '../mocko-api'
-    ports:
-    - '8081:8080'
     environment:
       - REDIS_HOST=redis
+
+  meta-mocko-proxy:
+    image: 'gabrielctpinheiro/mocko-proxy:1.1.2'
+    environment:
+      - PROXY_BASE-URI=http://mocko-api:8080
+    ports:
+      - '8081:8080'
+    volumes:
+      - './mocks.hcl:/home/mocko/mocks.hcl'
