@@ -13,7 +13,7 @@ export function MockItem({ name, method, path, onRemove }) {
     );
     return (
         <ListItem
-            title={<>{name} <Badge color="green">{ method }</Badge></>}
+            title={<>{name || 'Unnamed mock'} <Badge color="green">{ method }</Badge></>}
             description={path}
             button={deleteBtn}/>
     );
