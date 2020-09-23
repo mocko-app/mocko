@@ -1,5 +1,5 @@
 apiVersion: v1
-appVersion: "1.1.2"
+appVersion: "1.1.4"
 description: "Mocking made easy, proxy your API and choose which endpoints to mock"
 name: mocko
-version: "1.1.2"
+version: "1.1.4"
