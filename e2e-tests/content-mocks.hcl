@@ -25,3 +25,19 @@ mock "GET /cats/george" {
     }
     EOF
 }
+
+mock "GET /no-status" { }
+mock "PUT /no-status" { }
+mock "POST /no-status" { }
+mock "DELETE /no-status" { }
+mock "* /wildcard-no-status" { }
+
+mock "GET /header" {
+    headers {
+        foo = "bar"
+    }
+}
+
+mock "GET /delay" {
+    delay = 500
+}
