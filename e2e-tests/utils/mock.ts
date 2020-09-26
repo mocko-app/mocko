@@ -3,18 +3,34 @@ import { api, proxy } from "./axios";
 import { v4 as uuidv4 } from "uuid";
 import { promisify } from "util";
 
-const sleep = promisify(setTimeout);
-const DEPLOY_TIME = 100;
+export const sleep = promisify(setTimeout);
+export const DEPLOY_TIME = 200;
 
-export async function mockAndGet<T>(body: string): Promise<AxiosResponse<T>> {
+export async function createMock(name: string): Promise<any> {
+    const path = `/${uuidv4()}`;
+    const { data } = await api.post('/mocks', {
+        name,
+        method: 'GET',
+        path,
+        response: {
+            code: 200,
+            headers: {},
+            body: 'body'
+        }
+    });
+    await sleep(DEPLOY_TIME);
+    return data;
+}
+
+export async function mockAndGet<T>(body: string, headers: Record<string, string> = {}, status = 200): Promise<AxiosResponse<T>> {
     const path = `/${uuidv4()}`;
     await api.post('/mocks', {
         name: 'Unnamed',
         method: 'GET',
         path,
         response: {
-            code: 200,
-            headers: {},
+            code: status,
+            headers,
             body
         }
     });

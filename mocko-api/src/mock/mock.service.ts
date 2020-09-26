@@ -17,10 +17,11 @@ export class MockService {
         return this.repository.listMocks();
     }
 
-    async create(request: CreateMockRequestDto): Promise<void> {
+    async create(request: CreateMockRequestDto): Promise<Mock> {
         const mock = Mock.ofDto(request);
         await this.repository.createMock(mock);
         await this.deploy();
+        return mock;
     }
 
     async deleteOne(id: string): Promise<void> {

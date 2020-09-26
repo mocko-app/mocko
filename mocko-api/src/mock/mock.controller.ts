@@ -16,8 +16,9 @@ export class MockController {
     }
 
     @Post()
-    async create(@Body() body: CreateMockRequestDto): Promise<void> {
-        await this.service.create(body);
+    async create(@Body() body: CreateMockRequestDto): Promise<ListMocksResponseDto> {
+        const mock = await this.service.create(body);
+        return ListMocksResponseDto.ofEntity(mock);
     }
 
     @Delete(':id')
