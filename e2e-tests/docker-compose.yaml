@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  redis:
+    image: 'redis:6-alpine'
+
+  mocko-api:
+    build: '../mocko-api'
+    ports:
+      - '8080:8080'
+    volumes:
+      - './api.env:/home/mocko/.env'
+
+  mocko-proxy:
+    build: '../mocko-proxy'
+    ports:
+      - '8081:8080'
+    volumes:
+      - './proxy.env:/home/mocko/.env'
+
+  mocko-content:
+    build: '../mocko-proxy'
+    ports:
+      - '8082:8080'
+    volumes:
+      - './content.env:/home/mocko/.env'
+      - './content-mocks.hcl:/home/mocko/mocks.hcl'

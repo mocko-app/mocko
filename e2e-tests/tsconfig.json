@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "es2019",
+      "outDir": "./dist",
+      "baseUrl": "./",
+      "incremental": true
+    }
+  }
+  
