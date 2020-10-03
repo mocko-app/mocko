@@ -22,12 +22,25 @@ describe('Mocko proxy helpers', () => {
         });
     });
 
-    // TODO add these tests
-    // describe('setHeader', () => {
-    //     it('must set the header correctly', async () => {
+    describe('setHeader', () => {
+        it('must set the header correctly', async () => {
+            const key = 'x-custom-header';
+            const value = 'my-value';
 
-    //     });
-    // });
+            const { headers } = await mockAndGet(`{{setHeader '${key}' '${value}'}}`);
+            expect(headers[key]).toBe(value);
+        });
+
+        it('must override mock headers', async () => {
+            const key = 'x-custom-header';
+            const value = 'my-value';
+
+            const { headers } = await mockAndGet(`{{setHeader '${key}' '${value}'}}`, {
+                [key]: 'wrong-value',
+            });
+            expect(headers[key]).toBe(value);
+        });
+    });
 
     // describe('proxy', () => {
     // });
