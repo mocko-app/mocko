@@ -32,7 +32,7 @@ export class MockService {
 
             const context = {
                 request: { params, headers, query, body },
-		        response: { status, mustProxy: false },
+		        response: { status, headers: {} as Record<string, string>, mustProxy: false },
                 data
             };
 
@@ -50,7 +50,7 @@ export class MockService {
                 .response(resBody)
                 .code(context.response.status);
 
-            Object.entries(response.headers).forEach(([key, value]) =>
+            Object.entries({ ...response.headers, ...context.response.headers }).forEach(([key, value]) =>
                 res.header(key, value));
 
             return res;
@@ -67,16 +67,15 @@ export class MockService {
         });
 
         Handlebars.registerHelper('setStatus', function(status) {
-            // TODO throw error when setting to string or invalid number
-            // TODO extract to helpers
-
             this.response.status = status;
         });
 
         Handlebars.registerHelper('proxy', function() {
-            // TODO extract to helpers
-
             this.response.mustProxy = true;
+        });
+
+        Handlebars.registerHelper('setHeader', function(key, value) {
+            this.response.headers[key] = value;
         });
     }
 }
