@@ -53,7 +53,13 @@ export class MockRepository {
     }
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<String> {
-        const fileNames = await readDir(path);
+        const fileNames = await readDir(path)
+            .catch(ignoreErrors());
+
+        if(!fileNames) {
+            return "";
+        }
+
         const files: FileOrDir[] = await Promise.all(fileNames.map(async (name) => {
             const stat = await lstat(`${path}/${name}`);
             const isDir = stat.isDirectory();
