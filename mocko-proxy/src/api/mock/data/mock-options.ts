@@ -17,7 +17,7 @@ export type MockOptions = {
 };
 
 const merge = (array: Record<string, any>[]): Record<string, any> =>
-    array.reduce((acc, v) => ({ ...acc, ...v }));
+    array.reduce((acc, v) => ({ ...acc, ...v }), {});
 
 const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
     const [method, ...pathParts] = req.split(" ");
@@ -37,7 +37,7 @@ const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
 };
 
 export const optionsFromConfig = (config: any): MockOptions => {
-    const mocks = Object.entries(merge(config.mock))
+    const mocks = Object.entries(merge(config.mock || []))
         .map(definitionFromConfig);
 
     const data = config.data && Object.entries(merge(config.data))
