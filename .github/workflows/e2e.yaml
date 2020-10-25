@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Building services
+      run: cd e2e-tests; docker-compose build --parallel
     - name: Spinning services up
       run: cd e2e-tests; docker-compose up -d
     - name: Preparing tests
