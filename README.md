@@ -74,6 +74,8 @@ Any setting can be changed from the environment variables.
 
 Change the mocks.hcl file to update your mocks.
 
+You can optionally mount many hcl files into the `mocks` folder (root or sub folders).
+
 
 ## Usage
 You can create, delete and update mocks in the UI when using the complete stack
