@@ -31,8 +31,12 @@ export class RedisProvider implements OnApplicationShutdown {
         await this.connector.hset(key, mapKey, JSON.stringify(mapValue));
     }
 
-    async hdel<T>(key: string, mapKey: string) {
+    async hdel(key: string, mapKey: string) {
         await this.connector.hdel(key, mapKey);
+    }
+
+    async del(key: string) {
+        await this.connector.del(key);
     }
 
     async getAll<T>(key: string): Promise<Record<string, T>> {

@@ -43,6 +43,7 @@ export class MockService {
         }
 
         await this.repository.save(mock);
+        await this.repository.deleteFailure(id);
         await this.deploy();
         return mock;
     }

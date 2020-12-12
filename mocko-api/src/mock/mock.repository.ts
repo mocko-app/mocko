@@ -18,6 +18,10 @@ export class MockRepository {
         await this.redis.hdel(REDIS_MOCK_KEY, id);
     }
 
+    async deleteFailure(id: string) {
+        await this.redis.del(`mock_failure:${id}`);
+    }
+
     async listMocks(): Promise<Mock[]> {
         const mocks = await this.redis.getAll<Mock>(REDIS_MOCK_KEY);
         return Object.values(mocks);
