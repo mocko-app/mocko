@@ -6,6 +6,7 @@ import * as Handlebars from 'handlebars';
 import * as helpers from 'handlebars-helpers';
 import {sleep} from "../../utils/utils";
 import {ProxyController} from "../proxy/proxy.controller";
+import { MockFailure } from "./data/mock-failure";
 
 @Service()
 export class MockService {
@@ -18,12 +19,12 @@ export class MockService {
         const options = await this.repository.getMockOptions();
         this.registerHandlebarsHelpers();
 
-        return options.mocks.map(({ method, path, response }) => ({
-            method, path, handler: this.buildHandler(response, options.data)
+        return options.mocks.map(({ id, method, path, response }) => ({
+            method, path, handler: this.buildHandler(response, options.data, id)
         }));
     }
 
-    private buildHandler(response: MockResponse, data: Record<string, any> = {}): Lifecycle.Method {
+    private buildHandler(response: MockResponse, data: Record<string, any> = {}, id?: string): Lifecycle.Method {
         const bodyTemplate = Handlebars.compile(response.body);
 
         return async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
@@ -40,7 +41,15 @@ export class MockService {
                 await sleep(response.delay);
             }
 
-            const resBody = bodyTemplate(context);
+            let resBody: string;
+            try {
+                 resBody = bodyTemplate(context);
+            } catch(e) {
+                if(id) {
+                    await this.registerFailure(id, e);
+                }
+                throw e;
+            }
 
             if(context.response.mustProxy) {
                 return await this.proxyController.proxyRequest(request, h);
@@ -77,5 +86,10 @@ export class MockService {
         Handlebars.registerHelper('setHeader', function(key, value) {
             this.response.headers[key] = value;
         });
+    }
+
+    private async registerFailure(id: string, error: Error): Promise<void> {
+        const failure = new MockFailure(error.toString(), new Date());
+        await this.repository.saveFailure(id, failure);
     }
 }

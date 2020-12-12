@@ -49,6 +49,7 @@
     "inversify": "^5.0.1",
     "ioredis": "^4.17.3",
     "laabr": "^6.1.1",
+    "node-duration": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "winston": "^3.2.1"

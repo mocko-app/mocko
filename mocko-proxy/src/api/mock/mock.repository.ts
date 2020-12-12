@@ -1,3 +1,4 @@
+import { Duration } from "node-duration";
 import {Provider} from "../../utils/decorators/provider";
 import * as fs from "fs";
 import {MockOptions, optionsFromConfig} from "./data/mock-options";
@@ -6,6 +7,7 @@ import {RedisProvider} from "../../redis/redis.provider";
 import {REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
 import {parse} from 'hcl-parser';
 import { ignoreErrors } from "../../utils/utils";
+import { MockFailure } from "./data/mock-failure";
 
 const readFile = promisify(fs.readFile);
 const readDir = promisify(fs.readdir);
@@ -13,6 +15,7 @@ const lstat = promisify(fs.lstat);
 
 const MOCKS_DIR = "mocks";
 const HCL_EXTENSION = ".hcl";
+const MOCK_FAILURE_DURATION = Duration.ofMinutes(10);
 
 export type FileOrDir = {
     name: string,
@@ -24,6 +27,14 @@ export class MockRepository {
     constructor(
         private readonly redis: RedisProvider,
     ) { }
+
+    async saveFailure(id: string, failure: MockFailure): Promise<void> {
+        if(!this.redis.isEnabled()) {
+            return;
+        }
+
+        await this.redis.set(`mock_failure:${id}`, failure, MOCK_FAILURE_DURATION);
+    }
 
     async getFileMockOptions(): Promise<MockOptions> {
         const fileMocksBuffer = (await readFile('./mocks.hcl')

@@ -6,6 +6,7 @@ export type MockResponse = {
 };
 
 export type MockDefinition = {
+    id?: string,
     method: string,
     path: string,
     response: MockResponse
