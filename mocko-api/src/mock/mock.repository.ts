@@ -10,7 +10,7 @@ export class MockRepository {
         private readonly redis: RedisProvider,
     ) { }
 
-    async createMock(mock: Mock) {
+    async save(mock: Mock) {
         await this.redis.hset(REDIS_MOCK_KEY, mock.id, mock);
     }
 

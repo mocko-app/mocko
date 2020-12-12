@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put} from '@nestjs/common';
 import {ListMocksResponseDto} from "./data/list-mocks-response.dto";
 import {MockService} from "./mock.service";
 import {CreateMockRequestDto} from "./data/create-mock-request.dto";
@@ -25,6 +25,13 @@ export class MockController {
     @Post()
     async create(@Body() body: CreateMockRequestDto): Promise<ListMocksResponseDto> {
         const mock = await this.service.create(body);
+        return ListMocksResponseDto.ofEntity(mock);
+    }
+
+    @Put(':id')
+    async update(@Param('id') id: string,
+                 @Body() body: CreateMockRequestDto): Promise<ListMocksResponseDto> {
+        const mock = await this.service.update(id, body);
         return ListMocksResponseDto.ofEntity(mock);
     }
 

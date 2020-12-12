@@ -29,7 +29,20 @@ export class MockService {
 
     async create(request: CreateMockRequestDto): Promise<Mock> {
         const mock = Mock.ofDto(request);
-        await this.repository.createMock(mock);
+        await this.repository.save(mock);
+        await this.deploy();
+        return mock;
+    }
+
+    async update(id: string, request: CreateMockRequestDto): Promise<Mock> {
+        const mock = Mock.ofIdAndDto(id, request);
+        const oldMock = this.repository.findById(id);
+
+        if(!oldMock) {
+            throw new NotFoundException(`Mock '${id}' not found`);
+        }
+
+        await this.repository.save(mock);
         await this.deploy();
         return mock;
     }

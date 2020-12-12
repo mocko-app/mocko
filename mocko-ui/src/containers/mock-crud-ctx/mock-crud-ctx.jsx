@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Context} from "../../components/context/context";
 import {MockCrudCard} from "../mock-crud-card/mock-crud-card";
 import {useLocation} from 'react-router-dom';
-import {client, sleep} from '../../utils';
+import {client} from '../../utils';
 import { Spinner } from '../../components/spinner/spinner';
 
 /**
@@ -20,10 +20,7 @@ export function MockCrudCtx({ onClose, mock: simpleMock }) {
         }
 
         client.get(`/mocks/${simpleMock.id}`)
-            .then(async ({ data }) => {
-                await sleep(2000);
-                setMock(data);
-            });
+            .then(async ({ data }) => setMock(data));
     }, [isEdition, simpleMock]);
 
     // Show new mock on right URL or always show for edition
@@ -32,7 +29,7 @@ export function MockCrudCtx({ onClose, mock: simpleMock }) {
     return (
     <Context onClose={onClose} title={isEdition ? simpleMock.name : "New mock"} isShown={isShown}>
         {isEdition ?
-            mock ? <MockCrudCard mock={mock}/> : <Spinner/>
+            mock ? <MockCrudCard onClose={onClose} mock={mock}/> : <Spinner/>
         :   <MockCrudCard/>}
     </Context>
     );

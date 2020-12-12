@@ -26,7 +26,7 @@ const DEFAULT_HEADERS = [{
 
 const DEFAULT_BODY = '{\n  "name": "{{ request.params.name }}"\n}\n';
 
-export function MockCrudCard({ mock }) {
+export function MockCrudCard({ mock, onClose = () => {} }) {
     let defaultHeaders = DEFAULT_HEADERS;
     if(mock) {
         defaultHeaders = [...Object.entries(mock.response.headers), ['', '']]
@@ -42,7 +42,7 @@ export function MockCrudCard({ mock }) {
     const [method, setMethod] = useState(mock?.method || 'GET');
     const [path, setPath] = useState(mock?.path || '/cats/{name}');
     const [isLoading, setLoading] = useState(false);
-    const { createMock } = useContext(Mocks);
+    const { createMock, updateMock } = useContext(Mocks);
     const history = useHistory();
 
     const buildHeaders = () => Object.fromEntries(headers
@@ -55,11 +55,19 @@ export function MockCrudCard({ mock }) {
         }
 
         setLoading(true);
-        await createMock({
+        const payload = {
             name, method, path, response: {
                 body, headers: buildHeaders(), code: status
             }
-        }).catch(() => alert('Oops, failed to create mock'));
+        };
+
+        if(mock) {
+            await updateMock(mock.id, payload).catch(() => alert('Oops, failed to update mock'));
+        } else {
+            await createMock(payload).catch(() => alert('Oops, failed to create mock'));
+        }
+        setLoading(false);
+        onClose();
         history.push("/");
     };
 

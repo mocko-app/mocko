@@ -23,4 +23,9 @@ export class Mock {
         const response = new Response(dto.response.code, dto.response.body, dto.response.headers);
         return new Mock(uuidv4(), dto.name, dto.method, dto.path, response);
     }
+
+    static ofIdAndDto(id: string, dto: CreateMockRequestDto): Mock {
+        const response = new Response(dto.response.code, dto.response.body, dto.response.headers);
+        return new Mock(id, dto.name, dto.method, dto.path, response);
+    }
 }

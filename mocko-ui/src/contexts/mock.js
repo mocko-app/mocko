@@ -25,6 +25,11 @@ export function useMocks() {
         await loadMocks();
     };
 
+    const updateMock = async(id, mock) => {
+        await client.put(`/mocks/${id}`, mock);
+        await loadMocks();
+    };
+
     const removeMock = async (id) => {
         await client.delete(`/mocks/${id}`);
         await loadMocks();
@@ -34,7 +39,7 @@ export function useMocks() {
         loadMocks();
     }, []);
 
-    return { mocks, isLoading, hasError, removeMock, createMock };
+    return { mocks, isLoading, hasError, removeMock, createMock, updateMock };
 }
 
 export const Mocks = createContext(null);
