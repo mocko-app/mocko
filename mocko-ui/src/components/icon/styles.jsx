@@ -7,7 +7,7 @@ export const IconView = styled.button`
     right: 0;
     width: 2.5rem;
     height: 2.5rem;
-    margin: 1.25rem;
+    margin: ${({margin}) => margin};
     border: none;
     outline: none;
     cursor: pointer;

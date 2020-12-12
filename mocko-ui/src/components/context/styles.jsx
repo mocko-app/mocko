@@ -15,8 +15,8 @@ export const CtxNavbar = styled(NavbarView)`
 `;
 
 export const CtxIcon = styled(IconView)`
-    top: 0.25rem;
-    left: 0.25rem;
+    top: 0.75rem;
+    left: 0.75rem;
 `;
 
 export const Backdrop = styled.aside`
