@@ -3,6 +3,7 @@ import {RedisProvider} from "../redis/redis.provider";
 import {Mock} from "./data/mock.entity";
 import {REDIS_MOCK_KEY, REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
 import {MockOptions} from "./data/mock-options.entity";
+import { MockFailure } from "./data/mock-failure";
 
 @Injectable()
 export class MockRepository {
@@ -28,7 +29,10 @@ export class MockRepository {
     }
 
     async findById(id: string): Promise<Mock> {
-        return await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
+        const mock = await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
+        mock.failure = await this.redis.get<MockFailure>(`mock_failure:${id}`);
+
+        return mock;
     }
 
     async setOptions(options: MockOptions) {

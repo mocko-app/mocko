@@ -1,6 +1,7 @@
 import {Mock} from "./mock.entity";
 import {HttpMethod} from "./http-method";
 import {ResponseDto} from "./response.dto";
+import { MockFailureDto } from "./mock-failure.dto";
 
 export class GetMockResponseDto {
     constructor(
@@ -9,9 +10,12 @@ export class GetMockResponseDto {
         public readonly method: HttpMethod,
         public readonly path: string,
         public readonly response: ResponseDto,
+        public readonly failure: MockFailureDto | null,
     ) { }
 
     static ofEntity(entity: Mock): GetMockResponseDto {
-        return new GetMockResponseDto(entity.id, entity.name, entity.method, entity.path, entity.response);
+        const failure = entity.failure ? MockFailureDto.ofEntity(entity.failure) : null;
+        return new GetMockResponseDto(entity.id, entity.name, entity.method,
+                entity.path, entity.response, failure);
     }
 }
