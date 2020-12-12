@@ -68,7 +68,7 @@ export function MockList() {
     return (
         <List>
             {mocks.map(mock =>
-                <MockItem {...mock} onRemove={() => removeMock(mock.id)}/>)}
+                <MockItem {...mock} key={mock.id} onRemove={() => removeMock(mock.id)}/>)}
             <Link to="/new-mock"><NewMock/></Link>
         </List>
     );

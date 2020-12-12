@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import {Badge} from "../../components/badge/badge";
 import {Icon} from "../../components/icon/icon";
 import {ListItem} from "../../components/list/item";
+import { MockCrudCtx } from "../mock-crud-ctx/mock-crud-ctx";
 
-export function MockItem({ name, method, path, onRemove }) {
+export function MockItem(params) {
+    const { name, method, path, onRemove } = params;
+    const [isOpened, setOpened] = useState(false);
+
     const deleteBtn = (
         <Icon margin="m" onClick={ onRemove }>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,9 +16,13 @@ export function MockItem({ name, method, path, onRemove }) {
         </Icon>
     );
     return (
+        <>
         <ListItem
             title={<>{name || 'Unnamed mock'} <Badge color="green">{ method }</Badge></>}
             description={path}
+            onClick={() => setOpened(true)}
             button={deleteBtn}/>
+        {isOpened && <MockCrudCtx onClose={() => setOpened(false)} mock={params}/>}
+        </>
     );
 }

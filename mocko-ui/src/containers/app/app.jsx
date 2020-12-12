@@ -4,7 +4,7 @@ import {Navbar} from "../../components/navbar/navbar";
 import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
 import {BrowserRouter} from "react-router-dom";
-import {NewMockCtx} from "../new-mock-ctx/new-mock-ctx";
+import {MockCrudCtx} from "../mock-crud-ctx/mock-crud-ctx";
 
 export function App() {
     const mocks = useMocks();
@@ -22,7 +22,7 @@ export function App() {
                     <MockList/>
                 </AppView>
 
-                <NewMockCtx/>
+                <MockCrudCtx/>
             </BrowserRouter>
         </Mocks.Provider>
     );

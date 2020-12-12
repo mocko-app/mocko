@@ -1,9 +1,9 @@
 import React from 'react';
 import {Select} from "./styles";
 
-export function MethodPicker({ method, onChange }) {
+export function MethodPicker({ value, onChange }) {
     return (
-        <Select value={ method } onChange={ onChange }>
+        <Select value={ value } onChange={ onChange }>
             <option>GET</option>
             <option>PUT</option>
             <option>POST</option>

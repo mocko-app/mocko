@@ -26,13 +26,21 @@ const DEFAULT_HEADERS = [{
 
 const DEFAULT_BODY = '{\n  "name": "{{ request.params.name }}"\n}\n';
 
-export function NewMockCard() {
-    const [headers, setHeaders] = useState(DEFAULT_HEADERS);
-    const [body, setBody] = useState(DEFAULT_BODY);
-    const [status, setStatus] = useState(200);
-    const [name, setName] = useState('Cat resource');
-    const [method, setMethod] = useState('GET');
-    const [path, setPath] = useState('/cats/{name}');
+export function MockCrudCard({ mock }) {
+    let defaultHeaders = DEFAULT_HEADERS;
+    if(mock) {
+        defaultHeaders = [...Object.entries(mock.response.headers), ['', '']]
+            .map(([key, value], index) => ({
+                key, value, id: index
+            }));
+    }
+
+    const [headers, setHeaders] = useState(defaultHeaders);
+    const [body, setBody] = useState(mock?.response?.body || DEFAULT_BODY);
+    const [status, setStatus] = useState(mock?.response?.code || 200);
+    const [name, setName] = useState(mock?.name || 'Cat resource');
+    const [method, setMethod] = useState(mock?.method || 'GET');
+    const [path, setPath] = useState(mock?.path || '/cats/{name}');
     const [isLoading, setLoading] = useState(false);
     const { createMock } = useContext(Mocks);
     const history = useHistory();
