@@ -22,6 +22,11 @@ export class RedisProvider implements OnApplicationShutdown {
         return JSON.parse(str) as T;
     }
 
+    async hget<T>(key: string, mapKey: string): Promise<T> {
+        const value = await this.connector.hget(key, mapKey);
+        return JSON.parse(value) as T;
+    }
+
     async hset<T>(key: string, mapKey: string, mapValue: T) {
         await this.connector.hset(key, mapKey, JSON.stringify(mapValue));
     }

@@ -23,6 +23,10 @@ export class MockRepository {
         return Object.values(mocks);
     }
 
+    async findById(id: string): Promise<Mock> {
+        return await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
+    }
+
     async setOptions(options: MockOptions) {
         await this.redis.set(REDIS_OPTIONS_DEPLOYMENT, options);
     }
