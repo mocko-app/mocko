@@ -29,7 +29,7 @@ export class MockRepository {
     ) { }
 
     async saveFailure(id: string, failure: MockFailure): Promise<void> {
-        if(!this.redis.isEnabled()) {
+        if(!this.redis.isEnabled) {
             return;
         }
 
@@ -56,7 +56,7 @@ export class MockRepository {
     }
 
     async getMockOptions(): Promise<MockOptions> {
-        if(this.redis.isEnabled()) {
+        if(this.redis.isEnabled) {
             return await this.getRedisMockOptions();
         }
 

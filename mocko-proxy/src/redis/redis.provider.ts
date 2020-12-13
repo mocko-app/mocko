@@ -4,23 +4,28 @@ import {ConfigProvider} from "../config/config.service";
 import * as Redis from 'ioredis';
 import {IListener} from "../utils/listener";
 import {Server} from "../server";
-
 @Provider()
 export class RedisProvider {
     private readonly connector: Redis.Redis;
     private readonly listener: Redis.Redis;
 
+    private readonly REDIS_ENABLED: boolean;
+    private readonly REDIS_PREFIX: string;
+
     constructor(
         private readonly config: ConfigProvider,
     ) {
-        if(config.getBoolean('REDIS_ENABLED')) {
+        this.REDIS_ENABLED = config.getBoolean('REDIS_ENABLED');
+
+        if(this.REDIS_ENABLED) {
+            this.REDIS_PREFIX = config.get('REDIS_PREFIX');
             this.connector = new Redis(this.config.getRedisConfig());
             this.listener = new Redis(this.config.getRedisConfig());
         }
     }
 
-    isEnabled() {
-        return this.config.getBoolean('REDIS_ENABLED');
+    get isEnabled() {
+        return this.REDIS_ENABLED;
     }
 
     async get<T>(key: string): Promise<T> {
@@ -39,13 +44,13 @@ export class RedisProvider {
     }
 
     async registerListener(listener: IListener, server: Server): Promise<void> {
-        if(!this.isEnabled()) {
+        if(!this.isEnabled) {
             return;
         }
 
-        await this.listener.subscribe(listener.channel);
+        await this.listener.subscribe(this.REDIS_PREFIX + listener.channel);
         this.listener.on('message', (channel, message) => {
-            if(channel !== listener.channel) {
+            if(channel !== this.REDIS_PREFIX + listener.channel) {
                 return;
             }
 

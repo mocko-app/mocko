@@ -1,6 +1,9 @@
 import {Inject, Injectable, OnApplicationShutdown} from '@nestjs/common';
 import * as Redis from 'ioredis';
+import { configService } from 'src/config/config.service';
 import {REDIS_CONNECTOR} from './redis.constants';
+
+const REDIS_PREFIX = configService.get('REDIS_PREFIX');
 
 @Injectable()
 export class RedisProvider implements OnApplicationShutdown {
@@ -47,7 +50,7 @@ export class RedisProvider implements OnApplicationShutdown {
     }
 
     async publish(channel: string, message = '') {
-        await this.connector.publish(channel, message);
+        await this.connector.publish(REDIS_PREFIX + channel, message);
     }
 
     async ping() {

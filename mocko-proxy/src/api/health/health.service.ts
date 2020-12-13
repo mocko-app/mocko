@@ -8,7 +8,7 @@ export class HealthService {
     ) { }
 
     async healthCheck() {
-        if(this.redisProvider.isEnabled()) {
+        if(this.redisProvider.isEnabled) {
             await this.redisProvider.ping();
         }
     }
