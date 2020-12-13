@@ -1,7 +1,7 @@
 # Name override for the chart
 name: ""
 # Mocko version to use
-version: "1.1.5"
+version: "1.1.6"
 
 proxy:
   # URL of your actual API which will be proxied by mocko, leave it blank to disable proxying
