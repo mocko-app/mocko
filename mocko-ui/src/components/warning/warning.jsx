@@ -9,6 +9,7 @@ const WarningView = styled.div`
     padding-left: 3rem;
     border-radius: 0.25rem;
     margin-bottom: 1rem;
+    margin-top: 0.5rem;
     text-align: left;
     svg {
         position: absolute;

@@ -9,7 +9,8 @@ export const Column = styled.div`
     position: relative;
     display: inline-block;
     vertical-align: top;
-    width: calc(50% - 0.5rem);
+    width: calc(${({width}) => width || '50'}% - 0.5rem);
+    margin-bottom: 1rem;
 
     & ~ div {
         margin-left: 1rem;

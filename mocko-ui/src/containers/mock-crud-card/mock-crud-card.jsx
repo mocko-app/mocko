@@ -75,13 +75,12 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
     return (
         <Card isLoading={ isLoading }>
             <Split>
-                <CardText>Short description</CardText>
-                <NameInput type="text" value={name} onChange={e => setName(e.target.value)}/>
-                <CardText>Method and path</CardText><br/>
-                <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
-                <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
-                {mock?.failure && <Warning title="Oops, there seems to be an issue with your template:">{mock.failure.message}</Warning>}
-                <Column>
+                <Column width='40'>
+                    <CardText>Short description</CardText>
+                    <NameInput type="text" value={name} onChange={e => setName(e.target.value)}/>
+                    <CardText>Method and path</CardText><br/>
+                    <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
+                    <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
                     <CardText>Response code</CardText>
                     <StatusInput type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
                     <CardText>Headers</CardText>
@@ -89,8 +88,9 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
                         headers={headers}
                         setHeaders={setHeaders}/>
                 </Column>
-                <Column>
+                <Column width='60'>
                     <CardText>Response body</CardText>
+                    {mock?.failure && <Warning title="There seems to be an issue with your template:">{mock.failure.message}</Warning>}
                     <AceEditor
                         placeholder={DEFAULT_BODY}
                         mode="json"
@@ -99,7 +99,7 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
                         value={body}
                         onChange={setBody}
                         fontSize={16}
-                        height="12rem"
+                        height="20rem"
                         width="100%"
                         setOptions={{
                             enableLiveAutocompletion: true,

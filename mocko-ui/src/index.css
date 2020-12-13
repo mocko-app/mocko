@@ -60,7 +60,8 @@ html {
 .ace_editor {
     display: block;
     width: 100%;
-    margin: 0.5rem auto;
+    margin: auto;
+    margin-top: 0.5rem;
     font-family: 'Roboto Mono', monospace;
     border-radius: var(--radius);
 }

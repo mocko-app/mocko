@@ -3,6 +3,8 @@ version: '2'
 services:
   redis:
     image: 'redis:6-alpine'
+    ports:
+      - '6379:6379'
 
   mocko-api:
     build: '../mocko-api'
