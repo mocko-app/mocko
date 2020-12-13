@@ -4,6 +4,7 @@ import {Column, Split} from "../../layouts/split/styles";
 import {CardText} from "../../components/card/styles";
 import {Right} from "../../layouts/right/right";
 import {Button} from "../../components/button/button";
+import {Warning} from "../../components/warning/warning";
 import {HeaderInputGroup} from "./header-input";
 import {NameInput, PathInput, StatusInput} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
@@ -79,6 +80,7 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
                 <CardText>Method and path</CardText><br/>
                 <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
                 <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
+                {mock?.failure && <Warning title="Oops, there seems to be an issue with your template:">{mock.failure.message}</Warning>}
                 <Column>
                     <CardText>Response code</CardText>
                     <StatusInput type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
