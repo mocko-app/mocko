@@ -7,12 +7,14 @@ import * as helpers from 'handlebars-helpers';
 import {sleep} from "../../utils/utils";
 import {ProxyController} from "../proxy/proxy.controller";
 import { MockFailure } from "./data/mock-failure";
+import { FlagService } from "../flag/flag.service";
 
 @Service()
 export class MockService {
     constructor(
         private readonly repository: MockRepository,
         private readonly proxyController: ProxyController,
+        private readonly flagService: FlagService,
     ) { }
 
     async getRoutes(): Promise<ServerRoute[]> {
@@ -85,6 +87,44 @@ export class MockService {
 
         Handlebars.registerHelper('setHeader', function(key, value) {
             this.response.headers[key] = value;
+        });
+
+        Handlebars.registerHelper('getFlag', (flag: any) => {
+            if(typeof flag !== "string") {
+                throw new TypeError("Flag must be a string");
+            }
+
+            return this.flagService.getFlag(flag);
+        });
+
+        Handlebars.registerHelper('setFlag', (flag: any, value: any) => {
+            if(typeof flag !== "string") {
+                throw new TypeError("Flag must be a string");
+            }
+
+            this.flagService.setFlag(flag, value);
+        });
+
+        Handlebars.registerHelper('delFlag', (flag: any) => {
+            if(typeof flag !== "string") {
+                throw new TypeError("Flag must be a string");
+            }
+
+            this.flagService.delFlag(flag);
+        });
+
+        const self = this;
+        Handlebars.registerHelper('hasFlag', function (flag: any, options) {
+            if(typeof flag !== "string") {
+                throw new TypeError("Flag must be a string");
+            }
+
+            const hasFlag = self.flagService.hasFlag(flag);
+            if(hasFlag) {
+                return options.fn(this);
+            } else if(typeof options.inverse === 'function') {
+                return options.inverse(this);
+            }
         });
     }
 
