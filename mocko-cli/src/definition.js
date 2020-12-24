@@ -9,6 +9,12 @@ module.exports.definition = {
         alias: 'version',
         type: 'help',
     },
+    w: {
+        description: 'Watches for file changes and restarts the server',
+        alias: 'watch',
+        type: 'boolean',
+        default: false,
+    },
     p: {
         description: 'Port to serve the mocks',
         alias: 'port',

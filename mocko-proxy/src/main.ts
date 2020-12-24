@@ -19,6 +19,8 @@ async function bootstrap() {
 
     process.on('SIGINT',  () => server.stop());
     process.on('SIGTERM', () => server.stop());
+
+    return server;
 }
 
-bootstrap();
+module.exports.server = bootstrap();

@@ -2,9 +2,10 @@ const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
 const semver = require('semver');
 const updateNotifier = require('update-notifier');
-const pkg = require('../package.json');
 
+const pkg = require('../package.json');
 const { definition } = require('./definition');
+const { watch } = require('./watcher');
 
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
@@ -32,7 +33,11 @@ function run() {
     process.env['PROXY_BASE-URI'] = url;
     process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
     process.env['MOCKS_FOLDER'] = path;
-    require('@mocko/proxy');
+    const { server } = require('@mocko/proxy');
+    
+    if(args.watch) {
+        watch(path, () => server.then(s => s.restart()));
+    }
 }
 
 function validateNodeVersion() {

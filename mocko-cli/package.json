@@ -32,7 +32,8 @@
   "homepage": "https://github.com/gabriel-pinheiro/mocko#readme",
   "dependencies": {
     "@hapi/bossy": "^5.0.1",
-    "@mocko/proxy": "1.2.1",
+    "@mocko/proxy": "1.2.2",
+    "chokidar": "^3.4.3",
     "joi": "^17.3.0",
     "semver": "^7.3.4",
     "update-notifier": "^5.0.1"
