@@ -70,4 +70,4 @@ process.env['SERVER_PORT'] = port;
 process.env['PROXY_BASE-URI'] = url;
 process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
 process.env['MOCKS_FOLDER'] = path;
-require('./main');
+require('@mocko/proxy');
