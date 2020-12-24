@@ -8,6 +8,12 @@ const definition = {
         alias: 'help',
         type: 'help',
     },
+    p: {
+        description: 'Port to serve the mocks',
+        alias: 'port',
+        type: 'number',
+        default: 8080,
+    },
     u: {
         description: 'URL to proxy requests when no mock is defined',
         alias: 'url',
@@ -37,7 +43,7 @@ if(args.h || !args._ || args._.length !== 1) {
 }
 
 const path = args._[0];
-const { url, timeout } = args;
+const { port, url, timeout } = args;
 
 const validation = Joi.string()
     .uri({ scheme: ['http', 'https'] })
@@ -49,6 +55,7 @@ if(url && validation.error) {
     process.exit(1);
 }
 
+process.env['SERVER_PORT'] = port;
 process.env['PROXY_BASE-URI'] = url;
 process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
 process.env['MOCKS_FOLDER'] = path;
