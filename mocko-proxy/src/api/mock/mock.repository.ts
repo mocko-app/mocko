@@ -1,4 +1,3 @@
-import { Duration } from "node-duration";
 import {Provider} from "../../utils/decorators/provider";
 import * as fs from "fs";
 import {MockOptions, optionsFromConfig} from "./data/mock-options";
@@ -8,14 +7,17 @@ import {REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
 import {parse} from 'hcl-parser';
 import { ignoreErrors } from "../../utils/utils";
 import { MockFailure } from "./data/mock-failure";
+import { inject } from "inversify";
+import { ILogger, Logger } from "../../utils/logger";
 
 const readFile = promisify(fs.readFile);
 const readDir = promisify(fs.readdir);
 const lstat = promisify(fs.lstat);
 
-const MOCKS_DIR = "mocks";
+const MOCKS_DIR = process.env['MOCKS_FOLDER'] || "mocks";
+const MUST_LOAD_DIR = !!process.env['MOCKS_FOLDER'];
 const HCL_EXTENSION = ".hcl";
-const MOCK_FAILURE_DURATION = Duration.ofMinutes(10);
+const MOCK_FAILURE_DURATION = 10 * 60 * 1000;
 
 export type FileOrDir = {
     name: string,
@@ -25,6 +27,8 @@ export type FileOrDir = {
 @Provider()
 export class MockRepository {
     constructor(
+        @inject(Logger)
+        private readonly logger: ILogger,
         private readonly redis: RedisProvider,
     ) { }
 
@@ -68,6 +72,10 @@ export class MockRepository {
             .catch(ignoreErrors());
 
         if(!fileNames) {
+            if(MUST_LOAD_DIR) {
+                this.logger.error(`Failed to load the mocks from '${MOCKS_DIR}', make sure it's a directory and your user has read permission on its files`);
+                process.exit(1);
+            }
             return "";
         }
 

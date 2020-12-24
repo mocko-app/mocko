@@ -1,8 +1,14 @@
 {
-  "name": "mocko-proxy",
-  "version": "1.2.0",
-  "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined",
+  "name": "@mocko/cli",
+  "version": "1.2.3",
+  "description": "Mocking made easy, proxy your API and choose which endpoints to mock",
   "main": "src/main.ts",
+  "bin": {
+    "mocko": "./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=12"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc",
@@ -11,7 +17,8 @@
     "start:prod": "node dist/main",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -39,6 +46,7 @@
   },
   "dependencies": {
     "@hapi/boom": "^9.1.0",
+    "@hapi/bossy": "^5.0.1",
     "@hapi/h2o2": "^9.0.1",
     "@hapi/hapi": "^19.1.1",
     "dotenv": "^8.2.0",
@@ -48,8 +56,8 @@
     "hcl-parser": "^0.1.1",
     "inversify": "^5.0.1",
     "ioredis": "^4.17.3",
+    "joi": "^17.3.0",
     "laabr": "^6.1.1",
-    "node-duration": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "winston": "^3.2.1"

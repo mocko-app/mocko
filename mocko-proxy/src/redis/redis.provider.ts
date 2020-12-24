@@ -1,4 +1,3 @@
-import { Duration } from "node-duration";
 import {Provider} from "../utils/decorators/provider";
 import {ConfigProvider} from "../config/config.service";
 import * as Redis from 'ioredis';
@@ -33,11 +32,11 @@ export class RedisProvider {
         return JSON.parse(str) as T;
     }
 
-    async set<T>(key: string, value: T, ttl?: Duration): Promise<void> {
+    async set<T>(key: string, value: T, ttlMillis?: number): Promise<void> {
         const str = JSON.stringify(value);
 
-        if(ttl) {
-            await this.connector.set(key, str, 'PX', ttl.toMillis());
+        if(ttlMillis) {
+            await this.connector.set(key, str, 'PX', ttlMillis);
         } else {
             await this.connector.set(key, str);
         }
