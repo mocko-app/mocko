@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
+const { version } = require('../package.json');
 
 const definition = {
     h: {
-        description: 'Show help',
+        description: 'Shows this screen',
         alias: 'help',
+        type: 'help',
+    },
+    v: {
+        description: 'Shows the current version',
+        alias: 'version',
         type: 'help',
     },
     p: {
@@ -20,7 +26,7 @@ const definition = {
         default: '',
     },
     t: {
-        description: 'Max time to wait for a response from the proxies URL in millis',
+        description: 'Max time to wait for a response from the proxied URL in millis',
         alias: 'timeout',
         type: 'number',
         default: 30000,
@@ -28,7 +34,7 @@ const definition = {
 };
 
 const args = Bossy.parse(definition);
-const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>');
+const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
 if (args instanceof Error) {
     console.error(args.message);
@@ -37,7 +43,12 @@ if (args instanceof Error) {
     process.exit(1);
 }
 
-if(args.h || !args._ || args._.length !== 1) {
+if(args.version) {
+    console.log(`mocko-cli/${version} NodeJS/${process.version} v8/${process.versions.v8} openssl/${process.versions.openssl}`);
+    process.exit(0);
+}
+
+if(args.help || !args._ || args._.length !== 1) {
     console.log(usage);
     process.exit(0);
 }
