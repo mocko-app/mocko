@@ -1,6 +1,6 @@
 {
-	"watch": ["src", "mocks.hcl", "mocks"],
-	"ext": "ts",
+	"watch": ["src", "mocks"],
+	"ext": "ts, hcl",
 	"ignore": ["src/**/*.spec.ts"],
 	"exec": "ts-node src/main.ts"
 }

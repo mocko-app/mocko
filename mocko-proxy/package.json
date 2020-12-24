@@ -1,6 +1,6 @@
 {
   "name": "@mocko/cli",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Mocking made easy, proxy your API and choose which endpoints to mock",
   "main": "src/main.ts",
   "bin": {

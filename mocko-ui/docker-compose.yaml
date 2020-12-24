@@ -18,4 +18,4 @@ services:
     ports:
       - '8081:8080'
     volumes:
-      - './mocks.hcl:/home/mocko/mocks.hcl'
+      - './mocks.hcl:/home/mocko/mocks/mocks.hcl'

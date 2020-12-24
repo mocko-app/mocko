@@ -65,7 +65,7 @@ The other chart values you might want to change are:
 | redis.database      | Redis database                                                                                               | 0                                        |
 
 ### Docker Compose standalone mode
-Copy the `./mocko-proxy/mocks.hcl` file to your project root and add this service to your compose:
+Create a mocks folder in your project containing the [hcl mock definitions](https://github.com/gabriel-pinheiro/mocko/tree/master/mocko-proxy/examples) and add this service to your compose:
 ```yaml
 version: '2'
 
@@ -77,16 +77,11 @@ services:
     ports:
       - '8080:8080'
     volumes:
-      - './mocks.hcl:/home/mocko/mocks.hcl'
+      - './mocks:/home/mocko/mocks'
 ```
 You can set your API URL in the environment variable `PROXY_BASE-URI`.
 
 Any setting can be changed from the environment variables.
-
-Change the mocks.hcl file to update your mocks.
-
-You can optionally mount many hcl files into the `mocks` folder (root or sub folders).
-
 
 ## Usage
 You can create, delete and update mocks in the UI when using the complete stack

@@ -24,4 +24,4 @@ services:
       - '8082:8080'
     volumes:
       - './content.env:/home/mocko/.env'
-      - './content-mocks.hcl:/home/mocko/mocks.hcl'
+      - './content-mocks.hcl:/home/mocko/mocks/mocks.hcl'

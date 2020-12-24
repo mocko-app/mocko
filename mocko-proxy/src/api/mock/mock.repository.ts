@@ -41,11 +41,8 @@ export class MockRepository {
     }
 
     async getFileMockOptions(): Promise<MockOptions> {
-        const fileMocksBuffer = (await readFile('./mocks.hcl')
-            .catch(ignoreErrors())) || "";
         const dirMocks = await this.getMockFilesContent();
-
-        const data = parse(fileMocksBuffer.toString() + "\n" + dirMocks);
+        const data = parse(dirMocks);
         return optionsFromConfig(data[0]);
     }
 
