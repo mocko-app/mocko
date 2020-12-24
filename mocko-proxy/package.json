@@ -1,11 +1,12 @@
 {
   "name": "@mocko/cli",
-  "version": "1.2.4",
+  "version": "1.2.7",
   "description": "Mocking made easy, proxy your API and choose which endpoints to mock",
   "main": "src/main.ts",
   "bin": {
     "mocko": "./dist/cli.js"
   },
+  "engineStrict": true,
   "engines": {
     "node": ">=12"
   },
@@ -58,6 +59,7 @@
     "ioredis": "^4.17.3",
     "joi": "^17.3.0",
     "laabr": "^6.1.1",
+    "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "winston": "^3.2.1"
