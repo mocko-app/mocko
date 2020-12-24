@@ -2,7 +2,10 @@
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
 const semver = require('semver');
-const { version } = require('../package.json');
+const updateNotifier = require('update-notifier');
+const pkg = require('../package.json');
+
+updateNotifier({pkg}).notify();
 
 if(!semver.satisfies(process.version, '>=12')) {
     console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12`);
@@ -50,7 +53,7 @@ if (args instanceof Error) {
 }
 
 if(args.version) {
-    console.log(`mocko-cli/${version} NodeJS/${process.version} v8/${process.versions.v8} openssl/${process.versions.openssl}`);
+    console.log(`mocko-cli/${pkg.version} NodeJS/${process.version} v8/${process.versions.v8} openssl/${process.versions.openssl}`);
     process.exit(0);
 }
 

@@ -34,6 +34,7 @@
     "@hapi/bossy": "^5.0.1",
     "@mocko/proxy": "1.2.1",
     "joi": "^17.3.0",
-    "semver": "^7.3.4"
+    "semver": "^7.3.4",
+    "update-notifier": "^5.0.1"
   }
 }
