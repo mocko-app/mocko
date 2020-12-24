@@ -41,9 +41,11 @@ export class MockRepository {
     }
 
     async getFileMockOptions(): Promise<MockOptions> {
-        const dirMocks = await this.getMockFilesContent();
-        const data = parse(dirMocks);
-        return optionsFromConfig(data[0]);
+        const options = (await this.getMockFilesContent()).filter(o => o !== null);
+        return {
+            mocks: options.map(o => o.mocks || []).flat(),
+            data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value})),
+        };
     }
 
     async getRedisMockOptions(): Promise<MockOptions> {
@@ -64,7 +66,7 @@ export class MockRepository {
         return await this.getFileMockOptions();
     }
 
-    private async getMockFilesContent(path = MOCKS_DIR): Promise<String> {
+    private async getMockFilesContent(path = MOCKS_DIR): Promise<MockOptions[]> {
         const fileNames = await readDir(path)
             .catch(ignoreErrors());
 
@@ -73,7 +75,7 @@ export class MockRepository {
                 this.logger.error(`Failed to load the mocks from '${MOCKS_DIR}', make sure it's a directory and your user has read permission on its files`);
                 process.exit(1);
             }
-            return "";
+            return [];
         }
 
         const files: FileOrDir[] = await Promise.all(fileNames.map(async (name) => {
@@ -83,17 +85,35 @@ export class MockRepository {
             return { name, isDir };
         }));
 
-        const mocks = files
+        const mockFiles = files
             .filter(f => !f.isDir)
             .filter(f => f.name.endsWith(HCL_EXTENSION));
 
-        const subDirContents = await Promise.all(files
+        const subDirContents = (await Promise.all(files
             .filter(f => f.isDir)
-            .map(f => this.getMockFilesContent(`${path}/${f.name}`)));
+            .map(f => this.getMockFilesContent(`${path}/${f.name}`))))
+                .flat();
         
-        const dirContents = await Promise.all(mocks
-            .map(m => readFile(`${path}/${m.name}`)));
+        const dirContents = await Promise.all(mockFiles
+            .map(m => this.optionsFromFile(`${path}/${m.name}`)));
 
-        return dirContents.map(c => c.toString()).join("\n") + "\n" + subDirContents;
+        return [...dirContents, ...subDirContents];
+    }
+
+    private async optionsFromFile(path: string): Promise<MockOptions | null> {
+        const content = await readFile(path);
+        const [data, error] = parse(content.toString());
+
+        if(error) {
+            this.logger.warn(`Failed to parse file '${path}:${error.Pos.Line}:${error.Pos.Column}'`);
+            return null;
+        }
+
+        try {
+            return optionsFromConfig(data);
+        } catch(e) {
+            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`);
+            return null;
+        }
     }
 }
