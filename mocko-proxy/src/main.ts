@@ -5,7 +5,6 @@ import { ILogger, Logger, logger } from './utils/logger';
 import {configProvider, ConfigProvider} from "./config/config.service";
 
 async function bootstrap() {
-    logger.info('Resolving dependencies');
     const container = new Container({
         autoBindInjectable: true,
     });
