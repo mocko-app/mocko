@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
+const semver = require('semver');
 const { version } = require('../package.json');
+
+if(!semver.satisfies(process.version, '>=12')) {
+    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12`);
+    process.exit(1);
+}
 
 const definition = {
     h: {
