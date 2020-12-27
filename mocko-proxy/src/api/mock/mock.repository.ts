@@ -44,7 +44,7 @@ export class MockRepository {
         const options = (await this.getMockFilesContent()).filter(o => o !== null);
         return {
             mocks: options.map(o => o.mocks || []).flat(),
-            data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value})),
+            data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value}), {}),
         };
     }
 
