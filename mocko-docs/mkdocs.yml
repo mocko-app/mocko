@@ -7,4 +7,4 @@ nav:
   - Getting Started:
     - Standalone Mode: getting-started/standalone.md
     - Complete Stack: getting-started/complete.md
-  - Templating: templating.md
+  - Templating: templating/index.md
