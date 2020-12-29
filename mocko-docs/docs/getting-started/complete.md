@@ -27,7 +27,7 @@ And... That's it, access [http://localhost:8080](http://localhost:8080)
 to use the UI. Your mocks will be served on `localhost:8081`.
 ## Next steps
 Before moving on, how about leaving us a star on GitHub? It'll take you
-two clicks, first [here](https://github.com/gabriel-pinheiro/mocko) and
+two clicks, first [here](https://cdt.one/jscrqNk) and
 then on star :)
 
 Now that you have Mocko up and running, it's time to learn the main
@@ -36,6 +36,7 @@ mocks, write logic for them so that you can simulate the more
 complicated scenarios. See you there :)
 
 <div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="/templating" role="button">Go to Templating</a>
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/d8a9hhC" role="button">Go to Templating</a>
 </div>
 <!-- TODO reference to deploy docs -->
+<img src="https://cdt.one/4THFfyN.gif" style="display: none;"/>

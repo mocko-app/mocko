@@ -171,13 +171,14 @@ you can define multiple mocks in the same file. Here's a folder structure exampl
 ```
 
 ## Next steps
-Before moving on, how about leaving us a star on GitHub? It'll take you two clicks, first [here](https://github.com/gabriel-pinheiro/mocko) and then on star :)
+Before moving on, how about leaving us a star on GitHub? It'll take you two clicks, first [here](https://cdt.one/fZLdEhZ) and then on star :)
 
 Now that you learned to use Mocko CLI, learned to create your mocks using HCL, structure them in a project
-and even gave us an [star on GitHub](https://github.com/gabriel-pinheiro/mocko) (right?) it's time to learn the main functionality of Mocko: templating.
+and even gave us an [star on GitHub](https://cdt.one/fZLdEhZ) (right?) it's time to learn the main functionality of Mocko: templating.
 With it, you can create dynamic mocks, write logic for them so that you can simulate the more complicated
 scenarios. See you there :)
 
 <div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="/templating" role="button">Go to Templating</a>
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/zGZtUpU" role="button">Go to Templating</a>
 </div>
+<img src="https://cdt.one/zDX75Ml.gif" style="display: none;"/>

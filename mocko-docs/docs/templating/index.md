@@ -6,14 +6,14 @@ standalone mode, complete stack or hybrid.
 
 To use templating you must have a working installation of Mocko, either locally or in a server
 or cluster. If you don't, don't worry, it'll take you just a few minutes to
-[get started by clicking here](/getting-started/standalone).
+[get started by clicking here](https://cdt.one/6HVALVQ).
 
 In our examples we'll show only the templates, in your standalone installation, they go in the
 `body` parameter of the `mock` stanza. In your complete stack, they go in the `Body` text field
 in the mock creation context (full-screen dialog).
 
 ## Handlebars
-When defining your `body` template, you can use [Handlebars](https://handlebarsjs.com/), a
+When defining your `body` template, you can use [Handlebars](https://cdt.one/2uUTC56), a
 minimal templating language. In a `GET /cats/{name}` mock, the following body template:
 ```json
 {
@@ -29,7 +29,7 @@ Would produce a response like this in a `GET /cats/george`:
 }
 ```
 
-Other than that, you can use helpers from the [handlebars-helpers](https://github.com/helpers/handlebars-helpers)
+Other than that, you can use helpers from the [handlebars-helpers](https://cdt.one/HsePEbR)
 repository. Here's an example:
 ```json
 {
@@ -93,7 +93,7 @@ As you might have noticed, we used a special Mocko helper `setStatus` to change 
 example above, the status will be changed to 404 when the condition is false and the `else` block is called.
 
 ## Special helpers
-Other than the [handlebars-helpers](https://github.com/helpers/handlebars-helpers), Mocko provides you with
+Other than the [handlebars-helpers](https://cdt.one/y2xw8gZ), Mocko provides you with
 special helpers that can change your response directly, here are some of them:
 
 #### `setStatus` helper
@@ -198,3 +198,4 @@ You can also log the parameters you are receiving to make it easier to develop t
 
 <!-- TODO next steps -->
 <!-- TODO reference to https://github.com/gabriel-pinheiro/mocko/tree/master/mocko-proxy/examples -->
+<img src="https://cdt.one/j1yTLWq.gif" style="display: none;"/>

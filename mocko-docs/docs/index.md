@@ -2,7 +2,7 @@
     <h1 class="display-4">Mocko</h1>
     <p class="lead">Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock</p>
     <div class="text-center">
-        <a class="btn btn-primary btn-lg" href="/getting-started/standalone" role="button">Quick Start</a>
+        <a class="btn btn-primary btn-lg" href="https://cdt.one/L9ck7Gl" role="button">Quick Start</a>
     </div>
 </div>
 <!-- TODO add image -->
@@ -39,7 +39,7 @@ the most:
     - Restarts automatically with changes
     - Easy to debug: Reports errors with your configurations in a human readable way
 <div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="/getting-started/standalone" role="button">Get started with the Standalone Mode</a>
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/Q6afhJ4" role="button">Get started with the Standalone Mode</a>
 </div>
 <br/>
 
@@ -56,5 +56,6 @@ the most:
 
 
 <div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="/getting-started/complete" role="button">Get started with the Complete Stack</a>
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/EKAUL29" role="button">Get started with the Complete Stack</a>
 </div>
+<img src="https://cdt.one/v2v5MZS.gif" style="display: none;"/>
