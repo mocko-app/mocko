@@ -1,5 +1,5 @@
 import {IPlugin} from "../utils/plugin";
-import * as H2o2 from '@hapi/h2o2';
+import * as H2o2 from '@mocko/h2o2';
 import {Provider} from "../utils/decorators/provider";
 
 @Provider()
