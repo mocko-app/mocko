@@ -3,7 +3,7 @@ import {MockResponse} from "./data/mock-options";
 import {Lifecycle, Request, ResponseObject, ResponseToolkit, ServerRoute} from "@hapi/hapi";
 import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
-import * as helpers from 'handlebars-helpers';
+import * as helpers from 'handlebars-kit';
 import {sleep} from "../../utils/utils";
 import {ProxyController} from "../proxy/proxy.controller";
 import { MockFailure } from "./data/mock-failure";

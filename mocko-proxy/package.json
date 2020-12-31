@@ -1,6 +1,6 @@
 {
   "name": "@mocko/proxy",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
@@ -45,12 +45,13 @@
     "dotenv": "^8.2.0",
     "fs": "0.0.1-security",
     "handlebars": "^4.7.6",
-    "handlebars-helpers": "^0.10.0",
+    "handlebars-kit": "^1.1.0",
     "hcl-parser": "^0.1.1",
     "inversify": "^5.0.1",
     "ioredis": "^4.17.3",
     "joi": "^17.3.0",
     "laabr": "^6.1.1",
+    "moment": "^2.29.1",
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
     "winston": "^3.2.1"
@@ -58,7 +59,6 @@
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/handlebars": "^4.1.0",
-    "@types/handlebars-helpers": "^0.5.2",
     "@types/hapi": "^18.0.3",
     "@types/hapi__boom": "^9.0.1",
     "@types/hapi__h2o2": "^8.3.1",
