@@ -10,8 +10,9 @@ const { watch } = require('./watcher');
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
 function run() {
-    updateNotifier({pkg}).notify();
     validateNodeVersion();
+    updateNotifier({pkg}).notify();
+
     const args = buildArgs();
 
     if(args.version) {
