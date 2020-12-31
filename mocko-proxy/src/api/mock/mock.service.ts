@@ -8,10 +8,14 @@ import {sleep} from "../../utils/utils";
 import {ProxyController} from "../proxy/proxy.controller";
 import { MockFailure } from "./data/mock-failure";
 import { FlagService } from "../flag/flag.service";
+import { ILogger, Logger } from "../../utils/logger";
+import { inject } from "inversify";
 
 @Service()
 export class MockService {
     constructor(
+        @inject(Logger)
+        private readonly logger: ILogger,
         private readonly repository: MockRepository,
         private readonly proxyController: ProxyController,
         private readonly flagService: FlagService,
@@ -50,6 +54,7 @@ export class MockService {
                 if(id) {
                     await this.registerFailure(id, e);
                 }
+                this.logger.error(e);
                 throw e;
             }
 
@@ -70,11 +75,23 @@ export class MockService {
 
     private registerHandlebarsHelpers() {
         helpers([
-            'array', 'collection', 'comparison', 'date', 'html', 'i18n',
-            'inflection', 'logging', 'markdown', 'match', 'math', 'misc',
+            'array', 'collection', 'comparison', 'date', 'html',
+            'i18n', 'inflection', 'markdown', 'match', 'math', 'misc',
             'number', 'object', 'path', 'regex', 'string', 'url'
         ],{
             handlebars: Handlebars,
+        });
+
+        Handlebars.registerHelper('log', (...params) => {
+            this.logger.info(params.slice(0, -1).join(' '));
+        });
+
+        Handlebars.registerHelper('warn', (...params) => {
+            this.logger.warn(params.slice(0, -1).join(' '));
+        });
+
+        Handlebars.registerHelper('error', (...params) => {
+            this.logger.error(params.slice(0, -1).join(' '));
         });
 
         Handlebars.registerHelper('setStatus', function(status) {

@@ -1,6 +1,6 @@
 {
   "name": "@mocko/proxy",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
