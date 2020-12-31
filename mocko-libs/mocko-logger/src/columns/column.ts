@@ -1,5 +1,3 @@
-import * as chalk from 'chalk';
-
 type Mapping = (text: string) => string;
 
 export abstract class IColumn {
@@ -15,7 +13,7 @@ export abstract class IColumn {
         return text;
     }
 
-    public color(color: chalk.Chalk): IColumn {
+    public color(color: Mapping): IColumn {
         this.mappings.push(color);
         return this;
     }

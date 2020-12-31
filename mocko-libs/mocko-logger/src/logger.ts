@@ -1,5 +1,5 @@
 import * as Hoek from '@hapi/hoek';
-import * as chalk from 'chalk';
+import * as colors from 'colors/safe';
 import { IColumn } from "./columns/column";
 import { FixedTextColumn } from './columns/fixed-text';
 import { TextColumn } from './columns/text';
@@ -35,14 +35,14 @@ export class Logger {
 }
 
 const msgLog = (levelColumn: IColumn) => new Logger()
-    .column(LogColumn.timestamp().color(chalk.dim))
+    .column(LogColumn.timestamp().color(colors.dim))
     .column(levelColumn)
     .column(LogColumn.text())
     .log;
 
 export type ILogger = Record<'info' | 'warn' | 'error', (message: string) => void>;
 export const simpleLogger = {
-    info:  msgLog(LogColumn.fixed(' info').color(chalk.dim)),
-    warn:  msgLog(LogColumn.fixed(' warn').color(chalk.yellow)),
-    error: msgLog(LogColumn.fixed('error').color(chalk.bgRed)),
+    info:  msgLog(LogColumn.fixed(' info').color(colors.dim)),
+    warn:  msgLog(LogColumn.fixed(' warn').color(colors.yellow)),
+    error: msgLog(LogColumn.fixed('error').color(colors.bgRed)),
 };

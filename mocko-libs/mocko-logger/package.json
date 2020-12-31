@@ -1,6 +1,6 @@
 {
   "name": "@mocko/logger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Logging utility used by Mocko.dev",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -53,6 +53,6 @@
   },
   "dependencies": {
     "@hapi/hoek": "^9.1.1",
-    "chalk": "^4.1.0"
+    "colors": "^1.4.0"
   }
 }

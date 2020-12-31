@@ -1,10 +1,10 @@
 import * as Hapi from '@hapi/hapi';
-import * as chalk from 'chalk';
+import * as colors from 'colors/safe';
 import { LogColumn, Logger } from './logger';
 
 const log = new Logger()
-    .column(LogColumn.timestamp().color(chalk.dim))
-    .column(LogColumn.fixed('  req').color(chalk.dim))
+    .column(LogColumn.timestamp().color(colors.dim))
+    .column(LogColumn.fixed('  req').color(colors.dim))
     .column(LogColumn.text().size(7).right())
     .column(LogColumn.text().size(48))
     .column(LogColumn.text().size(10).right())
@@ -17,20 +17,20 @@ function logRequest(request: Hapi.Request, time: string) {
             request.response.output.statusCode :
             request.response.statusCode;
 
-    let statusColor = chalk.bold;
+    let statusColor = colors.bold;
     switch(true) {
         case status >= 200 && status < 300:
-            statusColor = chalk.green;
+            statusColor = colors.green;
             break;
         case status >= 400 && status < 500:
-            statusColor = chalk.yellow;
+            statusColor = colors.yellow;
             break;
         case status >= 500:
-            statusColor = chalk.red;
+            statusColor = colors.red;
             break;
     }
 
-    log(method.toUpperCase(), path, time + "ms", statusColor(status));
+    log(method.toUpperCase(), path, time + "ms", statusColor(status.toString()));
 }
 
 export const hapiRequestLogger = {
