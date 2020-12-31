@@ -9,6 +9,8 @@ import {ServerRoute} from "@hapi/hapi";
 import {ListenerProvider} from "./listeners";
 import {RedisProvider} from "./redis/redis.provider";
 
+const debug = require('debug')('server');
+
 @Provider()
 export class Server {
     private app: Hapi.Server;
@@ -25,6 +27,7 @@ export class Server {
     ) { }
 
     async start(): Promise<Server> {
+        debug('registering listeners');
         const listenerRegistrationTasks = this.listenerProvider.listeners
             .map(l => this.redisProvider.registerListener(l, this));
         await Promise.all(listenerRegistrationTasks);
@@ -32,7 +35,7 @@ export class Server {
     }
 
     async stop() {
-        this.logger.info('Stopping the server');
+        debug('stopping the server');
         await this.app.stop();
         this.logger.info('Bye :)');
         process.exit(0);
@@ -45,6 +48,7 @@ export class Server {
     }
 
     private async startServer(): Promise<Server> {
+        debug('creating the server');
         this.startDate = new Date();
         this.app = new Hapi.Server({
             host: this.config.get('SERVER_HOST'),
@@ -55,6 +59,7 @@ export class Server {
         });
 
         this.logger.info('Mapping routes');
+        debug('mapping routes');
         const routes = await this.router.getRoutes();
         routes.forEach(route => this.registerRoute(route));
 
@@ -62,11 +67,12 @@ export class Server {
             .map(plugin => this.app.register(plugin));
         await Promise.all(pluginRegistrationTasks);
 
-        this.logger.info('Starting the server');
+        debug('starting the server');
         await this.app.start();
 
         const deltaT = (new Date().getTime() - this.startDate.getTime()) / 1000;
         this.logger.info(`Serving mocks on port ${this.config.getNumber('SERVER_PORT')} after ${deltaT} seconds`);
+        debug('server started');
         return this;
     }
 
