@@ -1,6 +1,7 @@
 site_name: Mocko Docs
 repo_url: https://github.com/gabriel-pinheiro/mocko
 edit_uri: tree/master/mocko-docs/docs
+extra_css: ['extra.css']
 theme: bootstrap4
 nav:
   - Overview: index.md
