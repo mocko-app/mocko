@@ -36,13 +36,19 @@ function logRequest(request: Hapi.Request, time: string) {
 export const hapiRequestLogger = {
     name: 'hapiRequestLogger',
     version: '1.0.0',
-    register: async function (server: Hapi.Server, options = {}) {
+    register: async function (server: Hapi.Server, { ignoredRoutes = [] } = {}) {
+        const ignoredRoutesSet = new Set(ignoredRoutes);
+
         server.ext('onRequest', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
             request['_startAt'] = process.hrtime();
             return h.continue;
         });
 
         server.ext('onPreResponse', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
+            if(ignoredRoutesSet.has(request.path)) {
+                return h.continue;
+            }
+
             const deltaT = process.hrtime(request['_startAt']);
             const deltaMs = (deltaT[0] * 1e3) + (deltaT[1] * 1e-6);
 
