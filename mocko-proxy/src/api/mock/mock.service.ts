@@ -4,7 +4,7 @@ import {Lifecycle, Request, ResponseObject, ResponseToolkit, ServerRoute} from "
 import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
 import * as helpers from 'handlebars-kit';
-import {sleep} from "../../utils/utils";
+import * as Hoek from '@hapi/hoek';
 import {ProxyController} from "../proxy/proxy.controller";
 import { MockFailure } from "./data/mock-failure";
 import { FlagService } from "../flag/flag.service";
@@ -44,7 +44,7 @@ export class MockService {
             };
 
             if(response.delay) {
-                await sleep(response.delay);
+                await Hoek.wait(response.delay);
             }
 
             let resBody: string;

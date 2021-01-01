@@ -5,7 +5,7 @@ import {promisify} from "util";
 import {RedisProvider} from "../../redis/redis.provider";
 import {REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
 import {parse} from 'hcl-parser';
-import { ignoreErrors } from "../../utils/utils";
+import * as Hoek from '@hapi/hoek';
 import { MockFailure } from "./data/mock-failure";
 import { inject } from "inversify";
 import { ILogger, Logger } from "../../utils/logger";
@@ -68,7 +68,7 @@ export class MockRepository {
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockOptions[]> {
         const fileNames = await readDir(path)
-            .catch(ignoreErrors());
+            .catch(Hoek.ignore);
 
         if(!fileNames) {
             if(MUST_LOAD_DIR) {
