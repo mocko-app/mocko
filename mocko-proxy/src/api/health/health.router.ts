@@ -13,6 +13,9 @@ export class HealthRouter implements IRouter {
             method: 'GET',
             path: '/health',
             handler: this.controller.healthCheck.bind(this.controller),
+            rules: {
+                mapSilently: true,
+            },
         }];
     }
 }

@@ -18,7 +18,10 @@ export class ProxyRouter implements IRouter {
                     output: 'stream',
                     parse: false
                 }
-            }
+            },
+            rules: {
+                mapSilently: true,
+            },
         }];
     }
 }

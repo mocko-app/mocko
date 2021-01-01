@@ -78,7 +78,12 @@ export class Server {
 
     private registerRoute(route: ServerRoute) {
         try {
-            this.logger.info(`Mapping '${route.method} ${route.path}'`);
+            const logMessage = `Mapping '${route.method} ${route.path}'`;
+            if(route.rules?.['mapSilently']) {
+                debug(logMessage);
+            } else {
+                this.logger.info(logMessage);
+            }
             this.app.route(route);
         } catch (e) {
             this.logger.warn(`Failed to map '${route.method} ${route.path}': ${e.message}`);
