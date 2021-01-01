@@ -1,15 +1,13 @@
 import {Service} from "../../utils/decorators/service";
-import {MockResponse} from "./data/mock-options";
-import {Lifecycle, Request, ResponseObject, ResponseToolkit, ServerRoute} from "@hapi/hapi";
+import {ServerRoute} from "@hapi/hapi";
 import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
 import * as helpers from 'handlebars-kit';
-import * as Hoek from '@hapi/hoek';
 import {ProxyController} from "../proxy/proxy.controller";
-import { MockFailure } from "./data/mock-failure";
 import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
 import { inject } from "inversify";
+import { MockHandler } from "./mock.handler";
 
 @Service()
 export class MockService {
@@ -26,51 +24,9 @@ export class MockService {
         this.registerHandlebarsHelpers();
 
         return options.mocks.map(({ id, method, path, response }) => ({
-            method, path, handler: this.buildHandler(response, options.data, id)
+            method, path, handler:
+                new MockHandler(this.repository, this.proxyController, this.logger, response, options.data, id).handle,
         }));
-    }
-
-    private buildHandler(response: MockResponse, data: Record<string, any> = {}, id?: string): Lifecycle.Method {
-        const bodyTemplate = Handlebars.compile(response.body);
-
-        return async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
-            const { params, headers, query, payload: body } = request;
-            const { code: status } = response;
-
-            const context = {
-                request: { params, headers, query, body },
-		        response: { status, headers: {} as Record<string, string>, mustProxy: false },
-                data
-            };
-
-            if(response.delay) {
-                await Hoek.wait(response.delay);
-            }
-
-            let resBody: string;
-            try {
-                 resBody = bodyTemplate(context);
-            } catch(e) {
-                if(id) {
-                    await this.registerFailure(id, e);
-                }
-                this.logger.error(e);
-                throw e;
-            }
-
-            if(context.response.mustProxy) {
-                return await this.proxyController.proxyRequest(request, h);
-            }
-
-            const res = h
-                .response(resBody)
-                .code(context.response.status);
-
-            Object.entries({ ...response.headers, ...context.response.headers }).forEach(([key, value]) =>
-                res.header(key, value));
-
-            return res;
-        };
     }
 
     private registerHandlebarsHelpers() {
@@ -143,10 +99,5 @@ export class MockService {
                 return options.inverse(this);
             }
         });
-    }
-
-    private async registerFailure(id: string, error: Error): Promise<void> {
-        const failure = new MockFailure(error.toString(), new Date());
-        await this.repository.saveFailure(id, failure);
     }
 }
