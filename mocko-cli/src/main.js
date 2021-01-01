@@ -1,6 +1,11 @@
+const semver = require('semver');
+if(!semver.satisfies(process.version, '>=12')) {
+    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12`);
+    process.exit(1);
+}
+
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
-const semver = require('semver');
 const updateNotifier = require('update-notifier');
 
 const pkg = require('../package.json');
@@ -10,7 +15,6 @@ const { watch } = require('./watcher');
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
 function run() {
-    validateNodeVersion();
     updateNotifier({pkg}).notify();
 
     const args = buildArgs();
@@ -38,13 +42,6 @@ function run() {
     
     if(args.watch) {
         watch(path, () => server.then(s => s.restart()));
-    }
-}
-
-function validateNodeVersion() {
-    if(!semver.satisfies(process.version, '>=12')) {
-        console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12`);
-        process.exit(1);
     }
 }
 
