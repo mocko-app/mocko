@@ -13,6 +13,7 @@
 - Proxy your real API: Requests will be passed through to it unless there's a mock
 - Create dynamic mocks using Handlebars (more [here](/templating))
 - Easy to deploy: You can deploy it in containers or even using a CLI <!-- TODO reference for deploy doc -->
+- Really, **really** fast. Run your tests as fast as you can.
 
 ## Use cases
 - Mocking integrations for tests, non-productive environments or local development
