@@ -1,6 +1,6 @@
 const semver = require('semver');
 if(!semver.satisfies(process.version, '>=12')) {
-    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12`);
+    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 12 https://mocko.dev/updating-node/`);
     process.exit(1);
 }
 
