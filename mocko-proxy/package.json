@@ -43,10 +43,9 @@
     "@hapi/hapi": "^20.0.3",
     "@hapi/hoek": "^9.1.1",
     "@mocko/h2o2": "^9.0.1",
-    "@mocko/logger": "^1.1.1",
+    "@mocko/logger": "^1.1.2",
     "debug": "^4.3.1",
     "dotenv": "^8.2.0",
-    "fs": "0.0.1-security",
     "handlebars": "^4.7.6",
     "handlebars-kit": "^1.1.0",
     "hcl-parser": "^0.1.1",
@@ -54,7 +53,6 @@
     "ioredis": "^4.19.4",
     "joi": "^17.3.0",
     "moment": "^2.29.1",
-    "path": "^0.12.7",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
