@@ -177,6 +177,9 @@ you can define multiple mocks in the same file. Here's a folder structure exampl
     └── refund.hcl
 ```
 
+Just a reminder: The folder structure is purely organizational, it doesn't change the way your mocks are interpreted
+and produce the same effect as having all of them in the same file.
+
 ## Next steps
 Before moving on, how about leaving us a star on GitHub? It'll take you two clicks, first [here](https://cdt.one/fZLdEhZ) and then on star :)
 
