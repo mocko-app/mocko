@@ -17,15 +17,15 @@ When defining your `body` template, you can use [Handlebars](https://cdt.one/2uU
 minimal templating language. In a `GET /cats/{name}` mock, the following body template:
 ```json
 {
-    "id": 1,
-    "name": "{{ request.params.name }}"
+	"id": 1,
+	"name": "{{ request.params.name }}"
 }
 ```
 Would produce a response like this in a `GET /cats/george`:
 ```json
 {
-    "id": 1,
-    "name": "george"
+	"id": 1,
+	"name": "george"
 }
 ```
 
@@ -33,15 +33,15 @@ Other than that, you can use helpers from the [handlebars-helpers](https://cdt.o
 repository. Here's an example:
 ```json
 {
-    "id": 1,
-    "name": "{{capitalizeAll request.params.name }}"
+	"id": 1,
+	"name": "{{capitalizeAll request.params.name }}"
 }
 ```
 Producing on `GET /cats/george`:
 ```json
 {
-    "id": 1,
-    "name": "George"
+	"id": 1,
+	"name": "George"
 }
 ```
 
@@ -56,9 +56,9 @@ You can access several fields from the request from your template:
 Here's an example using some of them, `PUT /cats/{id}`:
 ```js
 {
-    "id": {{ request.params.id }},
-    "name": "{{ request.body.name }}",
-    "key": "{{ request.headers.x-key }}"
+	"id": {{ request.params.id }},
+	"name": "{{ request.body.name }}",
+	"key": "{{ request.headers.x-key }}"
 }
 ```
 
@@ -67,17 +67,17 @@ You can use block helpers to perform conditionals or loops in your template, her
 
 ```java
 {{#startsWith 'g' (downcase request.params.name) }}
-  {
-    "id": 1,
-    "name": "{{capitalizeAll request.params.name }}"
-  }
+	{
+		"id": 1,
+		"name": "{{capitalizeAll request.params.name }}"
+	}
 {{else}}
-  {{! You can set the status conditionally from here with the 'setStatus' helper }}
-  {{setStatus 404}}
-  {
-    "error": "Not found error",
-    "message": "Cat not found"
-  }
+	{{! You can set the status conditionally from here with the 'setStatus' helper }}
+	{{setStatus 404}}
+	{
+		"error": "Not found error",
+		"message": "Cat not found"
+	}
 {{/startsWith}}
 ```
 
@@ -101,22 +101,22 @@ Lets you set the response status dynamically or conditionally.
 Example `GET /cats/{id}`:
 ```java
 {{#is request.params.id '1'}}
-  {
-    "id": 1,
-    "name": "George"
-  }
+	{
+		"id": 1,
+		"name": "George"
+	}
 {{else is request.params.id '2'}}
-  {
-    "id": 2,
-    "name": "Alice"
-  }
+	{
+		"id": 2,
+		"name": "Alice"
+	}
 {{else}}
-  {{! You can set the status conditionally from here with the 'setStatus' helper }}
-  {{setStatus 404}}
-  {
-    "error": "Not found error",
-    "message": "Cat not found"
-  }
+	{{! You can set the status conditionally from here with the 'setStatus' helper }}
+	{{setStatus 404}}
+	{
+		"error": "Not found error",
+		"message": "Cat not found"
+	}
 {{/is}}
 ```
 
@@ -126,15 +126,15 @@ Lets you set response headers dynamically or conditionally.
 Example `GET /purchase-tasks/{id}`:
 ```java
 {{#gt (toInt request.params.id) 10}}
-  {{! Simulating completed tasks with id greater than 10 }}
-  {{setStatus 303}}
-  {{setHeader 'Location' (append '/purchases/' request.params.id)}}
+	{{! Simulating completed tasks with id greater than 10 }}
+	{{setStatus 303}}
+	{{setHeader 'Location' (append '/purchases/' request.params.id)}}
 {{else}}
-  {{! Simulating random progress tasks otherwise }}
-  {
-    "id": {{request.params.id}},
-    "progress": {{random 0 100}}
-  }
+	{{! Simulating random progress tasks otherwise }}
+	{
+		"id": {{request.params.id}},
+		"progress": {{random 0 100}}
+	}
 {{/gt}}
 ```
 
@@ -152,9 +152,9 @@ Example `GET /posts`
 ```java
 {{! If the query "userId" is 1, return an empty array, otherwise proxy to the real API }}
 {{#is request.query.userId 1}}
-  []
+	[]
 {{else}}
-  {{proxy}}
+	{{proxy}}
 {{/is}}
 ```
 
@@ -163,7 +163,7 @@ to the `proxy` helper, the following example would proxy any request for paths s
 to `localhost:8081`:
 ```java
 mock "* /v2/{any*}" {
-  body = "{{proxy 'http://localhost:8082'}}"
+	body = "{{proxy 'http://localhost:8082'}}"
 }
 ```
 
@@ -178,29 +178,29 @@ You can log anything to Mocko's console with the `log` helper, here are some exa
 ```java
 {{log 'Received a request to create a cat named ' request.body.name ' of age ' request.body.age }}
 {
-  "id": {{random 1 100}}
+	"id": {{random 1 100}}
 }
 ```
 
 `GET /cats/{id}`
 ```java
 {{#is request.params.id '1'}}
-  {
-    "id": 1,
-    "name": "George"
-  }
+	{
+		"id": 1,
+		"name": "George"
+	}
 {{else is request.params.id '2'}}
-  {
-    "id": 2,
-    "name": "Alice"
-  }
+	{
+		"id": 2,
+		"name": "Alice"
+	}
 {{else}}
-  {{log 'Trying to fetch unknown cat with id ' request.params.id }}
-  {{setStatus 404}}
-  {
-    "error": "Not found error",
-    "message": "Cat not found"
-  }
+	{{log 'Trying to fetch unknown cat with id ' request.params.id }}
+	{{setStatus 404}}
+	{
+		"error": "Not found error",
+		"message": "Cat not found"
+	}
 {{/is}}
 ```
 

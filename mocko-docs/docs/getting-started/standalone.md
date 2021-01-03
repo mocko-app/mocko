@@ -9,8 +9,8 @@ mocks with ease and provides you with great features to make it easier to develo
 them.
 
 <div class="alert alert-warning" role="alert">
-  You need NodeJS 12 or newer installed for this part.
-  <a href="https://cdt.one/BDSDgYN" target="_blank">Click here</a> to check our guide on updating
+	You need NodeJS 12 or newer installed for this part.
+	<a href="https://cdt.one/BDSDgYN" target="_blank">Click here</a> to check our guide on updating
 </div>
 
 First install the Mocko CLI with npm:
@@ -52,12 +52,12 @@ And, in your `.hcl` file (like our `first-mocks.hcl`), create your first mock wi
 
 ```js
 mock "GET /hello" {
-  body = "Hello from Mocko!"
+	body = "Hello from Mocko!"
 }
 ```
 <div class="alert alert-info" role="alert">
-  Your IDE or editor will most likely have an extension for <code>.hcl</code> syntax highlighting.
-  It might help :)
+	Your IDE or editor will most likely have an extension for <code>.hcl</code> syntax highlighting.
+	It might help :)
 </div>
 
 ## Using Mocko
@@ -92,26 +92,26 @@ identify it, and create a new mock:
 ```python
 # Our first, simple, hello mock
 mock "GET /hello" {
-  body = "Hello from Mocko!"
+	body = "Hello from Mocko!"
 }
 
 # Mocking George, the cat
 mock "GET /cats/george" {
-  # This is how you set response status, it's optional and defaults to 201 for POST and 200 for other methods
-  status = 200
+	# This is how you set response status, it's optional and defaults to 201 for POST and 200 for other methods
+	status = 200
 
-  # Headers are defined in a map, don't forget your content type
-  headers {
-    Content-Type = "application/json"
-  }
+	# Headers are defined in a map, don't forget your content type
+	headers {
+		Content-Type = "application/json"
+	}
 
-  # You can use multi-line strings for your body
-  body = <<EOF
-  {
-    "id": 1,
-    "name": "George"
-  }
-  EOF
+	# You can use multi-line strings for your body
+	body = <<EOF
+	{
+		"id": 1,
+		"name": "George"
+	}
+	EOF
 }
 ```
 And now let's understand it a little better:
@@ -142,8 +142,8 @@ mocks or `200` for anything else.
 Here you can specify your headers in a map like so:
 ```js
 headers {
-  Content-Type    = "application/json"
-  X-Custom-Header = "Mocko is amazing :O"
+	Content-Type    = "application/json"
+	X-Custom-Header = "Mocko is amazing :O"
 }
 ```
 
@@ -186,6 +186,6 @@ With it, you can create dynamic mocks, write logic for them so that you can simu
 scenarios. See you there :)
 
 <div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="https://cdt.one/zGZtUpU" role="button">Go to Templating</a>
+	<a class="btn btn-primary btn-lg" href="https://cdt.one/zGZtUpU" role="button">Go to Templating</a>
 </div>
 <img src="https://cdt.one/zDX75Ml.gif" style="display: none;"/>
