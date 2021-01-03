@@ -7,6 +7,8 @@ import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
 
+const debug = require('debug')('mocko:proxy:mock:handler');
+
 type Context = {
     request: {
         params: Record<string, string>,
@@ -41,16 +43,20 @@ export class MockHandler {
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
         const context = this.buildContext(request);
+        debug('building body from handlebars template');
         const resBody = await this.buildBody(context);
 
         if(this.mockResponse.delay) {
+            debug(`waiting ${this.mockResponse.delay} ms`)
             await Hoek.wait(this.mockResponse.delay);
         }
 
         if(context.response.proxyTo !== null) {
+            debug(`proxying`)
             return await this.proxyController.proxyRequest(request, h, context.response.proxyTo);
         }
 
+        debug('creating hapi response')
         const res = h
             .response(resBody)
             .code(context.response.status);
@@ -58,6 +64,7 @@ export class MockHandler {
         Object.entries({ ...this.mockResponse.headers, ...context.response.headers })
             .forEach(([key, value]) => res.header(key, value));
 
+        debug('done')
         return res;
     }
 
@@ -76,8 +83,10 @@ export class MockHandler {
         try {
             return this.bodyTemplate(context);
         } catch(e) {
+            debug('failed to build body from template, registering failure');
             await this.registerFailure(e);
             this.logger.error(e);
+            debug('done')
             throw e;
         }
     }

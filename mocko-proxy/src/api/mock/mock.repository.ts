@@ -10,6 +10,8 @@ import { MockFailure } from "./data/mock-failure";
 import { inject } from "inversify";
 import { ILogger, Logger } from "../../utils/logger";
 
+const debug = require('debug')('mocko:proxy:mock:repository');
+
 const readFile = promisify(fs.readFile);
 const readDir = promisify(fs.readdir);
 const lstat = promisify(fs.lstat);
@@ -49,12 +51,15 @@ export class MockRepository {
     }
 
     async getRedisMockOptions(): Promise<MockOptions> {
+        debug('fetching mocks from redis');
         const mocks = await this.redis.get<MockOptions>(REDIS_OPTIONS_DEPLOYMENT);
 
         if(!mocks) {
+            debug('no mocks found, running proxy only');
             return { mocks: [] };
         }
 
+        debug(`found ${mocks.mocks.length} mocks`);
         return mocks;
     }
 
@@ -67,6 +72,7 @@ export class MockRepository {
     }
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockOptions[]> {
+        debug(`loading mocks from dir '${path}'`);
         const fileNames = await readDir(path)
             .catch(Hoek.ignore);
 

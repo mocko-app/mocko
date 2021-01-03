@@ -9,7 +9,7 @@ import {ServerRoute} from "@hapi/hapi";
 import {ListenerProvider} from "./listeners";
 import {RedisProvider} from "./redis/redis.provider";
 
-const debug = require('debug')('server');
+const debug = require('debug')('mocko:proxy:server');
 
 @Provider()
 export class Server {

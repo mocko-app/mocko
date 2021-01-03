@@ -4,6 +4,8 @@ import {ProxyService} from "./proxy.service";
 import * as Boom from "@hapi/boom";
 import {configProvider} from "../../config/config.service";
 
+const debug = require('debug')('mocko:proxy:proxy:controller');
+
 const TIMEOUT = configProvider.getNumber('PROXY_TIMEOUT-MILLIS');
 
 @Provider()
@@ -17,9 +19,12 @@ export class ProxyController {
         const uri = this.service.getProxyUri(overrideUri);
 
         if(!mustProxy) {
+            debug(`cannot proxy '${request.method.toUpperCase()} ${request.path}', proxying is disabled`);
             throw Boom.notFound('No mock was found for this endpoint and method. Proxying is also disabled.');
         }
 
+
+        debug(`proxying '${request.method.toUpperCase()} ${request.path}' to ${uri}`);
         return h.proxy({
             uri,
             passThrough: true,

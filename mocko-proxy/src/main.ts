@@ -4,7 +4,7 @@ import { Server } from './server';
 import { ILogger, Logger, logger } from './utils/logger';
 import {configProvider, ConfigProvider} from "./config/config.service";
 
-const debug = require('debug')('main');
+const debug = require('debug')('mocko:proxy:main');
 
 async function bootstrap() {
     debug('starting');
