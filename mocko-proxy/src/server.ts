@@ -79,14 +79,28 @@ export class Server {
     private registerRoute(route: ServerRoute) {
         try {
             const logMessage = `Mapping '${route.method} ${route.path}'`;
+
             if(route.rules?.['mapSilently']) {
                 debug(logMessage);
             } else {
                 this.logger.info(logMessage);
             }
+
             this.app.route(route);
+            this.validateRoutePath(route.path);
         } catch (e) {
             this.logger.warn(`Failed to map '${route.method} ${route.path}': ${e.message}`);
+        }
+    }
+
+    private validateRoutePath(path: string): void {
+        const docsRef = "On Mocko generic parameters are defined with '{param}'. Have a look at our docs:\nhttps://mocko.dev/getting-started/standalone/#method-and-path";
+
+        if(path.match(/\/\*($|\/)/)) {
+            this.logger.warn(`The path '${path}' contains a '*'. ${docsRef}`);
+        }
+        if(path.match(/\/:./)) {
+            this.logger.warn(`The path '${path}' contains a parameter defined with ':'. ${docsRef}`);
         }
     }
 }
