@@ -54,8 +54,8 @@ export class MockService {
             this.response.status = status;
         });
 
-        Handlebars.registerHelper('proxy', function() {
-            this.response.mustProxy = true;
+        Handlebars.registerHelper('proxy', function(proxyUri) {
+            this.response.proxyTo = typeof proxyUri === 'string' ? proxyUri : '';
         });
 
         Handlebars.registerHelper('setHeader', function(key, value) {

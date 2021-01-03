@@ -139,7 +139,10 @@ Example `GET /purchase-tasks/{id}`:
 ```
 
 #### `proxy` helper
-Lets you proxy conditionally to the actual API behind mocko.
+Lets you proxy conditionally to the actual API behind mocko. You can choose the URL to proxy with
+the config `PROXY_BASE-URI` in the `mocko-proxy` module, either in the `.env` file or with an
+environment variable. If you're using the Mocko CLI, you can use the flag `--url` or `-u` instead.
+
 In the example below we're mocking empty posts for user with id 1:
 
 - `GET /posts?userId=1` will be mocked
@@ -154,6 +157,16 @@ Example `GET /posts`
   {{proxy}}
 {{/is}}
 ```
+
+Alternatively, you can override the proxy URI for a specific mock by passing the URI as a parameter
+to the `proxy` helper, the following example would proxy any request for paths starting with `/v2/`
+to `localhost:8081`:
+```java
+mock "* /v2/{*any}" {
+  body = "{{proxy 'http://localhost:8082'}}"
+}
+```
+
 <!-- TODO ## Flags helpers -->
 
 ## Tips and tricks

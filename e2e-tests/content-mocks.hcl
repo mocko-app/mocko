@@ -41,3 +41,7 @@ mock "GET /header" {
 mock "GET /delay" {
     delay = 500
 }
+
+mock "GET /hello" {
+    body = "hello from mocko-content"
+}

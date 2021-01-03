@@ -22,8 +22,11 @@ export async function createMock(name: string): Promise<any> {
     return data;
 }
 
-export async function mockAndGet<T>(body: string, headers: Record<string, string> = {}, status = 200): Promise<AxiosResponse<T>> {
-    const path = `/${uuidv4()}`;
+export async function mockAndGet<T>(body: string,
+                                    headers: Record<string, string> = {},
+                                    status = 200,
+                                    mockPath?: string): Promise<AxiosResponse<T>> {
+    const path = mockPath || `/${uuidv4()}`;
     await api.post('/mocks', {
         name: 'Unnamed',
         method: 'GET',

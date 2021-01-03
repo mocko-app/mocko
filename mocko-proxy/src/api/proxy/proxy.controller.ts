@@ -12,9 +12,9 @@ export class ProxyController {
         private readonly service: ProxyService,
     ) { }
 
-    proxyRequest(request: Hapi.Request, h: Hapi.ResponseToolkit) {
-        const mustProxy = this.service.isProxyEnabled();
-        const uri = this.service.getProxyUri();
+    proxyRequest(request: Hapi.Request, h: Hapi.ResponseToolkit, overrideUri?: string) {
+        const mustProxy = this.service.isProxyEnabled() || !!overrideUri;
+        const uri = this.service.getProxyUri(overrideUri);
 
         if(!mustProxy) {
             throw Boom.notFound('No mock was found for this endpoint and method. Proxying is also disabled.');

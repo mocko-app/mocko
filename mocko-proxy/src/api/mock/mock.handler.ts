@@ -18,7 +18,7 @@ type Context = {
     response: {
         status: number,
         headers: Record<string, string>,
-        mustProxy: boolean,
+        proxyTo: null | string,
     },
 
     data: Record<string, any>,
@@ -47,8 +47,8 @@ export class MockHandler {
             await Hoek.wait(this.mockResponse.delay);
         }
 
-        if(context.response.mustProxy) {
-            return await this.proxyController.proxyRequest(request, h);
+        if(context.response.proxyTo !== null) {
+            return await this.proxyController.proxyRequest(request, h, context.response.proxyTo);
         }
 
         const res = h
@@ -67,7 +67,7 @@ export class MockHandler {
 
         return {
             request: { params, headers, query, body },
-            response: { status, headers: {}, mustProxy: false },
+            response: { status, headers: {}, proxyTo: null },
             data: this.customData,
         };
     }
