@@ -147,7 +147,7 @@ There is an entire section about templating that you can learn more about this. 
 you in the end of this page.
 
 ## Structuring your mocks
-You mocks don't need to be in the root of your folder, they can be inside folders in any deepness. Also,
+Your mocks don't need to be in the root of your folder, they can be inside folders in any deepness. Also,
 you can define multiple mocks in the same file. Here's a folder structure example:
 ```text
 .

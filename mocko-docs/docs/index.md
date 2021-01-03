@@ -48,10 +48,10 @@ the most:
 - Manage your mocks in a web UI, no configuration files or CLIs
     - Great for running in your cluster for your team to create scenarions on-the-go
     - No need to deploy on changes, in a click of a button your mocks are updated
-- Three services + Redis
-    - You'll need a Redis in your cluster to run this configuration
+- Three services + [Redis](https://cdt.one/gFlZdpS)
+    - You'll need a [Redis](https://cdt.one/gFlZdpS) in your cluster to run this configuration
     - For local development, the docker-compose already includes the redis
-- Run locally with docker-compose or remotely with helm
+- Run locally with [docker-compose](https://cdt.one/CUemuMt) or remotely with [Helm](https://cdt.one/AuWLMKA)
     - Install it in your Kubernetes cluster with one command
     - Run it locally with docker-compose
 

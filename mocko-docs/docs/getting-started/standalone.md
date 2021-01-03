@@ -9,12 +9,18 @@ mocks with ease and provides you with great features to make it easier to develo
 them.
 
 <div class="alert alert-warning" role="alert">
-  You need NodeJS 12 or newer installed for this part
+  You need NodeJS 12 or newer installed for this part.
+  <a href="https://cdt.one/BDSDgYN" target="_blank">Click here</a> to check our guide on updating
 </div>
 
-First install the Mocko CLI with npm, you might need `sudo` for Linux or Mac:
+First install the Mocko CLI with npm:
 ```shell
 npm i -g @mocko/cli
+```
+
+Alternatively, **you might need `sudo` for Linux or Mac**:
+```shell
+sudo npm i -g @mocko/cli
 ```
 
 Check the installation with the `--help` flag for the help screen:
@@ -58,13 +64,13 @@ mock "GET /hello" {
 Now that you have Mocko CLI installed and your first project created, we're ready to begin. Inside your
 project folder, start Mocko by running the command:
 ```shell
-mocko --watch .
+mocko --watch ./
 ```
 
 And, as easy as that, your mocks are now being served on port 8080. If you want to change the port,
 you can use the `--port` flag to choose another one. Also, the `--watch` flag we've used makes Mocko
-auto reload the changes you save to your mock definitions. The `.` (dot) in the command is the folder
-that contains your mocks (or folder with folders of them), as we're inside it, we used `.` but you
+auto reload the changes you save to your mock definitions. The `./` in the command is the folder
+that contains your mocks (or folder with folders of them), as we're inside it, we used `./` but you
 could pass any path.
 
 To see your mock being served you can use any HTTP client like [Insomnia](https://insomnia.rest/download/),
@@ -116,16 +122,17 @@ You define the method and path right after the mock stanza. They're interpreted 
 [its documentation here](https://hapi.dev/module/call/api/?v=8.0.1).
 
 You can choose any method or `*` to match all. For the path, you can use specific paths like
-`/cats/george` or generic ones like `/cats/{name}`. You can even use optional parameters (`/cats/{name?}`),
-multi-segment parameters (`/cats/{name*2}`) or even catch-all parameters (`/cats/{name*}`).
+`/cats/george` or generic ones like `/cats/{name}`. Specific paths will always be matched with higher priority, if you had two mocks:
 
-Specific paths will always be matched with higher priority, if you had two mocks:
 ```js
 mock "GET /cats/george" { status = 204 }
 mock "GET /cats/{name}" { status = 404 }
 ```
 A get to `/cats/george` would never trigger the last mock (generic) regardless of the order, only the
 first one (specific). Other calls like `/cats/alice` would trigger the latter.
+
+For more advanced path matching like optional parameters, multi-segment parameters or even catch-all parameters,
+check [Hapi Call's documentation here](https://hapi.dev/module/call/api/?v=8.0.1).
 
 #### `status` parameter
 Not much to say here... You can choose any status from `200` to `599`. It defaults to `201` for `POST`
@@ -153,7 +160,7 @@ There is an entire section about templating that you can learn more about this. 
 you in the end of this page.
 
 ## Structuring your mocks
-You mocks don't need to be in the root of your folder, they can be inside folders in any deepness. Also,
+Your mocks don't need to be in the root of your folder, they can be inside folders in any deepness. Also,
 you can define multiple mocks in the same file. Here's a folder structure example:
 ```text
 .
