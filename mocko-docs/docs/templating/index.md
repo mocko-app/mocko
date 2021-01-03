@@ -162,7 +162,7 @@ Alternatively, you can override the proxy URI for a specific mock by passing the
 to the `proxy` helper, the following example would proxy any request for paths starting with `/v2/`
 to `localhost:8081`:
 ```java
-mock "* /v2/{*any}" {
+mock "* /v2/{any*}" {
   body = "{{proxy 'http://localhost:8082'}}"
 }
 ```
