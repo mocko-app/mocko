@@ -12,11 +12,15 @@ const pkg = require('../package.json');
 const { definition } = require('./definition');
 const { watch } = require('./watcher');
 
+const debug = require('debug')('mocko:cli:main');
+
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
 function run() {
+    debug('running update-notifier');
     updateNotifier({pkg}).notify();
 
+    debug('building args with bossy');
     const args = buildArgs();
 
     if(args.version) {
@@ -29,6 +33,7 @@ function run() {
         process.exit(0);
     }
 
+    debug('validating args with joi');
     validateArgs(args);
     
     const path = args._[0];
@@ -38,11 +43,16 @@ function run() {
     process.env['PROXY_BASE-URI'] = url;
     process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
     process.env['MOCKS_FOLDER'] = path;
+
+    debug('starting mocko-proxy');
     const { server } = require('@mocko/proxy');
     
     if(args.watch) {
+        debug('starting watcher with chokidar');
         watch(path, () => server.then(s => s.restart()));
     }
+
+    debug('done');
 }
 
 function buildArgs() {
