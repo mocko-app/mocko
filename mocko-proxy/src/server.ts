@@ -78,7 +78,7 @@ export class Server {
 
     private registerRoute(route: ServerRoute) {
         try {
-            const logMessage = `Mapping '${route.method} ${route.path}'`;
+            const logMessage = `Mapping '${route.vhost ? `(${route.vhost}) `:''}${route.method} ${route.path}'`;
 
             if(route.rules?.['mapSilently']) {
                 debug(logMessage);

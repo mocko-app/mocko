@@ -45,3 +45,17 @@ mock "GET /delay" {
 mock "GET /hello" {
     body = "hello from mocko-content"
 }
+
+mock "GET /vhost" {
+    body = "global"
+}
+
+mock "GET /vhost" {
+    host = "mocko.dev"
+    body = "vhost"
+}
+
+mock "GET /vhost-only" {
+    host = "mocko.dev"
+    body = "vhost"
+}

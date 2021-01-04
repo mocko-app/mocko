@@ -48,4 +48,37 @@ describe('Mocko proxy from config, proxy off', () => {
 
         expect(error).toBeLessThan(50);
     });
+
+    it('registering a route with vhost should not override the global one', async () => {
+        const { data } = await content.get('/vhost');
+        expect(data).toBe('global');
+    });
+
+    it('request with vhost should have higher priority', async () => {
+        const { data } = await content.get('/vhost', {
+            headers: {
+                Host: 'mocko.dev'
+            }
+        });
+        expect(data).toBe('vhost');
+    });
+
+    it('vhost route should not be accessible globally', async () => {
+        expect.assertions(1);
+
+        try {
+            await content.get('/vhost-only');
+        } catch(error) {
+            expect(error.response.status).toBe(404);
+        }
+    });
+
+    it('request with vhost should have higher priority', async () => {
+        const { data } = await content.get('/vhost-only', {
+            headers: {
+                Host: 'mocko.dev'
+            }
+        });
+        expect(data).toBe('vhost');
+    });
 });

@@ -23,8 +23,8 @@ export class MockService {
         const options = await this.repository.getMockOptions();
         this.registerHandlebarsHelpers();
 
-        return options.mocks.map(({ id, method, path, response }) => ({
-            method, path, handler:
+        return options.mocks.map(({ id, method, path, host, response }) => ({
+            method, path, vhost: host, handler:
                 new MockHandler(this.repository, this.proxyController, this.logger, response, options.data, id).handle,
         }));
     }
