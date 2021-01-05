@@ -2,7 +2,7 @@ import {Service} from "../../utils/decorators/service";
 import {ServerRoute} from "@hapi/hapi";
 import {MockRepository} from "./mock.repository";
 import * as Handlebars from 'handlebars';
-import * as helpers from 'handlebars-kit';
+import * as helpers from '@mocko/helpers';
 import {ProxyController} from "../proxy/proxy.controller";
 import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
