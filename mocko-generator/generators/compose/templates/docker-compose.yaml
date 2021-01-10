@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  mocko:
+    image: 'gabrielctpinheiro/mocko-proxy:1.4.0'
+    environment:
+      - PROXY_BASE-URI=
+    ports:
+      - '<%= port %>:8080'
+    volumes:
+      - './mocks:/home/mocko/mocks'

@@ -1,0 +1,36 @@
+{
+  "name": "generator-mocko",
+  "version": "1.0.0",
+  "description": "Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock",
+  "files": [
+    "generators"
+  ],
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabriel-pinheiro/mocko.git"
+  },
+  "keywords": [
+    "yeoman-generator",
+    "mocko",
+    "mock",
+    "stub",
+    "http"
+  ],
+  "author": "Gabriel Pinheiro <gabrielctpinheiro@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/gabriel-pinheiro/mocko/issues"
+  },
+  "homepage": "https://github.com/gabriel-pinheiro/mocko#readme",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "execa": "^5.0.0",
+    "npm-add-script": "^1.1.0",
+    "ora": "^5.2.0",
+    "yaml": "^1.10.0",
+    "yeoman-generator": "^4.12.0"
+  }
+}
