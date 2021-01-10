@@ -1,7 +1,7 @@
 import {Provider} from "../../utils/decorators/provider";
-import * as fs from "fs";
+import { promises } from "fs";
+import { join } from "path";
 import {MockOptions, optionsFromConfig} from "./data/mock-options";
-import {promisify} from "util";
 import {RedisProvider} from "../../redis/redis.provider";
 import {REDIS_OPTIONS_DEPLOYMENT} from "./mock.constants";
 import {parse} from 'hcl-parser';
@@ -12,9 +12,7 @@ import { ILogger, Logger } from "../../utils/logger";
 
 const debug = require('debug')('mocko:proxy:mock:repository');
 
-const readFile = promisify(fs.readFile);
-const readDir = promisify(fs.readdir);
-const lstat = promisify(fs.lstat);
+const { readFile, readdir, lstat } = promises;
 
 const MOCKS_DIR = process.env['MOCKS_FOLDER'] || "mocks";
 const MUST_LOAD_DIR = !!process.env['MOCKS_FOLDER'];
@@ -73,7 +71,7 @@ export class MockRepository {
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockOptions[]> {
         debug(`loading mocks from dir '${path}'`);
-        const fileNames = await readDir(path)
+        const fileNames = await readdir(path)
             .catch(Hoek.ignore);
 
         if(!fileNames) {
@@ -85,7 +83,7 @@ export class MockRepository {
         }
 
         const files: FileOrDir[] = await Promise.all(fileNames.map(async (name) => {
-            const stat = await lstat(`${path}/${name}`);
+            const stat = await lstat(join(path, name));
             const isDir = stat.isDirectory();
 
             return { name, isDir };
@@ -97,11 +95,11 @@ export class MockRepository {
 
         const subDirContents = (await Promise.all(files
             .filter(f => f.isDir)
-            .map(f => this.getMockFilesContent(`${path}/${f.name}`))))
+            .map(f => this.getMockFilesContent(join(path, f.name)))))
                 .flat();
         
         const dirContents = await Promise.all(mockFiles
-            .map(m => this.optionsFromFile(`${path}/${m.name}`)));
+            .map(m => this.optionsFromFile(join(path, m.name))));
 
         return [...dirContents, ...subDirContents];
     }
