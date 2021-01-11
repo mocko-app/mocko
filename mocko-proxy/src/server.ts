@@ -100,7 +100,10 @@ export class Server {
             this.logger.warn(`The path '${path}' contains a '*'. ${docsRef}`);
         }
         if(path.match(/\/:./)) {
-            this.logger.warn(`The path '${path}' contains a parameter defined with ':'. ${docsRef}`);
+            this.logger.warn(`The path '${path}' contains a parameter defined with ':param'. ${docsRef}`);
+        }
+        if(path.match(/\/\$\{\w*\}/)) {
+            this.logger.warn(`The path '${path}' contains a parameter defined with '\${param}'. ${docsRef}`);
         }
     }
 }
