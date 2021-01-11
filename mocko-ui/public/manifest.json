@@ -2,12 +2,12 @@
   "short_name": "Mocko",
   "name": "Mocko - Mocking made easy",
   "icons": [{
-      "src": "https://cdn.codetunnel.net/cdt/icon.png",
+      "src": "https://cdn.codetunnel.net/mocko/icon.png",
       "type": "image/png",
       "sizes": "32x32"
     },
     {
-      "src": "https://cdn.codetunnel.net/cdt/logo.png",
+      "src": "https://cdn.codetunnel.net/mocko/logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }],
