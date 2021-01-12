@@ -62,11 +62,18 @@ export class MockRepository {
     }
 
     async getMockOptions(): Promise<MockOptions> {
+        const fileMocks = await this.getFileMockOptions();
+
         if(this.redis.isEnabled) {
-            return await this.getRedisMockOptions();
+            const redisMocks = await this.getRedisMockOptions();
+
+            return {
+                mocks: [...redisMocks.mocks, ...fileMocks.mocks],
+                data: fileMocks.data,
+            };
         }
 
-        return await this.getFileMockOptions();
+        return fileMocks;
     }
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockOptions[]> {
