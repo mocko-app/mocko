@@ -10,3 +10,5 @@
 .settings/
 *.sublime-workspace
 .vscode/*
+
+coverage.html

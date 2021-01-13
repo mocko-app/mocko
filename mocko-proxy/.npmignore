@@ -9,3 +9,4 @@ mocks
 Dockerfile
 README.md
 tsconfig.json
+coverage.html

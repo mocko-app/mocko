@@ -34,11 +34,14 @@ export class Server {
         return await this.startServer();
     }
 
-    async stop() {
+    async stop(exitProcess = true) {
         debug('stopping the server');
         await this.app.stop();
         this.logger.info('Bye :)');
-        process.exit(0);
+
+        if(exitProcess) {
+            process.exit(0);
+        }
     }
 
     async restart(): Promise<Server> {
