@@ -1,6 +1,6 @@
 {
   "name": "generator-mocko",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock",
   "files": [
     "generators"
