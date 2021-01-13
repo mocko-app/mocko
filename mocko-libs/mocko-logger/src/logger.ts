@@ -5,6 +5,10 @@ import { FixedTextColumn } from './columns/fixed-text';
 import { TextColumn } from './columns/text';
 import { TimestampColumn } from './columns/timestamp';
 
+const debug = require('debug')('mocko:logger');
+
+const SILENT = process.env.SILENT === "true";
+
 export const LogColumn = {
     timestamp: () => new TimestampColumn,
     text: () => new TextColumn,
@@ -29,6 +33,11 @@ export class Logger {
         Hoek.assert(params.length === this.paramCount, `this logger expected ${this.paramCount} params but got ${params.length}`);
         const iterator = params[Symbol.iterator]();
         const values = this.columns.map(c => c.accept(iterator));
+
+        if(SILENT) {
+            debug(values.join(' '));
+            return;
+        }
 
         process.stdout.write(values.join(' ') + '\n');
     }
