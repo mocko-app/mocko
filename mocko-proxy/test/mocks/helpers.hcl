@@ -38,3 +38,36 @@ mock "GET /override-header" {
     }
     body = "{{setHeader 'x-foo' 'bar'}}"
 }
+
+#-----------------------------
+# flags
+#-----------------------------
+mock "PUT /flag/{value}" {
+    body = "{{setFlag 'test_flag' request.params.value}}"
+}
+
+mock "GET /flag" {
+    body = "{{getFlag 'test_flag'}}"
+}
+
+mock "DELETE /flag" {
+    body = "{{delFlag 'test_flag'}}"
+}
+
+mock "GET /has-flag" {
+    body = <<EOF
+    {{#hasFlag 'test_flag'}}
+        yes
+    {{else}}
+        no
+    {{/hasFlag}}
+    EOF
+}
+
+mock "GET /has-flag-noelse" {
+    body = <<EOF
+    {{#hasFlag 'test_flag'}}
+        yes
+    {{/hasFlag}}
+    EOF
+}

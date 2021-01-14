@@ -51,6 +51,33 @@ module.exports = (mocko, describe, it) => () => {
         });
 
         // TODO test {{proxy}}
-        // TODO test flags
+    });
+
+    describe('flags', () => {
+        it('should set and get flags correctly', async () => {
+            await mocko.put('/flag/ablueblue');
+            const { data } = await mocko.get('/flag');
+            expect(data).to.equal('ablueblue');
+        });
+
+        it('should set, delete and \'has\' flags correctly', async () => {
+            await mocko.put('/flag/foo');
+            const first = await mocko.get('/has-flag');
+            expect(first.data).to.include('yes');
+
+            await mocko.delete('/flag');
+            const second = await mocko.get('/has-flag');
+            expect(second.data).to.include('no');
+        });
+        
+        it('hasFlag must work without an else block', async () => {
+            await mocko.put('/flag/foo');
+            const first = await mocko.get('/has-flag-noelse');
+            expect(first.data).to.include('yes');
+
+            await mocko.delete('/flag');
+            const second = await mocko.get('/has-flag-noelse');
+            expect(second.data).not.to.include('yes');
+        });
     });
 };
