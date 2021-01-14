@@ -4,7 +4,7 @@ export const NoMocks = styled.div`
   margin-top: 1.5rem;
   text-align: center;
   font-size: 1.25rem;
-  font-family: Montserrat, Roboto, Arial, sans-serif;
+  font-family: Roboto, Arial, sans-serif;
   * {
     margin-bottom: 1.5rem;
   }

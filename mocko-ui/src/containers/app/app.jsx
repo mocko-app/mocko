@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {AppView} from "./styles";
+import {AppView, Logo} from "./styles";
 import {Navbar} from "../../components/navbar/navbar";
 import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
@@ -18,7 +18,10 @@ export function App() {
         <Mocks.Provider value={mocks}>
             <BrowserRouter>
                 <AppView>
-                    <Navbar>Mocko</Navbar>
+                    <Navbar>
+                        <Logo src="http://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
+                        MOCKO
+                    </Navbar>
                     <MockList/>
                 </AppView>
 

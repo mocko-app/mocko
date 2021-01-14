@@ -10,3 +10,9 @@ export const AppView = styled.div`
     padding-top: 5rem;
     overflow: auto;
 `;
+
+export const Logo = styled.img`
+    vertical-align: middle;
+    height: 75%;
+    margin-right: 0.5rem;
+`;

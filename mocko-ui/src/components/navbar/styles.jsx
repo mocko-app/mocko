@@ -6,10 +6,10 @@ export const NavbarView = styled.nav`
     left: 0;
     height: 4rem;
     width: 100%;
-    padding: 0 2rem;
+    padding: 0 1rem;
     color: #FFF;
     background-color: #222222;
-    font-family: Montserrat, Roboto, Arial, sans-serif;
+    font-family: 'Passion One', Roboto, Arial, sans-serif;
     font-size: 2rem;
     line-height: 4rem;
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2),

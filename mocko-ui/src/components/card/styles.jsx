@@ -81,7 +81,7 @@ export const CardBar = styled.div`
 `;
 
 export const CardTitle = styled.h1`
-    font-family: Montserrat, Roboto, Arial, sans-serif;
+    font-family: 'Passion One', Roboto, Arial, sans-serif;
     font-size: 1.68rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.87);

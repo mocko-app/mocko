@@ -44,7 +44,7 @@ export const ListItemContent = styled.div`
 `;
 
 export const ListItemTitle = styled.span`
-    font-family: Montserrat, Roboto, Arial, sans-serif;
+    font-family: Roboto, Arial, sans-serif;
     font-size: 1.25rem;
     color: #FFF;
     width: 100%;
