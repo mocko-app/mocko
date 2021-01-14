@@ -49,8 +49,6 @@ module.exports = (mocko, describe, it) => () => {
             const { headers } = await mocko.get('/override-header');
             expect(headers).to.include({ 'x-foo': 'bar' });
         });
-
-        // TODO test {{proxy}}
     });
 
     describe('flags', () => {

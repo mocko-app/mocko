@@ -44,16 +44,4 @@ describe('Mocko API', () => {
         expect(response.data).toBe('foo');
         expect(response.status).toBe(202);
     });
-
-    it('the proxy helper must... proxy', async () => {
-        const response = await mockAndGet("fsodinsdfoni{{proxy}}", {}, 200, '/hello');
-        expect(response.data).toBe('hello from mocko-content');
-    });
-
-    it('must overide proxy URI with the one passed to the proxy helper', async () => {
-        const response = await mockAndGet<any>("{{proxy 'https://jsonplaceholder.typicode.com/'}}",
-                {}, 200, '/users/1');
-        
-        expect(response.data.id).toBe(1);
-    });
 });

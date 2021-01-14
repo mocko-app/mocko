@@ -1,7 +1,8 @@
-process.env.MOCKS_FOLDER = './test/mocks';
+process.env.MOCKS_FOLDER = './test/mocks/subject';
 process.env.SILENT = 'true';
 
 const helpersSuite = require('./helpers');
+const   proxySuite = require('./proxy');
 
 const Code = require('@hapi/code');
 const Lab = require('@hapi/lab');
@@ -125,4 +126,5 @@ describe('standalone', () => {
     });
 
     describe('helpers', helpersSuite(mocko, describe, it));
+    describe('proxy',   proxySuite(mocko, describe, it));
 });
