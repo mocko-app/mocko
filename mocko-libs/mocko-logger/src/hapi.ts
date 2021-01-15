@@ -4,7 +4,7 @@ import { LogColumn, Logger } from './logger';
 
 const log = new Logger()
     .column(LogColumn.timestamp().color(colors.dim))
-    .column(LogColumn.fixed('  req').color(colors.dim))
+    .column(LogColumn.text().size(5).right().color(colors.dim))
     .column(LogColumn.text().size(7).right())
     .column(LogColumn.text().size(48))
     .column(LogColumn.text().size(10).right())
@@ -16,6 +16,7 @@ function logRequest(request: Hapi.Request, time: string) {
     const status = request.response instanceof Error ?
             request.response.output.statusCode :
             request.response.statusCode;
+    const label = request['_label'] || 'req';
 
     let statusColor = colors.bold;
     switch(true) {
@@ -30,7 +31,7 @@ function logRequest(request: Hapi.Request, time: string) {
             break;
     }
 
-    log(method.toUpperCase(), path, time + "ms", statusColor(status.toString()));
+    log(label, method.toUpperCase(), path, time + "ms", statusColor(status.toString()));
 }
 
 export const hapiRequestLogger = {
