@@ -42,6 +42,9 @@ export class MockHandler {
     }
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
+        // Setting logger label
+        request['_label'] = 'mock';
+
         const context = this.buildContext(request);
         debug('building body from handlebars template');
         const resBody = await this.buildBody(context);

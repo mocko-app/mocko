@@ -23,6 +23,8 @@ export class ProxyController {
             throw Boom.notFound('No mock was found for this endpoint and method. Proxying is also disabled.');
         }
 
+        // Setting logger label
+        request['_label'] = 'proxy';
 
         debug(`proxying '${request.method.toUpperCase()} ${request.path}' to ${uri}`);
         return h.proxy({
