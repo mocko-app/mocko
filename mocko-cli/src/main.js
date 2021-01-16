@@ -49,7 +49,7 @@ function run() {
     
     if(args.watch) {
         debug('starting watcher with chokidar');
-        watch(path, () => server.then(s => s.restart()));
+        watch(path, () => server.then(s => s.remapRoutes()));
     }
 
     debug('done');

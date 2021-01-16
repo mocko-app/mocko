@@ -6,7 +6,7 @@ import {Server} from "../server";
 export class DeployListener implements IListener {
     readonly channel = 'deploy';
 
-    async onMessage(message: string, server: Server) {
-        await server.restart();
+    async onMessage(_message: string, server: Server) {
+        await server.remapRoutes();
     }
 }

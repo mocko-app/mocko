@@ -1,14 +1,14 @@
 {
   "name": "@mocko/proxy",
-  "version": "1.4.5",
+  "version": "1.4.8",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc",
-    "start": "node dist/main",
+    "start": "node --expose-gc dist/main",
     "start:dev": "nodemon --config nodemon.json",
-    "start:prod": "node dist/main",
+    "start:prod": "node --expose-gc dist/main",
     "pretest": "tsc",
     "pretest:cov": "tsc",
     "test": "lab -I require -a @hapi/code",

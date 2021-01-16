@@ -44,10 +44,22 @@ export class Server {
         }
     }
 
-    async restart(): Promise<Server> {
-        this.logger.info('Restarting the server');
-        await this.app.stop();
-        return await this.startServer();
+    async remapRoutes(): Promise<Server> {
+        this.logger.info('Remapping routes');
+        debug('building routes');
+        const routes = await this.router.getRoutes();
+        debug('clearing routes');
+        this.app['_core'].router.routes.clear();
+        debug('mapping routes');
+        routes.forEach(route => this.registerRoute(route));
+        if(global.gc) {
+            debug('forcing garbage collection');
+            global.gc();
+        } else {
+            debug('skipping garbage collection, use --expose-gc');
+        }
+        debug('finished remaping routes');
+        return this;
     }
 
     private async startServer(): Promise<Server> {

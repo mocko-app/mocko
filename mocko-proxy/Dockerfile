@@ -20,4 +20,4 @@ COPY --from=builder /home/mocko/dist ./dist
 COPY default.env .
 COPY mocks ./mocks
 
-CMD ["node", "dist/main"]
+CMD ["node", "--expose-gc", "dist/main"]
