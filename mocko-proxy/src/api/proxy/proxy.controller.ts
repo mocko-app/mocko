@@ -16,7 +16,7 @@ export class ProxyController {
 
     proxyRequest(request: Hapi.Request, h: Hapi.ResponseToolkit, overrideUri?: string) {
         const mustProxy = this.service.isProxyEnabled() || !!overrideUri;
-        const uri = this.service.getProxyUri(overrideUri);
+        const uri = this.service.getProxyUri(overrideUri) + request.url.search;
 
         if(!mustProxy) {
             debug(`cannot proxy '${request.method.toUpperCase()} ${request.path}', proxying is disabled`);
