@@ -29,17 +29,23 @@ export class Logger {
         return this;
     }
 
-    public log = (...params: any[]) => {
+    public build(...params: any[]): string {
         Hoek.assert(params.length === this.paramCount, `this logger expected ${this.paramCount} params but got ${params.length}`);
         const iterator = params[Symbol.iterator]();
         const values = this.columns.map(c => c.accept(iterator));
 
+        return values.join(' ');
+    }
+
+    public log = (...params: any[]) => {
+        const message = this.build(...params);
+
         if(SILENT) {
-            debug(values.join(' '));
+            debug(message);
             return;
         }
 
-        process.stdout.write(values.join(' ') + '\n');
+        process.stdout.write(message + '\n');
     }
 }
 
