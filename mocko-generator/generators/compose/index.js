@@ -62,7 +62,7 @@ module.exports = class extends Generator {
             const composeText = this.fs.read(composePath);
             const compose = YAML.parse(composeText);
             compose.services.mocko = {
-                image: 'gabrielctpinheiro/mocko-proxy:1.4.5',
+                image: 'gabrielctpinheiro/mocko-proxy:1.4.9',
                 environment: [ 'PROXY_BASE-URI=' ],
                 ports: [ this.answers.port + ':8080' ],
                 volumes: [ './mocks:/home/mocko/mocks' ]
@@ -81,7 +81,7 @@ module.exports = class extends Generator {
         const start = new Date();
         this.spinner.start('Pulling container');
         try {
-            await execa('docker', ['pull', 'gabrielctpinheiro/mocko-proxy:1.4.5']);
+            await execa('docker', ['pull', 'gabrielctpinheiro/mocko-proxy:1.4.9']);
             const deltaT = (new Date().getTime() - start.getTime()) / 1000;
             this.spinner.succeed('Pulling container ' + chalk.green(`${deltaT.toFixed(1)} s`));
         } catch(e) {
