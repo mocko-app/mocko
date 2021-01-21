@@ -48,8 +48,14 @@ export class Server {
         this.logger.info('Remapping routes');
         debug('building routes');
         const routes = await this.router.getRoutes();
+
         debug('clearing routes');
         this.app['_core'].router.routes.clear();
+        const vhosts = this.app['_core'].router.vhosts;
+        if(vhosts) {
+            vhosts.clear();
+        }
+
         debug('mapping routes');
         routes.forEach(route => this.registerRoute(route));
         if(global.gc) {
@@ -58,6 +64,7 @@ export class Server {
         } else {
             debug('skipping garbage collection, use --expose-gc');
         }
+
         debug('finished remaping routes');
         return this;
     }
