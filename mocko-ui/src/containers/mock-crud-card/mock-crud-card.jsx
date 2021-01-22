@@ -62,14 +62,20 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
             }
         };
 
-        if(mock) {
-            await updateMock(mock.id, payload).catch(() => alert('Oops, failed to update mock'));
-        } else {
-            await createMock(payload).catch(() => alert('Oops, failed to create mock'));
+        try {
+            if(mock) {
+                await updateMock(mock.id, payload);
+            } else {
+                await createMock(payload);
+            }
+            onClose();
+            history.push("/");
+        } catch(e) {
+            const msg = e?.response?.data?.message?.[0];
+            alert(msg ? `Oops, ${msg}` : 'Oops, failed to save mock');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
-        onClose();
-        history.push("/");
     };
 
     return (
