@@ -17,10 +17,15 @@ describe('Mocko API', () => {
         expect.assertions(1);
 
         try {
-            await createMock("Huuuuuuuuuuuuuuuuuuuuuuuge name");
+            await createMock("Huuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuge name");
         } catch(error) {
             expect(error.response.status).toBe(400);
         }
+    });
+
+    it('must allow mocks to have an empty body', async () => {
+        const createMockPromise = createMock("empty body", '');
+        await expect(createMockPromise).resolves.toBeTruthy();
     });
 
     it('must delete mocks', async () => {

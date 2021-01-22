@@ -6,7 +6,7 @@ import {Type} from "class-transformer";
 export class CreateMockRequestDto {
 
     @IsString()
-    @Length(1, 24)
+    @Length(1, 42)
     name: string;
 
     @IsEnum(HttpMethod)

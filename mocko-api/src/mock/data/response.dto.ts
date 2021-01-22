@@ -1,4 +1,4 @@
-import {IsInt, IsNotEmpty, IsString, Max, Min} from "class-validator";
+import {IsInt, IsNotEmpty, IsOptional, IsString, Max, Min} from "class-validator";
 
 export class ResponseDto {
 
@@ -8,7 +8,7 @@ export class ResponseDto {
     @IsInt()
     code: number;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     body: string;
 
