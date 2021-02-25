@@ -11,6 +11,7 @@ export type MockDefinition = {
     id?: string,
     method: string,
     path: string,
+    parse: boolean,
     host?: string,
     response: MockResponse
 };
@@ -35,6 +36,7 @@ function merge(array: Record<string, any[]>[]): Record<string, any[]> {
 const definitionSchema = Joi.object({
     method: Joi.string().uppercase().regex(/^([A-Z]+|\*)$/),
     path: Joi.string(),
+    parse: Joi.boolean().default(true),
     host: Joi.string().optional(),
     response: Joi.object({
         code: Joi.number().min(200).max(599).label("status"),
@@ -51,9 +53,10 @@ const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
     const headers = res?.headers?.[0] || {};
     const code = res?.status || (method === 'POST' ? 201 : 200);
     const host = res?.host;
+    const parse = res?.parse;
 
     const definition = {
-        method, path, host,
+        method, path, host, parse,
         response: {
             code,
             delay: res?.delay,

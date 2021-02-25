@@ -6,6 +6,7 @@ import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
+import { isStream } from '../../utils/stream';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
 
@@ -72,11 +73,11 @@ export class MockHandler {
     }
 
     private buildContext(request: Request): Context {
-        const { params, headers, query, payload: body } = request;
+        const { params, headers, query, payload } = request;
         const { code: status } = this.mockResponse;
 
         return {
-            request: { params, headers, query, body },
+            request: { params, headers, query, body: isStream(payload) ? null : payload },
             response: { status, headers: {}, proxyTo: null },
             data: this.customData,
         };
