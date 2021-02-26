@@ -80,7 +80,7 @@ version: '2'
 
 services:
   mocko-proxy:
-    image: 'gabrielctpinheiro/mocko-proxy:1.4.10'
+    image: 'gabrielctpinheiro/mocko-proxy:1.4.11'
     environment:
       - PROXY_BASE-URI=
     ports:
