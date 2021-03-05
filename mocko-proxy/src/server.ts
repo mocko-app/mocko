@@ -76,8 +76,10 @@ export class Server {
             host: this.config.get('SERVER_HOST'),
             port: this.config.getNumber('SERVER_PORT'),
             routes: {
-                cors: this.config.getBoolean('SERVER_ALLOW-CORS'),
-            }
+                cors: this.config.getBoolean('SERVER_ALLOW-CORS') ? {
+                    origin: ['*'],
+                } : false,
+            },
         });
 
         this.logger.info('Mapping routes');
