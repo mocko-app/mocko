@@ -30,8 +30,11 @@ export class MockRepository {
 
     async findById(id: string): Promise<Mock> {
         const mock = await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
-        mock.failure = await this.redis.get<MockFailure>(`mock_failure:${id}`);
+        if(!mock) {
+            return null;
+        }
 
+        mock.failure = await this.redis.get<MockFailure>(`mock_failure:${id}`);
         return mock;
     }
 

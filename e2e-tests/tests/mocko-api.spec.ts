@@ -13,6 +13,16 @@ describe('Mocko API', () => {
         expect(mocks.length).toBe(1);
     });
 
+    it('must 404 when fetching non existent mock', async () => {
+        expect.assertions(1);
+
+        try {
+            await api.get('/mocks/foo');
+        } catch(error) {
+            expect(error.response.status).toBe(404);
+        }
+    });
+
     it('must fail to create mock when name is too big', async () => {
         expect.assertions(1);
 
