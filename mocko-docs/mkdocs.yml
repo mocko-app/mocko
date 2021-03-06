@@ -9,3 +9,4 @@ nav:
     - Standalone Mode: getting-started/standalone.md
     - Complete Stack: getting-started/complete.md
   - Templating: templating/index.md
+  - Deploying: deploying/index.md
