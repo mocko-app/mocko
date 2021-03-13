@@ -3,10 +3,10 @@ import {List} from "../../components/list/list";
 import {MockItem} from "../mock-item/mock-item";
 import {Spinner} from "../../components/spinner/spinner";
 import {Mocks} from "../../contexts/mock";
-import {NewMock} from "./new-mock";
 import {Link} from "react-router-dom";
 import {Button} from "../../components/button/button";
 import {NoMocks} from "./styles";
+import { Title, TitleButton, TitleText } from '../../components/title/styles';
 
 export function MockList() {
     const { mocks, isLoading, hasError, removeMock } = useContext(Mocks);
@@ -66,10 +66,17 @@ export function MockList() {
     }
 
     return (
+        <>
+        <Title>
+            <TitleText>Mocks</TitleText>
+            <Link to="/new-mock">
+                <TitleButton>New Mock</TitleButton>
+            </Link>
+        </Title>
         <List>
             {mocks.map(mock =>
                 <MockItem {...mock} key={mock.id} onRemove={() => removeMock(mock.id)}/>)}
-            <Link to="/new-mock"><NewMock/></Link>
         </List>
+        </>
     );
 }
