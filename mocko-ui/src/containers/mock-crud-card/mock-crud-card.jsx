@@ -107,11 +107,7 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
                         fontSize={16}
                         height="20rem"
                         width="100%"
-                        setOptions={{
-                            enableLiveAutocompletion: true,
-                            enableBasicAutocompletion: true,
-                            tabSize: 2,
-                        }}/>
+                        setOptions={{ tabSize: 2 }}/>
                 </Column>
                 <Right padding="m">
                     <Button onClick={ deploy }>Save & Deploy</Button>
