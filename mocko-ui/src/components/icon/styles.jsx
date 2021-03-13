@@ -21,4 +21,9 @@ export const IconView = styled.button`
     &:active {
         background-color: rgba(255, 255, 255, 0.24);
     }
+
+    svg {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
 `;

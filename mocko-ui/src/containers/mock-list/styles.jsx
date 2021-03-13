@@ -10,6 +10,11 @@ export const SearchInput = styled(Input)`
 export const SearchIcon = styled(IconView)`
   position: static;
   opacity: 0.7;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 `;
 
 export const SearchCloseIcon = styled(IconView)`
@@ -17,6 +22,11 @@ export const SearchCloseIcon = styled(IconView)`
   height: 2rem;
   right: 0.75rem;
   top: 0.25rem;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
 `;
 
 export const NoMocksView = styled.div`
