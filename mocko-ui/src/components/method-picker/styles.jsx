@@ -11,4 +11,5 @@ export const Select = styled.select`
     border: none;
     outline: none;
     border-radius: var(--radius);
+    font-size: 0.875rem;
 `;

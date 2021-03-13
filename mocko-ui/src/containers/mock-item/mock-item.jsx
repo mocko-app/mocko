@@ -18,8 +18,8 @@ export function MockItem(params) {
     return (
         <>
         <ListItem
-            title={<>{name || 'Unnamed mock'} <Badge color="green">{ method }</Badge></>}
-            description={path}
+            title={<>{name || 'Unnamed mock'}</>}
+            description={`${method} ${path}`}
             onClick={() => setOpened(true)}
             button={deleteBtn}/>
         {isOpened && <MockCrudCtx onClose={() => setOpened(false)} mock={params}/>}

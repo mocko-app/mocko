@@ -33,13 +33,14 @@ export const ListItemContent = styled.div`
 
 export const ListItemTitle = styled.span`
     font-family: Roboto, Arial, sans-serif;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: #FFF;
     width: 100%;
 `;
 
 export const ListItemText = styled.span`
     color: #FFF;
-    opacity: 0.64;
+    font-size: 0.875rem;
+    opacity: 0.7;
     width: 100%;
 `;
