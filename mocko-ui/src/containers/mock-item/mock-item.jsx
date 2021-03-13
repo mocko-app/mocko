@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import {Badge} from "../../components/badge/badge";
 import {Icon} from "../../components/icon/icon";
 import {ListItem} from "../../components/list/item";
 import { MockCrudCtx } from "../mock-crud-ctx/mock-crud-ctx";
