@@ -10,7 +10,7 @@ export const CardView = styled.article`
     padding-bottom: 1.5rem;
 
     border-radius: var(--radius);
-    background-color: #222222;
+    background-color: #151515;
     color: #FFF;
     overflow: hidden;
     z-index: 100;

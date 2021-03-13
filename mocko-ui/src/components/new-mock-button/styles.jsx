@@ -5,7 +5,7 @@ export const NewMockButtonView = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #1A1A1A;
+    background-color: #111;
     width: calc(100% - 4rem);
     max-width: 42rem;
     height: 3.5rem;
@@ -16,7 +16,7 @@ export const NewMockButtonView = styled.div`
     overflow: hidden;
     
     :hover {
-        background-color: #222;
+        background-color: #151515;
         box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),
                     0 1px 1px  0   rgba(0, 0, 0, 0.14),
                     0 1px 3px  0   rgba(0, 0, 0, 0.12);
@@ -33,6 +33,6 @@ export const NewMockButtonView = styled.div`
     }
 
     &:active::before {
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgba(255, 255, 255, 0.04);
     }
 `;

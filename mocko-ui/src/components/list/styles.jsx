@@ -13,28 +13,16 @@ export const ListItemView = styled.li`
     margin-bottom: 0.5rem;
     overflow: hidden;
     border-radius: var(--radius);
-    background-color: #222222;
+    background-color: #111;
     cursor: pointer;
-    box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),
-                0 1px 1px  0   rgba(0, 0, 0, 0.14),
-                0 1px 3px  0   rgba(0, 0, 0, 0.12);
+    transition: 0.4s background-color cubic-bezier(0.4, 0.0, 0.2, 1);
 
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        transition: 0.4s all cubic-bezier(0.4, 0.0, 0.2, 1);
+    &:hover {
+        background-color: #151515;
     }
 
-    &:hover::before, &:focus::before {
-        background-color: rgba(255, 255, 255, 0.08);
-    }
-
-    &:active::before {
-        background-color: rgba(255, 255, 255, 0.32);
+    &:active {
+        background-color: #222;
     }
 `;
 

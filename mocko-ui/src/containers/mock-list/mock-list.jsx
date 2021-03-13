@@ -59,7 +59,7 @@ export function MockList() {
                 No mocks found
                 <br/>
                 <Link to="/new-mock">
-                    <Button>Create Mock</Button>
+                    <Button>New Mock</Button>
                 </Link>
             </NoMocks>
         );

@@ -6,7 +6,7 @@ export const Select = styled.select`
     margin-right: 0.5rem;
     margin-bottom: 1rem;
     padding: 0.75rem;
-    background-color: #2C2C2C;
+    background-color: #222;
     color: #FFF;
     border: none;
     outline: none;

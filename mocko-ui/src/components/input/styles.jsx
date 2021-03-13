@@ -4,7 +4,7 @@ export const Input = styled.input`
     width: calc(50% - 1.75rem);
     margin-right: 0.5rem;
     padding: 0.75rem;
-    background-color: #2C2C2C;
+    background-color: #222;
     color: #FFF;
     border: none;
     outline: none;

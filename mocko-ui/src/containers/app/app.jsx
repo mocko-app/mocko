@@ -20,7 +20,7 @@ export function App() {
                 <AppView>
                     <Navbar>
                         <Logo src="http://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
-                        MOCKO
+                        Mocko
                     </Navbar>
                     <MockList/>
                 </AppView>

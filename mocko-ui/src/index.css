@@ -28,7 +28,7 @@ html {
     -o-user-select: none;
     user-select: none;
     color: #FFF;
-    --radius: 0.25rem;
+    --radius: 0.125rem;
 }
 @media screen and (min-width: 1400px){
     html { font-size: 20px; }
@@ -64,6 +64,12 @@ html {
     margin-top: 0.5rem;
     font-family: 'Roboto Mono', monospace;
     border-radius: var(--radius);
+    background-color: #222;
+}
+
+.ace_gutter {
+    background-color: #222 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 ::-webkit-scrollbar {
