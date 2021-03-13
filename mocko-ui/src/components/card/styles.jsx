@@ -4,7 +4,7 @@ export const CardView = styled.article`
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: calc(100% - 2rem);
     max-width: ${({ isSmall }) => isSmall ? '30rem' : '72rem'};
     margin: auto;
     padding-bottom: 1.5rem;

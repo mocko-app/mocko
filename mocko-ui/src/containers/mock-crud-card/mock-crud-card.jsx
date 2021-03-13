@@ -25,7 +25,7 @@ const DEFAULT_HEADERS = [{
     value: ''
 }];
 
-const DEFAULT_BODY = '{\n  "name": "{{ request.params.name }}"\n}\n';
+const DEFAULT_BODY = '';
 
 export function MockCrudCard({ mock, onClose = () => {} }) {
     let defaultHeaders = DEFAULT_HEADERS;
@@ -39,9 +39,9 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
     const [headers, setHeaders] = useState(defaultHeaders);
     const [body, setBody] = useState(mock?.response?.body || DEFAULT_BODY);
     const [status, setStatus] = useState(mock?.response?.code || 200);
-    const [name, setName] = useState(mock?.name || 'Cat resource');
+    const [name, setName] = useState(mock?.name || '');
     const [method, setMethod] = useState(mock?.method || 'GET');
-    const [path, setPath] = useState(mock?.path || '/cats/{name}');
+    const [path, setPath] = useState(mock?.path || '');
     const [isLoading, setLoading] = useState(false);
     const { createMock, updateMock } = useContext(Mocks);
     const history = useHistory();
@@ -86,7 +86,7 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
                     <NameInput type="text" value={name} onChange={e => setName(e.target.value)}/>
                     <CardText>Method and path</CardText><br/>
                     <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
-                    <PathInput type="text" value={path} onChange={e => setPath(e.target.value)}/>
+                    <PathInput placeholder="/clients/{id}" type="text" value={path} onChange={e => setPath(e.target.value)}/>
                     <CardText>Response code</CardText>
                     <StatusInput type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
                     <CardText>Headers</CardText>
