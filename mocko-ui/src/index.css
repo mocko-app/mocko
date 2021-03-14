@@ -28,6 +28,7 @@ html {
     -o-user-select: none;
     user-select: none;
     color: #FFF;
+    background-color: #030303;
     --radius: 0.125rem;
 }
 @media screen and (min-width: 1400px){

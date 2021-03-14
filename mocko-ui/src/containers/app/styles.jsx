@@ -5,9 +5,10 @@ export const AppView = styled.div`
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 4rem);
     background-color: #030303;
-    padding-top: 5rem;
+    padding: 1rem 0;
+    margin-top: 4rem;
     overflow: auto;
 `;
 
