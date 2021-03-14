@@ -10,4 +10,8 @@ export const Input = styled.input`
     border: none;
     outline: none;
     border-radius: var(--radius);
+
+    ${({isError}) => isError ? `
+        border: 1px solid #f44336;
+    `:''}
 `;

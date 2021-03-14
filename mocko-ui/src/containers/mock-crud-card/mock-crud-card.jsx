@@ -6,7 +6,7 @@ import {Right} from "../../layouts/right/right";
 import {Button} from "../../components/button/button";
 import {Warning} from "../../components/warning/warning";
 import {HeaderInputGroup} from "./header-input";
-import {NameInput, PathInput, StatusInput} from "./styles";
+import {NameInput, PathInput, StatusInput, FieldError} from "./styles";
 import {MethodPicker} from "../../components/method-picker/method-picker";
 import {Mocks} from "../../contexts/mock";
 import AceEditor from "react-ace";
@@ -42,6 +42,11 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
     const [name, setName] = useState(mock?.name || '');
     const [method, setMethod] = useState(mock?.method || 'GET');
     const [path, setPath] = useState(mock?.path || '');
+
+    const [nameError, setNameError] = useState('');
+    const [pathError, setPathError] = useState('');
+    const [statusError, setStatusError] = useState('');
+
     const [isLoading, setLoading] = useState(false);
     const { createMock, updateMock } = useContext(Mocks);
     const history = useHistory();
@@ -52,6 +57,34 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
 
     const deploy = async () => {
         if(isLoading) {
+            return;
+        }
+        let hasErrors = false;
+
+        if(name.length === 0) {
+            setNameError('The description cannot be empty');
+            hasErrors = true;
+        } else {
+            setNameError('');
+        }
+
+        if(path.length === 0) {
+            setPathError('The path cannot be empty');
+            hasErrors = true;
+        } else {
+            setPathError('');
+        }
+
+        if(status < 200) {
+            setStatusError('The status must be greater than or equal to 200');
+            hasErrors = true;
+        } else if(status >= 600) {
+            setStatusError('The status must be less than 600');
+        } else {
+            setStatusError('');
+        }
+
+        if(hasErrors) {
             return;
         }
 
@@ -72,7 +105,7 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
             history.push("/");
         } catch(e) {
             const msg = e?.response?.data?.message?.[0];
-            alert(msg ? `Oops, ${msg}` : 'Oops, failed to save mock');
+            setNameError(msg ? `Oops, ${msg}` : 'Oops, failed to save mock');
         } finally {
             setLoading(false);
         }
@@ -83,12 +116,15 @@ export function MockCrudCard({ mock, onClose = () => {} }) {
             <Split>
                 <Column width='40'>
                     <CardText>Short description</CardText>
-                    <NameInput type="text" value={name} onChange={e => setName(e.target.value)}/>
+                    <NameInput isError={!!nameError} type="text" value={name} onChange={e => setName(e.target.value)}/>
+                    {nameError && <FieldError>{nameError}</FieldError>}
                     <CardText>Method and path</CardText><br/>
                     <MethodPicker value={method} onChange={e => setMethod(e.target.value)}/>
-                    <PathInput placeholder="/clients/{id}" type="text" value={path} onChange={e => setPath(e.target.value)}/>
+                    <PathInput isError={!!pathError} placeholder="/clients/{id}" type="text" value={path} onChange={e => setPath(e.target.value)}/>
+                    {pathError && <FieldError>{pathError}</FieldError>}
                     <CardText>Response code</CardText>
-                    <StatusInput type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
+                    <StatusInput isError={!!statusError} type="number" value={status} onChange={e => setStatus(parseInt(e.target.value))}/>
+                    {statusError && <FieldError>{statusError}</FieldError>}
                     <CardText>Headers</CardText>
                     <HeaderInputGroup
                         headers={headers}
