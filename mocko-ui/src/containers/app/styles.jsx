@@ -2,13 +2,12 @@ import styled from 'styled-components';
 
 export const AppView = styled.div`
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 4rem;
+    left: 14rem;
+    width: calc(100% - 14rem);
     height: calc(100% - 4rem);
     background-color: #030303;
     padding: 1rem 0;
-    margin-top: 4rem;
     overflow: auto;
 `;
 

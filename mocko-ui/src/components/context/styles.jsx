@@ -30,6 +30,7 @@ export const Backdrop = styled.aside`
     padding-top: 1rem;
     overflow: auto;
     transition: 300ms top cubic-bezier(0.0, 0.0, 0.2, 1);
+    z-index: 150;
     
     ${({visibility}) => [HIDING, SHOWING].includes(visibility) ? `
         top: 100%;

@@ -5,6 +5,7 @@ import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
 import {BrowserRouter} from "react-router-dom";
 import {MockCrudCtx} from "../mock-crud-ctx/mock-crud-ctx";
+import { AppDrawer } from './drawer';
 
 export function App() {
     const mocks = useMocks();
@@ -17,11 +18,12 @@ export function App() {
     return (
         <Mocks.Provider value={mocks}>
             <BrowserRouter>
+                <Navbar>
+                    <Logo src="http://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
+                    Mocko
+                </Navbar>
+                <AppDrawer/>
                 <AppView>
-                    <Navbar>
-                        <Logo src="http://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
-                        Mocko
-                    </Navbar>
                     <MockList/>
                 </AppView>
 
