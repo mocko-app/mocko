@@ -1,13 +1,14 @@
 import React, {useContext, useState} from 'react';
 import * as qs from 'qs';
 import {List} from "../../components/list/list";
+import {Button} from "../../components/button/button";
 import {MockItem} from "../mock-item/mock-item";
 import {Spinner} from "../../components/spinner/spinner";
 import {Mocks} from "../../contexts/mock";
 import {Link, useHistory, useLocation} from "react-router-dom";
 import { SearchIcon, SearchInput, SearchCloseIcon } from "./styles";
-import { NoMocks } from "./no-mocks";
 import { Title, TitleButton, TitleText } from '../../components/title/styles';
+import { NoContent } from '../../components/no-content/no-content';
 
 export function MockList() {
     const location = useLocation();
@@ -25,7 +26,15 @@ export function MockList() {
     }
 
     if(mocks.length === 0) {
-        return <NoMocks/>;
+        return (
+            <NoContent>
+                No mocks found
+                <br/>
+                <Link to="/mocks/new">
+                    <Button>New Mock</Button>
+                </Link>
+            </NoContent>
+        );
     }
 
     const filteredMocks = mocks.filter(m => matchMock(m, filter));
