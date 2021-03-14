@@ -24,7 +24,7 @@ export function MockCrudCtx({ onClose, mock: simpleMock }) {
     }, [isEdition, simpleMock]);
 
     // Show new mock on right URL or always show for edition
-    const isShown = location.pathname === '/new-mock' || isEdition;
+    const isShown = location.pathname === '/mocks/new' || isEdition;
 
     return (
     <Context onClose={onClose} title={isEdition ? simpleMock.name : "New mock"} isShown={isShown}>

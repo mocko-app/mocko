@@ -44,7 +44,7 @@ export function NoMocks() {
             </svg>
             No mocks found
             <br/>
-            <Link to="/new-mock">
+            <Link to="/mocks/new">
                 <Button>New Mock</Button>
             </Link>
         </NoMocksView>

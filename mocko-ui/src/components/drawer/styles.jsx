@@ -1,6 +1,7 @@
 import styled from 'styled-components';
+import {NavLink} from "react-router-dom";
 
-export const DrawerView = styled.div`
+export const Drawer = styled.div`
     position: fixed;
     top: 4rem;
     left: 0;
@@ -13,8 +14,9 @@ export const DrawerView = styled.div`
     z-index: 100;
 `;
 
-export const DrawerItem = styled.li`
+const DRAWER_ITEM_STYLE = `
     position: relative;
+    display: block;
     height: 2.25rem;
     line-height: 2.25rem;
     padding-left: 3rem;
@@ -39,15 +41,18 @@ export const DrawerItem = styled.li`
         opacity: 0.6;
     }
 
-    ${({ isActive }) => isActive ? `
+    &.active {
         background-color: #222;
         color: rgba(255, 255, 255, 1);
 
         svg {
             opacity: 1;
         }
-    `:''}
+    }
 `;
+
+export const DrawerItem = styled(NavLink)`${DRAWER_ITEM_STYLE}`;
+export const DrawerItemAnchor = styled.a`${DRAWER_ITEM_STYLE}`;
 
 export const DrawerSeparator = styled.hr`
     opacity: 0.1;

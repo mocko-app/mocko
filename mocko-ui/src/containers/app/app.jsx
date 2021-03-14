@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
 import {AppView, Logo} from "./styles";
 import {Navbar} from "../../components/navbar/navbar";
-import {MockList} from "../mock-list/mock-list";
 import {Mocks, useMocks} from "../../contexts/mock";
 import {BrowserRouter} from "react-router-dom";
 import {MockCrudCtx} from "../mock-crud-ctx/mock-crud-ctx";
 import { AppDrawer } from './drawer';
+import { Routes } from './routes';
 
 export function App() {
     const mocks = useMocks();
@@ -24,7 +24,7 @@ export function App() {
                 </Navbar>
                 <AppDrawer/>
                 <AppView>
-                    <MockList/>
+                    <Routes/>
                 </AppView>
 
                 <MockCrudCtx/>
