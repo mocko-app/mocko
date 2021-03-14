@@ -1,11 +1,9 @@
 import React from 'react';
-import {Link} from "react-router-dom";
-import {NoMocksView} from './styles';
-import {Button} from "../../components/button/button";
+import { NoContentView } from './styles';
 
-export function NoMocks() {
+export function NoContent({ children }) {
     return (
-        <NoMocksView>
+        <NoContentView>
             <svg width="491" height="341" viewBox="0 0 491 341" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0)">
                     <path d="M93.1497 73.2046C108.637 73.2046 121.192 60.6442 121.192 45.1502C121.192 29.6561 108.637 17.0957 93.1497 17.0957C77.6624 17.0957 65.1074 29.6561 65.1074 45.1502C65.1074 60.6442 77.6624 73.2046 93.1497 73.2046Z" fill="#FF6584"/>
@@ -42,11 +40,7 @@ export function NoMocks() {
                     </clipPath>
                 </defs>
             </svg>
-            No mocks found
-            <br/>
-            <Link to="/new-mock">
-                <Button>New Mock</Button>
-            </Link>
-        </NoMocksView>
+            { children }
+        </NoContentView>
     );
 }

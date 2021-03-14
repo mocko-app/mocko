@@ -1,16 +1,21 @@
 import React, {useContext, useState} from 'react';
+import * as qs from 'qs';
 import {List} from "../../components/list/list";
+import {Button} from "../../components/button/button";
 import {MockItem} from "../mock-item/mock-item";
 import {Spinner} from "../../components/spinner/spinner";
 import {Mocks} from "../../contexts/mock";
-import {Link} from "react-router-dom";
+import {Link, useHistory, useLocation} from "react-router-dom";
 import { SearchIcon, SearchInput, SearchCloseIcon } from "./styles";
-import { NoMocks } from "./no-mocks";
 import { Title, TitleButton, TitleText } from '../../components/title/styles';
+import { NoContent } from '../../components/no-content/no-content';
 
 export function MockList() {
+    const location = useLocation();
+    const query = qs.parse(location.search, { ignoreQueryPrefix: true }).q || '';
+
     const { mocks, isLoading, hasError, removeMock } = useContext(Mocks);
-    const [filter, setFilter] = useState('');
+    const [filter, setFilter] = useState(query);
 
     if(isLoading) {
         return <Spinner/>;
@@ -21,14 +26,22 @@ export function MockList() {
     }
 
     if(mocks.length === 0) {
-        return <NoMocks/>;
+        return (
+            <NoContent>
+                No mocks found
+                <br/>
+                <Link to="/mocks/new">
+                    <Button>New Mock</Button>
+                </Link>
+            </NoContent>
+        );
     }
 
     const filteredMocks = mocks.filter(m => matchMock(m, filter));
 
     return (
         <>
-        <MockListTitle onChange={ setFilter }/>
+        <MockListTitle onChange={ setFilter } initialQuery={query} />
         <List>
             {filteredMocks.map(mock =>
                 <MockItem {...mock} key={mock.id} onRemove={() => removeMock(mock.id)}/>)}
@@ -53,19 +66,22 @@ function matchMock(mock, filter) {
     return keywords.some(k => doc.includes(k));
 }
 
-function MockListTitle({ onChange }) {
-    const [isSearching, setSearching] = useState(false);
-    const [query, setQuery] = useState('');
+function MockListTitle({ onChange, initialQuery }) {
+    const history = useHistory();
+    const [query, setQuery] = useState(initialQuery);
+    const [isSearching, setSearching] = useState(!!query);
 
     const changeQuery = event => {
         const value = event.target.value;
         setQuery(value);
         onChange(value);
+        history.push(`/mocks?q=${value}`);
     };
     const closeSearch = () => {
         setQuery('');
         onChange('');
         setSearching(false);
+        history.push('/mocks');
     };
 
     return (
@@ -90,7 +106,7 @@ function MockListTitle({ onChange }) {
                     </SearchIcon>
                 </TitleText>
             }
-            <Link to="/new-mock">
+            <Link to="/mocks/new">
                 <TitleButton>New Mock</TitleButton>
             </Link>
         </Title>
