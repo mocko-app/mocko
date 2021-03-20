@@ -12,7 +12,7 @@ services:
       - REDIS_HOST=redis
 
   meta-mocko-proxy:
-    image: 'gabrielctpinheiro/mocko-proxy:1.1.2'
+    image: 'gabrielctpinheiro/mocko-proxy:1.5.0'
     environment:
       - PROXY_BASE-URI=http://mocko-api:8080
     ports:

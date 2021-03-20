@@ -7,7 +7,6 @@ export const AppView = styled.div`
     width: calc(100% - 14rem);
     height: calc(100% - 4rem);
     background-color: #030303;
-    padding: 1rem 0;
     overflow: auto;
 `;
 

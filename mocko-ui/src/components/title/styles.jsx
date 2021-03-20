@@ -8,6 +8,7 @@ export const Title = styled.div`
     height: 2.25rem;
     margin: auto;
     margin-bottom: 0.5rem;
+    margin-top: 1rem;
 `;
 
 export const TitleText = styled.h1`
