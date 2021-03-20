@@ -4,6 +4,7 @@ import { File } from '../../components/folder/file';
 import { client } from '../../utils';
 import { Button } from '../../components/button/button';
 import { NoContent } from "../../components/no-content/no-content";
+import {FlagCrud} from "../../components/flag-crud/flag-crud";
 import { FolderSkeleton } from './skeleton';
 
 export const FOLDER_ICON = (
@@ -54,7 +55,7 @@ export function FlagFolder({ prefix }) {
                     icon={f.type === "PREFIX" ? FOLDER_ICON : FLAG_ICON}
                     contentProducer={() => f.type === "PREFIX" ?
                         <FlagFolder prefix={prefix + f.name + ":"}/>
-                        : <div/>}
+                        : <FlagCrud flag={prefix + f.name}/>}
                     />)}
         </Folder>
     );

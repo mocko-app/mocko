@@ -1,3 +1,12 @@
+mock "GET /flags/{flag}" {
+    delay = 500
+    body = <<EOF
+        {
+            "value": "{\"id\": 1, \"name\": \"George\", \"isActive\": true}"
+        }
+    EOF
+}
+
 mock "GET /flags" {
     delay = 500
     body = <<EOF
@@ -49,7 +58,7 @@ mock "GET /flags" {
             "name": "name"
         }, {
             "type": "FLAG",
-            "name": "card_id"
+            "name": "pet"
         }, {
             "type": "FLAG",
             "name": "age"
