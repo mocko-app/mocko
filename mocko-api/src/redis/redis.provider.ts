@@ -20,6 +20,10 @@ export class RedisProvider implements OnApplicationShutdown {
         }
     }
 
+    async getRaw(key: string): Promise<string> {
+        return await this.connector.get(key);
+    }
+
     async get<T>(key: string): Promise<T> {
         const str = await this.connector.get(key);
         return JSON.parse(str) as T;
@@ -55,6 +59,10 @@ export class RedisProvider implements OnApplicationShutdown {
 
     async ping() {
         return await this.connector.ping();
+    }
+
+    async keys(prefix: string): Promise<string[]> {
+        return await this.connector.keys(`${prefix}*`);
     }
 
     onApplicationShutdown() {
