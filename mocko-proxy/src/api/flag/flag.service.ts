@@ -1,25 +1,38 @@
+import { RedisProvider } from "../../redis/redis.provider";
 import {Service} from "../../utils/decorators/service";
+import { FlagMemoryRepository } from "./flag.memory-repository";
+import { FlagRedisRepository } from "./flag.redis-repository";
 import { FlagRepository } from "./flag.repository";
 
 @Service()
 export class FlagService {
+    private readonly repository: FlagRepository;
+
     constructor(
-        private readonly repository: FlagRepository,
-    ) { }
-
-    setFlag(key: string, value: any): void {
-        this.repository.set(key, value);
+        private readonly redis: RedisProvider,
+        private readonly memoryRepository: FlagMemoryRepository,
+        private readonly redisRepository: FlagRedisRepository,
+    ) {
+        if(this.redis.isEnabled) {
+            this.repository = this.redisRepository;
+        } else {
+            this.repository = this.memoryRepository;
+        }
     }
 
-    getFlag(key: string): any {
-        return this.repository.get(key);
+    async setFlag(key: string, value: any): Promise<void> {
+        await this.repository.set(key, value);
     }
 
-    delFlag(key: string): void {
-        this.repository.del(key);
+    async getFlag(key: string): Promise<any> {
+        return await this.repository.get(key);
     }
 
-    hasFlag(key: string): boolean {
-        return this.repository.has(key);
+    async delFlag(key: string): Promise<void> {
+        await this.repository.del(key);
+    }
+
+    async hasFlag(key: string): Promise<boolean> {
+        return await this.repository.has(key);
     }
 }

@@ -32,6 +32,10 @@ export class RedisProvider {
         return JSON.parse(str) as T;
     }
 
+    async del(key: string): Promise<void> {
+        await this.connector.del(key);
+    }
+
     async set<T>(key: string, value: T, ttlMillis?: number): Promise<void> {
         const str = JSON.stringify(value);
 

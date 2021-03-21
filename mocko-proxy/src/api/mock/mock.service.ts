@@ -8,7 +8,7 @@ import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
 import { inject } from "inversify";
 import { MockHandler } from "./mock.handler";
-import { affect } from '@mocko/resync';
+import { affect, wait } from '@mocko/resync';
 
 @Service()
 export class MockService {
@@ -74,7 +74,7 @@ export class MockService {
                 throw new TypeError("Flag must be a string");
             }
 
-            return this.flagService.getFlag(flag);
+            return wait(() => this.flagService.getFlag(flag));
         });
 
         Handlebars.registerHelper('setFlag', (flag: any, value: any) => {
@@ -82,7 +82,7 @@ export class MockService {
                 throw new TypeError("Flag must be a string");
             }
 
-            this.flagService.setFlag(flag, value);
+            wait(() => this.flagService.setFlag(flag, value));
         });
 
         Handlebars.registerHelper('delFlag', (flag: any) => {
@@ -90,7 +90,7 @@ export class MockService {
                 throw new TypeError("Flag must be a string");
             }
 
-            this.flagService.delFlag(flag);
+            wait(() => this.flagService.delFlag(flag));
         });
 
         const self = this;
@@ -99,7 +99,7 @@ export class MockService {
                 throw new TypeError("Flag must be a string");
             }
 
-            const hasFlag = self.flagService.hasFlag(flag);
+            const hasFlag = wait(() => self.flagService.hasFlag(flag));
             if(hasFlag) {
                 return options.fn(this);
             } else if(typeof options.inverse === 'function') {
