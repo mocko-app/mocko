@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge } from '../../components/badge/badge';
 import { Drawer, DrawerItem, DrawerSeparator, DrawerItemAnchor } from '../../components/drawer/styles';
 
 export function AppDrawer() {
@@ -14,7 +15,7 @@ export function AppDrawer() {
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14.4 6L14 4H5V21H7V14H12.6L13 16H20V6H14.4Z" fill="white" fillOpacity="0.6"/>
                 </svg>
-                Flags
+                Flags <Badge color="GREEN">New</Badge>
             </DrawerItem>
             <DrawerSeparator/>
             <DrawerItemAnchor href="https://mocko.dev" target="_blank">

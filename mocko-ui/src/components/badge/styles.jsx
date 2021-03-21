@@ -2,11 +2,12 @@ import styled from 'styled-components';
 
 export const BadgeView = styled.span`
     display: inline-block;
-    padding: 0.125rem 0.75rem;
+    line-height: 1rem;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.625rem;
     margin: 0 0.25rem;
     border-radius: 1rem;
     font-weight: 500;
-    font-size: 1rem;
 
     color: #fff;
     background-color:rgba(255, 255, 255, 0.2);
