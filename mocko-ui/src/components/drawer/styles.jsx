@@ -42,7 +42,6 @@ const DRAWER_ITEM_STYLE = `
     }
 
     &.active {
-        display: block !important;
         background-color: #222;
         color: rgba(255, 255, 255, 1);
 
@@ -54,8 +53,6 @@ const DRAWER_ITEM_STYLE = `
 
 export const DrawerItem = styled(NavLink)`
     ${DRAWER_ITEM_STYLE}
-
-    ${({ hidden }) => hidden ? 'display: none;' : ''}
 `;
 export const DrawerItemAnchor = styled.a`${DRAWER_ITEM_STYLE}`;
 

@@ -49,7 +49,7 @@ export function FlagFolder({ prefix }) {
         <Folder>
             {flags.map(f =>
                 <File
-                    key={prefix + f.name}
+                    key={f.type + prefix + f.name}
                     id={prefix + f.name}
                     name={f.name}
                     icon={f.type === "PREFIX" ? FOLDER_ICON : FLAG_ICON}
