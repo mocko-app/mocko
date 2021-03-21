@@ -8,6 +8,7 @@ import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
 import { inject } from "inversify";
 import { MockHandler } from "./mock.handler";
+import { affect } from '@mocko/resync';
 
 @Service()
 export class MockService {
@@ -45,15 +46,15 @@ export class MockService {
         });
 
         Handlebars.registerHelper('log', (...params) => {
-            this.logger.info(params.slice(0, -1).join(' '));
+            affect(() => this.logger.info(params.slice(0, -1).join(' ')));
         });
 
         Handlebars.registerHelper('warn', (...params) => {
-            this.logger.warn(params.slice(0, -1).join(' '));
+            affect(() => this.logger.warn(params.slice(0, -1).join(' ')));
         });
 
         Handlebars.registerHelper('error', (...params) => {
-            this.logger.error(params.slice(0, -1).join(' '));
+            affect(() => this.logger.error(params.slice(0, -1).join(' ')));
         });
 
         Handlebars.registerHelper('setStatus', function(status) {

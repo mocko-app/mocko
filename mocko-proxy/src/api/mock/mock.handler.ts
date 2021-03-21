@@ -6,6 +6,7 @@ import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
+import { resync } from '@mocko/resync';
 import { isStream } from '../../utils/stream';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
@@ -28,7 +29,7 @@ type Context = {
 }
 
 export class MockHandler {
-    private readonly bodyTemplate: HandlebarsTemplateDelegate;
+    private readonly bodyTemplate: (context: any, options?: RuntimeOptions) => Promise<string>;
 
     constructor(
         private readonly repository: MockRepository,
@@ -39,7 +40,7 @@ export class MockHandler {
         private readonly customData: Record<string, any> = {},
         private readonly mockId?: string,
     ) {
-        this.bodyTemplate = Handlebars.compile(this.mockResponse.body);
+        this.bodyTemplate = resync(Handlebars.compile(this.mockResponse.body));
     }
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
@@ -85,7 +86,7 @@ export class MockHandler {
 
     private async buildBody(context: any): Promise<string> {
         try {
-            return this.bodyTemplate(context);
+            return await this.bodyTemplate(context);
         } catch(e) {
             debug('failed to build body from template, registering failure');
             await this.registerFailure(e);
