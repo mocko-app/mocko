@@ -71,3 +71,33 @@ mock "GET /has-flag-noelse" {
     {{/hasFlag}}
     EOF
 }
+
+#-----------------------------
+# vars
+#-----------------------------
+mock "GET /vars/1" {
+    body = <<EOF
+        {{set 'foo' 'bar'}}
+        {{get 'foo'}}
+    EOF
+}
+
+mock "GET /vars/2" {
+    body = <<EOF
+        {{set 'foo' 'WRONG'}}
+        {{#eq true true}}
+            {{set 'foo' 'bar'}}
+        {{/eq}}
+        {{#hasFlag 'anything'}}{{/hasFlag}}
+        {{get 'foo'}}
+    EOF
+}
+
+mock "GET /vars/3" {
+    body = <<EOF
+        {{set 'foo' 'bar'}}
+        {{get 'foo'}}
+        {{set 'foo' 'WRONG'}}
+        {{#hasFlag 'anything'}}{{/hasFlag}}
+    EOF
+}

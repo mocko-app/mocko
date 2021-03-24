@@ -26,6 +26,7 @@ type Context = {
     },
 
     data: Record<string, any>,
+    var: Record<string, any>,
 }
 
 export class MockHandler {
@@ -81,6 +82,7 @@ export class MockHandler {
             request: { params, headers, query, body: isStream(payload) ? null : payload },
             response: { status, headers: {}, proxyTo: null },
             data: this.customData,
+            var: {},
         };
     }
 

@@ -78,4 +78,21 @@ module.exports = (mocko, describe, it) => () => {
             expect(second.data).not.to.include('yes');
         });
     });
+
+    describe('vars', () => {
+        it('should set and get vars correctly', async () => {
+            const { data } = await mocko.get('/vars/1');
+            expect(data.trim()).to.equal('bar');
+        });
+
+        it('set should not break on resyncs', async () => {
+            const { data } = await mocko.get('/vars/2');
+            expect(data.trim()).to.equal('bar');
+        });
+
+        it('get should not break on resyncs', async () => {
+            const { data } = await mocko.get('/vars/3');
+            expect(data.trim()).to.equal('bar');
+        });
+    });
 };

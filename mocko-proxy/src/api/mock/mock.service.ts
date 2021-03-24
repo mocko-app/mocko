@@ -8,7 +8,7 @@ import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
 import { inject } from "inversify";
 import { MockHandler } from "./mock.handler";
-import { affect, wait } from '@mocko/resync';
+import { affect, state, wait } from '@mocko/resync';
 
 @Service()
 export class MockService {
@@ -105,6 +105,38 @@ export class MockService {
             } else if(typeof options.inverse === 'function') {
                 return options.inverse(this);
             }
+        });
+
+        Handlebars.registerHelper('set', function (key: any, value: any) {
+            if(typeof key !== "string") {
+                throw new TypeError("Variable names must be strings");
+            }
+
+            if(!key.length) {
+                throw new TypeError("Variable names cannot be empty");
+            }
+
+            if(!/^\w*$/.test(key)) {
+                throw new TypeError("Variable names must contain only A-Za-z0-9_");
+            }
+
+            affect(() => this.var[key] = value);
+        });
+
+        Handlebars.registerHelper('get', function (key: any) {
+            if(typeof key !== "string") {
+                throw new TypeError("Variable names must be strings");
+            }
+
+            if(!key.length) {
+                throw new TypeError("Variable names cannot be empty");
+            }
+
+            if(!/^\w*$/.test(key)) {
+                throw new TypeError("Variable names must contain only A-Za-z0-9_");
+            }
+
+            return state(() => this.var[key]);
         });
     }
 }
