@@ -1,4 +1,4 @@
-export function setStatus(status: any): void {
+export function setStatus(status: any, options): void {
     if(isNaN(status)) {
         throw new TypeError('Status must be a number');
     }
@@ -7,17 +7,17 @@ export function setStatus(status: any): void {
         throw new TypeError('Status must be between 200 and 599');
     }
 
-    this.response.status = parseInt(status);
+    options.data.root.response.status = parseInt(status);
 }
 
-export function setHeader(key: any, value: any): void {
+export function setHeader(key: any, value: any, options): void {
     if(typeof key !== 'string' || typeof value !== 'string') {
         throw new TypeError('Headers must be strings');
     }
 
-    this.response.headers[key] = value;
+    options.data.root.response.headers[key] = value;
 }
 
-export function proxy(proxyUri: any): void {
-    this.response.proxyTo = typeof proxyUri === 'string' ? proxyUri : '';
+export function proxy(proxyUri: any, options): void {
+    options.data.root.response.proxyTo = typeof proxyUri === 'string' ? proxyUri : '';
 }

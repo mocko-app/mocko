@@ -1,3 +1,7 @@
+data "arr" {
+    arr { }
+}
+
 #-----------------------------
 # context
 #-----------------------------
@@ -26,6 +30,15 @@ mock "GET /hbs-helpers" {
 mock "GET /set-status" {
     status = 404
     body = "{{setStatus 202}}"
+}
+
+mock "GET /set-status-ooc" {
+    status = 404
+    body = <<EOF
+        {{#each data.arr.arr}}
+            {{setStatus 202}}
+        {{/each}}
+    EOF
 }
 
 mock "GET /set-status/{status}" {
@@ -108,5 +121,15 @@ mock "GET /vars/3" {
         {{get 'foo'}}
         {{set 'foo' 'WRONG'}}
         {{#hasFlag 'anything'}}{{/hasFlag}}
+    EOF
+}
+
+mock "GET /vars/4" {
+    body = <<EOF
+        {{#each data.arr.arr}}
+            {{set 'foo' 'bar'}}
+        {{/each}}
+
+        {{get 'foo'}}
     EOF
 }

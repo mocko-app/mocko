@@ -40,6 +40,11 @@ module.exports = (mocko, describe, it) => () => {
             expect(status).to.equal(202);
         });
 
+        it('setStatus should override the status from a different context', async () => {
+            const { status } = await mocko.get('/set-status-ooc');
+            expect(status).to.equal(202);
+        });
+
         it('setStatus should accept strings', async () => {
             const { status } = await mocko.get('/set-status/202');
             expect(status).to.equal(202);
@@ -117,6 +122,11 @@ module.exports = (mocko, describe, it) => () => {
 
         it('get should not break on resyncs', async () => {
             const { data } = await mocko.get('/vars/3');
+            expect(data.trim()).to.equal('bar');
+        });
+
+        it('should set from a different context', async () => {
+            const { data } = await mocko.get('/vars/4');
             expect(data.trim()).to.equal('bar');
         });
     });

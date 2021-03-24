@@ -14,12 +14,12 @@ function validate(key: string): void {
     }
 }
 
-export function getVar(key: any): any {
+export function getVar(key: any, options): any {
     validate(key);
-    return state(() => this.var[key]);
+    return state(() => options.data.root.var[key]);
 }
 
-export function setVar(key: any, value: any): void {
+export function setVar(key: any, value: any, options): void {
     validate(key);
-    affect(() => this.var[key] = value);
+    affect(() => options.data.root.var[key] = value);
 }
