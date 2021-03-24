@@ -28,6 +28,11 @@ mock "GET /set-status" {
     body = "{{setStatus 202}}"
 }
 
+mock "GET /set-status/{status}" {
+    status = 404
+    body = "{{setStatus request.params.status}}"
+}
+
 mock "GET /set-header" {
     body = "{{setHeader 'x-foo' 'bar'}}"
 }
@@ -48,6 +53,10 @@ mock "PUT /flag/{value}" {
 
 mock "GET /flag" {
     body = "{{getFlag 'test_flag'}}"
+}
+
+mock "GET /flag/{flag}" {
+    body = "{{getFlag request.params.flag}}"
 }
 
 mock "DELETE /flag" {

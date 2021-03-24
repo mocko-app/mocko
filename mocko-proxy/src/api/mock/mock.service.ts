@@ -8,7 +8,10 @@ import { FlagService } from "../flag/flag.service";
 import { ILogger, Logger } from "../../utils/logger";
 import { inject } from "inversify";
 import { MockHandler } from "./mock.handler";
-import { affect, state, wait } from '@mocko/resync';
+import * as LogHelpers from "../../helpers/log";
+import * as ResponseHelpers from "../../helpers/response";
+import * as FlagHelpers from "../../helpers/flag";
+import * as VarHelpers from "../../helpers/var";
 
 @Service()
 export class MockService {
@@ -45,98 +48,20 @@ export class MockService {
             handlebars: Handlebars,
         });
 
-        Handlebars.registerHelper('log', (...params) => {
-            affect(() => this.logger.info(params.slice(0, -1).join(' ')));
-        });
+        Handlebars.registerHelper('log', LogHelpers.log(this.logger));
+        Handlebars.registerHelper('warn', LogHelpers.warn(this.logger));
+        Handlebars.registerHelper('error', LogHelpers.error(this.logger));
 
-        Handlebars.registerHelper('warn', (...params) => {
-            affect(() => this.logger.warn(params.slice(0, -1).join(' ')));
-        });
+        Handlebars.registerHelper('setStatus', ResponseHelpers.setStatus);
+        Handlebars.registerHelper('proxy', ResponseHelpers.proxy);
+        Handlebars.registerHelper('setHeader', ResponseHelpers.setHeader);
 
-        Handlebars.registerHelper('error', (...params) => {
-            affect(() => this.logger.error(params.slice(0, -1).join(' ')));
-        });
+        Handlebars.registerHelper('getFlag', FlagHelpers.getFlag(this.flagService));
+        Handlebars.registerHelper('setFlag', FlagHelpers.setFlag(this.flagService));
+        Handlebars.registerHelper('delFlag', FlagHelpers.delFlag(this.flagService));
+        Handlebars.registerHelper('hasFlag', FlagHelpers.hasFlag(this.flagService));
 
-        Handlebars.registerHelper('setStatus', function(status) {
-            this.response.status = status;
-        });
-
-        Handlebars.registerHelper('proxy', function(proxyUri) {
-            this.response.proxyTo = typeof proxyUri === 'string' ? proxyUri : '';
-        });
-
-        Handlebars.registerHelper('setHeader', function(key, value) {
-            this.response.headers[key] = value;
-        });
-
-        Handlebars.registerHelper('getFlag', (flag: any) => {
-            if(typeof flag !== "string") {
-                throw new TypeError("Flag must be a string");
-            }
-
-            return wait(() => this.flagService.getFlag(flag));
-        });
-
-        Handlebars.registerHelper('setFlag', (flag: any, value: any) => {
-            if(typeof flag !== "string") {
-                throw new TypeError("Flag must be a string");
-            }
-
-            wait(() => this.flagService.setFlag(flag, value));
-        });
-
-        Handlebars.registerHelper('delFlag', (flag: any) => {
-            if(typeof flag !== "string") {
-                throw new TypeError("Flag must be a string");
-            }
-
-            wait(() => this.flagService.delFlag(flag));
-        });
-
-        const self = this;
-        Handlebars.registerHelper('hasFlag', function (flag: any, options) {
-            if(typeof flag !== "string") {
-                throw new TypeError("Flag must be a string");
-            }
-
-            const hasFlag = wait(() => self.flagService.hasFlag(flag));
-            if(hasFlag) {
-                return options.fn(this);
-            } else if(typeof options.inverse === 'function') {
-                return options.inverse(this);
-            }
-        });
-
-        Handlebars.registerHelper('set', function (key: any, value: any) {
-            if(typeof key !== "string") {
-                throw new TypeError("Variable names must be strings");
-            }
-
-            if(!key.length) {
-                throw new TypeError("Variable names cannot be empty");
-            }
-
-            if(!/^\w*$/.test(key)) {
-                throw new TypeError("Variable names must contain only A-Za-z0-9_");
-            }
-
-            affect(() => this.var[key] = value);
-        });
-
-        Handlebars.registerHelper('get', function (key: any) {
-            if(typeof key !== "string") {
-                throw new TypeError("Variable names must be strings");
-            }
-
-            if(!key.length) {
-                throw new TypeError("Variable names cannot be empty");
-            }
-
-            if(!/^\w*$/.test(key)) {
-                throw new TypeError("Variable names must contain only A-Za-z0-9_");
-            }
-
-            return state(() => this.var[key]);
-        });
+        Handlebars.registerHelper('get', VarHelpers.getVar);
+        Handlebars.registerHelper('set', VarHelpers.setVar);
     }
 }
