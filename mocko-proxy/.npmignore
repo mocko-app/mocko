@@ -6,6 +6,7 @@ mocks
 .git
 .gitignore
 .dockerignore
+.env
 Dockerfile
 README.md
 tsconfig.json
