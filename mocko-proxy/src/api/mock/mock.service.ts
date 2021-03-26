@@ -12,6 +12,7 @@ import * as LogHelpers from "../../helpers/log";
 import * as ResponseHelpers from "../../helpers/response";
 import * as FlagHelpers from "../../helpers/flag";
 import * as VarHelpers from "../../helpers/var";
+import * as UtilHelpers from "../../helpers/util";
 
 @Service()
 export class MockService {
@@ -63,5 +64,8 @@ export class MockService {
 
         Handlebars.registerHelper('get', VarHelpers.getVar);
         Handlebars.registerHelper('set', VarHelpers.setVar);
+
+        Handlebars.registerHelper('uuid', UtilHelpers.uuid);
+        Handlebars.registerHelper('substring', UtilHelpers.substring);
     }
 }

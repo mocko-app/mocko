@@ -1,6 +1,6 @@
 {
   "name": "@mocko/proxy",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
@@ -40,7 +40,8 @@
     "inversify": "^5.0.5",
     "ioredis": "^4.19.4",
     "joi": "^17.3.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@hapi/code": "^8.0.2",
@@ -53,6 +54,7 @@
     "@types/hapi__hapi": "^20.0.3",
     "@types/ioredis": "^4.17.10",
     "@types/node": "^14.14.19",
+    "@types/uuid": "^8.3.0",
     "axios": "^0.21.1",
     "nodemon": "^2.0.6",
     "rimraf": "^3.0.2",

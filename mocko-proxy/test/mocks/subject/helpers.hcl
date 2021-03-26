@@ -133,3 +133,18 @@ mock "GET /vars/4" {
         {{get 'foo'}}
     EOF
 }
+
+#-----------------------------
+# util helpers
+#-----------------------------
+mock "GET /helpers/uuid" {
+    body = "{{uuid}}"
+}
+
+mock "GET /helpers/substring/1" {
+    body = "{{substring 'Lorem ipsum' 0 4}}"
+}
+
+mock "GET /helpers/substring/2" {
+    body = "{{substring 'Lorem ipsum' 8}}"
+}

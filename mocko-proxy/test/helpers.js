@@ -59,6 +59,21 @@ module.exports = (mocko, describe, it) => () => {
             const { headers } = await mocko.get('/override-header');
             expect(headers).to.include({ 'x-foo': 'bar' });
         });
+
+        it('uuid should return valid UUID', async () => {
+            const { data } = await mocko.get('/helpers/uuid');
+            expect(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(data)).to.be.true();
+        });
+
+        it('substring should work with 2 params', async () => {
+            const { data } = await mocko.get('/helpers/substring/1');
+            expect(data).to.equal('Lore');
+        });
+
+        it('substring should work with 1 param', async () => {
+            const { data } = await mocko.get('/helpers/substring/2');
+            expect(data).to.equal('sum');
+        });
     });
 
     describe('flags', () => {
