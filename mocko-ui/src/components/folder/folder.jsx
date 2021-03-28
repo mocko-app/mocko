@@ -17,10 +17,13 @@ const FolderContent = styled.div`
 const Files = styled.ul`
     display: inline-block;
     vertical-align: top;
-    height: 100%;
+    height: calc(100% - 2rem);
     min-width: 16rem;
     max-width: 32rem;
-    padding: 1rem;
+    padding: 0 1rem;
+    margin: 1rem 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 `;
 
 export function Folder({ children }) {
