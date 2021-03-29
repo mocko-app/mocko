@@ -16,8 +16,15 @@ export type MockDefinition = {
     response: MockResponse
 };
 
+export type Host = {
+    name: string,
+    source: string,
+    destination: string,
+};
+
 export type MockOptions = {
     mocks: MockDefinition[],
+    hosts: Host[],
     data?: Record<string, any>,
 };
 
@@ -73,6 +80,27 @@ const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
     return validation.value;
 };
 
+const hostSchema = Joi.object({
+    name: Joi.string().required(),
+    source: Joi.string().hostname().required(),
+    destination: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
+});
+
+const hostFromConfig = (name: string, data: any): Host => {
+    const host = {
+        name,
+        source: data?.[0]?.source,
+        destination: data?.[0]?.destination,
+    };
+
+    const validation = hostSchema.validate(host);
+    if(validation.error) {
+        throw new Error(`On host '${name}', ${validation.error.message}`);
+    }
+
+    return validation.value;
+};
+
 export const optionsFromConfig = (config: any): MockOptions => {
     const mocks = Object.entries(merge(config.mock || []))
         .flatMap(([req, resList]) => resList.map(res => [req, res]))
@@ -82,5 +110,8 @@ export const optionsFromConfig = (config: any): MockOptions => {
         .map(([key, values]) => ({key, value: merge(values)}))
         .reduce((acc, {key, value}) => ({ ...acc, [key]: value}), {});
 
-    return { mocks, data };
+    const hosts = Object.entries(merge(config.host || []))
+        .map(([name, data]) => hostFromConfig(name, data));
+
+    return { mocks, data, hosts };
 };

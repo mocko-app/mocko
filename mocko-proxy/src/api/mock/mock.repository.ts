@@ -45,6 +45,7 @@ export class MockRepository {
         return {
             mocks: options.map(o => o.mocks || []).flat(),
             data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value}), {}),
+            hosts: options.map(o => o.hosts || []).flat(),
         };
     }
 
@@ -54,7 +55,7 @@ export class MockRepository {
 
         if(!mocks) {
             debug('no mocks found, running proxy only');
-            return { mocks: [] };
+            return { mocks: [], hosts: [] };
         }
 
         debug(`found ${mocks.mocks.length} mocks`);
@@ -70,6 +71,7 @@ export class MockRepository {
             return {
                 mocks: [...redisMocks.mocks, ...fileMocks.mocks],
                 data: fileMocks.data,
+                hosts: fileMocks.hosts,
             };
         }
 
