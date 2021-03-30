@@ -8,6 +8,7 @@ import {PluginProvider} from "./plugins";
 import {ServerRoute} from "@hapi/hapi";
 import {ListenerProvider} from "./listeners";
 import {RedisProvider} from "./redis/redis.provider";
+import { DefinitionProvider } from "./definitions/definition.provider";
 
 const debug = require('debug')('mocko:proxy:server');
 
@@ -24,6 +25,7 @@ export class Server {
         private readonly pluginProvider: PluginProvider,
         private readonly listenerProvider: ListenerProvider,
         private readonly redisProvider: RedisProvider,
+        private readonly definitionProvider: DefinitionProvider,
     ) { }
 
     async start(): Promise<Server> {
@@ -47,6 +49,7 @@ export class Server {
     async remapRoutes(): Promise<Server> {
         this.logger.info('Remapping routes');
         debug('building routes');
+        this.definitionProvider.clearDefinitions();
         const routes = await this.router.getRoutes();
 
         debug('clearing routes');

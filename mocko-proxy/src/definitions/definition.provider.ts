@@ -25,6 +25,8 @@ export type FileOrDir = {
 
 @Provider()
 export class DefinitionProvider {
+    private definitions: MockoDefinition;
+
     constructor(
         @inject(Logger)
         private readonly logger: ILogger,
@@ -33,7 +35,15 @@ export class DefinitionProvider {
 
     @Synchronize()
     async getDefinitions(): Promise<MockoDefinition> {
-        return await this.buildDefinitions();
+        if(!this.definitions) {
+            this.definitions = await this.buildDefinitions();
+        }
+
+        return this.definitions;
+    }
+
+    clearDefinitions(): void {
+        this.definitions = null;
     }
 
     private async buildDefinitions(): Promise<MockoDefinition> {
