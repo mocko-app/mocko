@@ -1,3 +1,7 @@
+import { wait } from "@mocko/resync";
+import { Host } from "../definitions/data/host";
+import { DefinitionProvider } from "src/definitions/definition.provider";
+
 export function setStatus(status: any, options): void {
     if(isNaN(status)) {
         throw new TypeError('Status must be a number');
@@ -18,6 +22,26 @@ export function setHeader(key: any, value: any, options): void {
     options.data.root.response.headers[key] = value;
 }
 
-export function proxy(proxyUri: any, options): void {
-    options.data.root.response.proxyTo = typeof proxyUri === 'string' ? proxyUri : '';
+function getHost(hosts: Host[], proxyUri: string, header: string): string {
+    if(typeof proxyUri === 'string') {
+        const hostByName = hosts.find(h => h.name.toLowerCase() === proxyUri.toLowerCase());
+        if(hostByName) {
+            return hostByName.destination;
+        }
+
+        return proxyUri;
+    }
+
+    const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
+    if(hostByHeader) {
+        return hostByHeader.destination;
+    }
+
+    return '';
 }
+
+export const proxy = (definitionProvider: DefinitionProvider) => (proxyUri: any, options): void => {
+    const hosts = wait(() => definitionProvider.getDefinitions()).hosts;
+
+    options.data.root.response.proxyTo = getHost(hosts, proxyUri, options.data.root.request.headers.host);
+};

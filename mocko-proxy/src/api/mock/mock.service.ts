@@ -56,7 +56,7 @@ export class MockService {
         Handlebars.registerHelper('error', LogHelpers.error(this.logger));
 
         Handlebars.registerHelper('setStatus', ResponseHelpers.setStatus);
-        Handlebars.registerHelper('proxy', ResponseHelpers.proxy);
+        Handlebars.registerHelper('proxy', ResponseHelpers.proxy(this.definitionProvider));
         Handlebars.registerHelper('setHeader', ResponseHelpers.setHeader);
 
         Handlebars.registerHelper('getFlag', FlagHelpers.getFlag(this.flagService));
