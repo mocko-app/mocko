@@ -13,6 +13,7 @@ import * as ResponseHelpers from "../../helpers/response";
 import * as FlagHelpers from "../../helpers/flag";
 import * as VarHelpers from "../../helpers/var";
 import * as UtilHelpers from "../../helpers/util";
+import { DefinitionProvider } from "../../definitions/definition.provider";
 
 @Service()
 export class MockService {
@@ -22,10 +23,11 @@ export class MockService {
         private readonly repository: MockRepository,
         private readonly proxyController: ProxyController,
         private readonly flagService: FlagService,
+        private readonly definitionProvider: DefinitionProvider,
     ) { }
 
     async getRoutes(): Promise<ServerRoute[]> {
-        const options = await this.repository.getMockOptions();
+        const options = await this.definitionProvider.getDefinitions();
         this.registerHandlebarsHelpers();
 
         return options.mocks.map(({ id, method, path, host, response, parse }) => ({

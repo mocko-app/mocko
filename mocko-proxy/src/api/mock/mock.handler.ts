@@ -1,13 +1,13 @@
 import * as Hoek from '@hapi/hoek';
 import * as Handlebars from 'handlebars';
 import { Request, ResponseObject, ResponseToolkit } from "@hapi/hapi";
-import { MockResponse } from "./data/mock-options";
 import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
 import { resync } from '@mocko/resync';
 import { isStream } from '../../utils/stream';
+import { MockResponse } from '../../definitions/data/mock';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
 
