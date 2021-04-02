@@ -8,5 +8,9 @@ nav:
   - Getting Started:
     - Standalone Mode: getting-started/standalone.md
     - Complete Stack: getting-started/complete.md
-  - Templating: templating/index.md
+  - Templating:
+    - Getting Started: templating/index.md
+    - Mocko Helpers: templating/helpers.md
+    - Persistence: templating/persistence.md
+    - Variables: templating/variables.md
   - Deploying: deploying/index.md

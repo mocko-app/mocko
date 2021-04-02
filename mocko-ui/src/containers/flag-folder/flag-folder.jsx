@@ -38,7 +38,7 @@ export function FlagFolder({ prefix }) {
                 <br/>
 
                 {/* eslint-disable-next-line */}
-                <a href="https://mocko.dev/statefulness" target="_blank">
+                <a href="https://mocko.dev/templating/persistence/" target="_blank">
                     <Button>Go to Docs</Button>
                 </a>
             </NoContent>
