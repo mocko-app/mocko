@@ -59,7 +59,7 @@ $ npm run start:dev
 
 Now you're ready to contribute to Mocko! Some files that might be useful:
 
-- `mocko-proxy/src/api/mock/mock.repository.ts`: Reads mocks from Redis
+- `mocko-proxy/src/api/definition/definition.provider.ts`: Reads mocks from Redis
 and the mocks dir
 - `mocko-proxy/src/api/mock/data/mock-options.ts`: Converts the .hcl definitions to the internal Mock object
 - `mocko-proxy/src/api/mock/mock.handler.ts`: Processes the request pipeline:

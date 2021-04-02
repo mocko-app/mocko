@@ -1,13 +1,13 @@
 import * as Hoek from '@hapi/hoek';
 import * as Handlebars from 'handlebars';
 import { Request, ResponseObject, ResponseToolkit } from "@hapi/hapi";
-import { MockResponse } from "./data/mock-options";
 import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
 import { resync } from '@mocko/resync';
 import { isStream } from '../../utils/stream';
+import { MockResponse } from '../../definitions/data/mock';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
 
@@ -23,6 +23,7 @@ type Context = {
         status: number,
         headers: Record<string, string>,
         proxyTo: null | string,
+        proxyLabel: null | string,
     },
 
     data: Record<string, any>,
@@ -59,7 +60,7 @@ export class MockHandler {
 
         if(context.response.proxyTo !== null) {
             debug(`proxying`)
-            return await this.proxyController.proxyRequest(request, h, context.response.proxyTo);
+            return await this.proxyController.proxyRequest(request, h, context.response.proxyTo, context.response.proxyLabel);
         }
 
         debug('creating hapi response')
@@ -80,7 +81,7 @@ export class MockHandler {
 
         return {
             request: { params, headers, query, body: isStream(payload) ? null : payload },
-            response: { status, headers: {}, proxyTo: null },
+            response: { status, headers: {}, proxyTo: null, proxyLabel: null },
             data: this.customData,
             var: {},
         };

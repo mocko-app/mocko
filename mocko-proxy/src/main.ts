@@ -10,6 +10,7 @@ async function bootstrap() {
     debug('starting');
     const container = new Container({
         autoBindInjectable: true,
+        defaultScope: 'Singleton',
     });
 
     container.bind<ILogger>(Logger).toConstantValue(logger);

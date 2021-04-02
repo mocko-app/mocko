@@ -2,6 +2,8 @@ mock "GET /hello" {
     body = "hello from mocko-content"
 }
 
+mock "GET /proxy-to-host" { }
+
 mock "POST /validate/body" {
     body = <<EOF
     {{#compare request.body.foo '!==' 'bar'}}

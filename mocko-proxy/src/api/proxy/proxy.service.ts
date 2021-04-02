@@ -1,5 +1,7 @@
 import {Service} from "../../utils/decorators/service";
 import {configProvider} from "../../config/config.service";
+import { DefinitionProvider } from "../../definitions/definition.provider";
+import { Host } from "../../definitions/data/host";
 
 const BASE_URI = configProvider.get('PROXY_BASE-URI');
 
@@ -7,7 +9,9 @@ const BASE_URI = configProvider.get('PROXY_BASE-URI');
 export class ProxyService {
     private readonly PROXY_URL: string;
 
-    constructor() {
+    constructor(
+        private readonly definitionProvider: DefinitionProvider,
+    ) {
         this.PROXY_URL = this.baseUriToH2o2Path(BASE_URI);
     }
 
@@ -21,6 +25,11 @@ export class ProxyService {
         }
 
         return this.PROXY_URL;
+    }
+
+    async getHosts(): Promise<Host[]> {
+        const definitions = await this.definitionProvider.getDefinitions();
+        return definitions.hosts;
     }
 
     private baseUriToH2o2Path(uri: string): string {

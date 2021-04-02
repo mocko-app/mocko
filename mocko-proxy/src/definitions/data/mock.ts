@@ -7,7 +7,7 @@ export type MockResponse = {
     headers: Record<string, string>
 };
 
-export type MockDefinition = {
+export type Mock = {
     id?: string,
     method: string,
     path: string,
@@ -16,24 +16,7 @@ export type MockDefinition = {
     response: MockResponse
 };
 
-export type MockOptions = {
-    mocks: MockDefinition[],
-    data?: Record<string, any>,
-};
-
-function merge(array: Record<string, any[]>[]): Record<string, any[]> {
-    const output = {};
-
-    for(const obj of array) {
-        for(const key in obj) {
-            output[key] = output[key] ? [...output[key], ...obj[key]] : obj[key];
-        }
-    }
-
-    return output;
-}
-
-const definitionSchema = Joi.object({
+const mockSchema = Joi.object({
     method: Joi.string().uppercase().regex(/^([A-Z]+|\*)$/),
     path: Joi.string(),
     parse: Joi.boolean().default(true),
@@ -46,7 +29,7 @@ const definitionSchema = Joi.object({
     }),
 });
 
-const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
+export function mockFromConfig(req: string, res: any): Mock {
     const [rawMethod, ...pathParts] = req.split(" ");
     const method = rawMethod.toUpperCase();
     const path = pathParts.join(" ");
@@ -65,22 +48,10 @@ const definitionFromConfig = ([req, res]: [string, any]): MockDefinition => {
         },
     };
 
-    const validation = definitionSchema.validate(definition, { convert: true });
+    const validation = mockSchema.validate(definition, { convert: true });
     if(validation.error) {
         throw new Error(`On mock '${req}', ${validation.error.message}`);
     }
 
     return validation.value;
-};
-
-export const optionsFromConfig = (config: any): MockOptions => {
-    const mocks = Object.entries(merge(config.mock || []))
-        .flatMap(([req, resList]) => resList.map(res => [req, res]))
-        .map(definitionFromConfig);
-
-    const data = config.data && Object.entries(merge(config.data))
-        .map(([key, values]) => ({key, value: merge(values)}))
-        .reduce((acc, {key, value}) => ({ ...acc, [key]: value}), {});
-
-    return { mocks, data };
-};
+}

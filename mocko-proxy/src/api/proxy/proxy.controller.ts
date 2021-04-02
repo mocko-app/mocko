@@ -14,7 +14,7 @@ export class ProxyController {
         private readonly service: ProxyService,
     ) { }
 
-    proxyRequest(request: Hapi.Request, h: Hapi.ResponseToolkit, overrideUri?: string) {
+    proxyRequest(request: Hapi.Request, h: Hapi.ResponseToolkit, overrideUri?: string, logLabel?: string) {
         const mustProxy = this.service.isProxyEnabled() || !!overrideUri;
         const uri = this.service.getProxyUri(overrideUri) + request.url.search;
 
@@ -23,8 +23,7 @@ export class ProxyController {
             throw Boom.notFound('No mock was found for this endpoint and method. Proxying is also disabled.');
         }
 
-        // Setting logger label
-        request['_label'] = 'proxy';
+        request['_label'] = logLabel || 'proxy';
 
         debug(`proxying '${request.method.toUpperCase()} ${request.path}' to ${uri}`);
         return h.proxy({
