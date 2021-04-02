@@ -6,6 +6,11 @@ module.exports = (mocko, _describe, it) => () => {
         expect(data).to.equal('hello from mocko-content');
     });
 
+    it('should proxy to host name', async () => {
+        const { status } = await mocko.get('/proxy-to-host');
+        expect(status).to.equal(200);
+    });
+
     it('should pass body through', async () => {
         const { status } = await mocko.post('/validate/body', { foo: 'bar' });
         expect(status).to.equal(201);
