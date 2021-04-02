@@ -22,26 +22,39 @@ export function setHeader(key: any, value: any, options): void {
     options.data.root.response.headers[key] = value;
 }
 
-function getHost(hosts: Host[], proxyUri: string, header: string): string {
+function getHost(hosts: Host[], proxyUri: string, header: string): [string, string | null] {
     if(typeof proxyUri === 'string') {
         const hostByName = hosts.find(h => h.name.toLowerCase() === proxyUri.toLowerCase());
         if(hostByName) {
-            return hostByName.destination;
+            return [hostByName.destination, '@' + hostByName.name];
         }
 
-        return proxyUri;
+        return [proxyUri, null];
     }
 
     const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
     if(hostByHeader) {
-        return hostByHeader.destination;
+        return [hostByHeader.destination, '@' + hostByHeader.name];
     }
 
-    return '';
+    return ['', null];
 }
 
-export const proxy = (definitionProvider: DefinitionProvider) => (proxyUri: any, options): void => {
-    const hosts = wait(() => definitionProvider.getDefinitions()).hosts;
+export const proxy = (definitionProvider: DefinitionProvider) => (param1: any, param2?: any): void => {
+    let proxyUri: string | null;
+    let options: any;
 
-    options.data.root.response.proxyTo = getHost(hosts, proxyUri, options.data.root.request.headers.host);
+    if(param2) {
+        proxyUri = param1;
+        options = param2;
+    } else {
+        proxyUri = null;
+        options = param1;
+    }
+
+    const hosts = wait(() => definitionProvider.getDefinitions()).hosts;
+    const [url, label] = getHost(hosts, proxyUri, options.data.root.request.headers.host);
+
+    options.data.root.response.proxyTo = url;
+    options.data.root.response.proxyLabel = label;
 };
