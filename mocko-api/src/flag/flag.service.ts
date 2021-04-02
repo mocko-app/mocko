@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { isRgbColor } from 'class-validator';
 import { configService } from 'src/config/config.service';
 import { RedisProvider } from 'src/redis/redis.provider';
 import { FlagKeyDto, FlagKeyType } from './data/flag-key.dto';
