@@ -10,6 +10,7 @@ import { isStream } from '../../utils/stream';
 import { MockResponse } from '../../definitions/data/mock';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
+const RESYNC_LIMIT = process.env.RESYNC_LIMIT || 100;
 
 type Context = {
     request: {
@@ -42,7 +43,7 @@ export class MockHandler {
         private readonly customData: Record<string, any> = {},
         private readonly mockId?: string,
     ) {
-        this.bodyTemplate = resync(Handlebars.compile(this.mockResponse.body));
+        this.bodyTemplate = resync(Handlebars.compile(this.mockResponse.body), { limit: Number(RESYNC_LIMIT) });
     }
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
