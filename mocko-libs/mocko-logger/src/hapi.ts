@@ -11,12 +11,16 @@ const log = new Logger()
     .column(LogColumn.text())
     .log;
 
-function logRequest(request: Hapi.Request, time: string) {
-    const { method, path } = request;
+function logRequest(request: Hapi.Request, logHost: boolean, time: string) {
+    let { method, path } = request;
     const status = request.response instanceof Error ?
             request.response.output.statusCode :
             request.response.statusCode;
     const label = request['_label'] || 'req';
+
+    if(logHost) {
+        path = `(${request.headers.host}) ${path}`;
+    }
 
     let statusColor = colors.bold;
     switch(true) {
@@ -37,7 +41,7 @@ function logRequest(request: Hapi.Request, time: string) {
 export const hapiRequestLogger = {
     name: 'hapiRequestLogger',
     version: '1.0.0',
-    register: async function (server: Hapi.Server, { ignoredRoutes = [] } = {}) {
+    register: async function (server: Hapi.Server, { ignoredRoutes = [], logHost = false } = {}) {
         const ignoredRoutesSet = new Set(ignoredRoutes);
 
         server.ext('onRequest', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
@@ -53,7 +57,7 @@ export const hapiRequestLogger = {
             const deltaT = process.hrtime(request['_startAt']);
             const deltaMs = (deltaT[0] * 1e3) + (deltaT[1] * 1e-6);
 
-            logRequest(request, deltaMs.toFixed(3));
+            logRequest(request, logHost, deltaMs.toFixed(3));
             return h.continue;
         });
     }
