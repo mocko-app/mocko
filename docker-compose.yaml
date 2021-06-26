@@ -7,19 +7,19 @@ services:
       - './compose/data/redis:/data'
 
   mocko-ui:
-    image: 'gabrielctpinheiro/mocko-ui:1.7.0'
+    image: 'gabrielctpinheiro/mocko-ui:1.7.2'
     ports:
       - '8080:80'
     volumes:
       - './compose/config/ui/nginx.conf:/etc/nginx/nginx.conf'
 
   mocko-api:
-    image: 'gabrielctpinheiro/mocko-api:1.7.0'
+    image: 'gabrielctpinheiro/mocko-api:1.7.2'
     volumes:
       - './compose/config/api/.env:/home/mocko/.env'
 
   mocko-proxy:
-    image: 'gabrielctpinheiro/mocko-proxy:1.7.0'
+    image: 'gabrielctpinheiro/mocko-proxy:1.7.2'
     ports:
       - '8081:8080'
     volumes:
