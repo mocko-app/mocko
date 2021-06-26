@@ -121,7 +121,7 @@ export class Server {
     }
 
     private validateRoutePath(path: string): void {
-        const docsRef = "On Mocko generic parameters are defined with '{param}'. Have a look at our docs:\nhttps://mocko.dev/getting-started/standalone/#method-and-path";
+        const docsRef = "On Mocko generic parameters are defined with '{param}'. Have a look at our docs:\nhttps://docs.mocko.dev/getting-started/standalone/#method-and-path";
 
         if(path.match(/\/\*($|\/)/)) {
             this.logger.warn(`The path '${path}' contains a '*'. ${docsRef}`);
