@@ -6,12 +6,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gabriel-pinheiro/mocko.git"
+    "url": "git+https://github.com/mocko-app/mocko.git"
   },
   "bugs": {
-    "url": "https://github.com/gabriel-pinheiro/mocko/issues"
+    "url": "https://github.com/mocko-app/mocko/issues"
   },
-  "homepage": "https://github.com/gabriel-pinheiro/mocko#readme",
+  "homepage": "https://github.com/mocko-app/mocko#readme",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

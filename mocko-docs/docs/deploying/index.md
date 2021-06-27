@@ -51,7 +51,7 @@ ENV PROXY_BASE-URI=https://my-real-api.tld/v1
 
 You can check all the available and default values here:
 
-[https://github.com/gabriel-pinheiro/mocko/blob/master/mocko-proxy/default.env](https://github.com/gabriel-pinheiro/mocko/blob/master/mocko-proxy/default.env)
+[https://github.com/mocko-app/mocko/blob/master/mocko-proxy/default.env](https://github.com/mocko-app/mocko/blob/master/mocko-proxy/default.env)
 
 ## Complete stack on Kubernetes with Helm
 
@@ -59,7 +59,7 @@ You can easily install Mocko complete stack (with just three commands) in your c
 
 **Helm 3**
 ```shell
-$ git clone https://github.com/gabriel-pinheiro/mocko.git
+$ git clone https://github.com/mocko-app/mocko.git
 $ cd mocko
 
 $ helm install mocko ./mocko-helm --set \
@@ -70,7 +70,7 @@ proxy.uri=http://your-real-api.url/v1
 
 **Helm 2**
 ```shell
-$ git clone https://github.com/gabriel-pinheiro/mocko.git
+$ git clone https://github.com/mocko-app/mocko.git
 $ cd mocko
 
 $ helm install ./mocko-helm -n mocko --set \

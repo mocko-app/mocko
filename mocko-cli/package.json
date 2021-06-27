@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gabriel-pinheiro/mocko.git"
+    "url": "git+https://github.com/mocko-app/mocko.git"
   },
   "keywords": [
     "mock",
@@ -27,9 +27,9 @@
   "author": "Gabriel Pinheiro <gabrielctpinheiro@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/gabriel-pinheiro/mocko/issues"
+    "url": "https://github.com/mocko-app/mocko/issues"
   },
-  "homepage": "https://github.com/gabriel-pinheiro/mocko#readme",
+  "homepage": "https://github.com/mocko-app/mocko#readme",
   "dependencies": {
     "@hapi/bossy": "^5.0.1",
     "@mocko/proxy": "^1.7.0",

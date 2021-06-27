@@ -46,7 +46,7 @@ As you've seen above, `mocko-proxy` is the main component so let's get
 started with it. Clone Mocko's repository, navigate to `mocko-proxy` and
 install its dependencies.
 ```shell
-$ git clone https://github.com/gabriel-pinheiro/mocko.git
+$ git clone https://github.com/mocko-app/mocko.git
 $ cd mocko/mocko-proxy
 $ npm install
 ```

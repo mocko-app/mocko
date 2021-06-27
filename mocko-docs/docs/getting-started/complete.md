@@ -13,7 +13,7 @@ UI that will make it as easy as possible to manage your mocks.
 
 First clone Mocko's repository and `cd` into it:
 ```shell
-git clone https://github.com/gabriel-pinheiro/mocko.git
+git clone https://github.com/mocko-app/mocko.git
 cd mocko
 ```
 

@@ -133,5 +133,5 @@ You can also log the parameters you are receiving to make it easier to develop t
 ```
 
 <!-- TODO next steps -->
-<!-- TODO reference to https://github.com/gabriel-pinheiro/mocko/tree/master/mocko-proxy/examples -->
+<!-- TODO reference to https://github.com/mocko-app/mocko/tree/master/mocko-proxy/examples -->
 <img src="https://cdt.one/j1yTLWq.gif" style="display: none;"/>
