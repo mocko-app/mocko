@@ -75,7 +75,7 @@ could pass any path.
 
 To see your mock being served you can use any HTTP client like [Insomnia](https://insomnia.rest/download/),
 [HTTPie](https://httpie.io/), [cURL](https://curl.se/) or, in this case as its a `GET` request, even your
-browser. Simply access [http://localhost:8080/hello](http://localhost:8080/hello) in your browser or, with
+browser. Simply access http://localhost:8080/hello in your browser or, with
 curl:
 ```shell
 $ curl http://localhost:8080/hello

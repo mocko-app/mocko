@@ -89,7 +89,7 @@ mock "POST /users" {
         {{! Here we are creating an UUID and saving it to
             the variable 'id', this is not a flag and is not
             persisted, you can check more about it here:
-            https://docs.mocko.dev/templating/variables
+            https://mocko.dev/docs/templating/variables/
         }}
         {{set 'id' (uuid)}}
 

@@ -11,7 +11,7 @@
     - Use a simple web UI for speed
     - Use HCL files for documentation and versioning
 - Proxy your real API: Requests will be passed through to it unless there's a mock
-- Create dynamic mocks using Handlebars (more [here](https://docs.mocko.dev/templating))
+- Create dynamic mocks using Handlebars (more [here](https://mocko.dev/docs/templating/))
 - Easy to deploy: You can deploy it in containers or even using a CLI <!-- TODO reference for deploy doc -->
 - Really, **really** fast. Run your tests as fast as you can.
 

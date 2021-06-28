@@ -94,8 +94,8 @@ Same usage as [JavaScript's substring](https://developer.mozilla.org/pt-BR/docs/
 
 ## `setFlag`, `getFlag`, `delFlag`, `hasFlag`
 
-Check their documentation under [persistence](https://docs.mocko.dev/templating/persistence/).
+Check their documentation under [persistence](https://mocko.dev/docs/templating/persistence/).
 
 ## `get`, `set`
 
-Check their documentation under [variables](https://docs.mocko.dev/templating/variables/).
+Check their documentation under [variables](https://mocko.dev/docs/templating/variables/).

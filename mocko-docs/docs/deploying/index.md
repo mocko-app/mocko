@@ -1,4 +1,4 @@
-<base href="https://docs.mocko.dev" target="_blank"/>
+<base href="https://mocko.dev/docs" target="_blank"/>
 
 # Deploying
 
@@ -13,7 +13,7 @@ Click the button below to deploy the app to [glitch.com](https://cdt.one/UUBAcUL
 
 Wait until the app is deployed (check `Tools -> Logs` in the bottom left corner) and access it with the URL provided in the `Show -> In a New Window` button in the top left corner.
 
-In the files drawer on the left, you can change the mocks inside the `mocks` folder and they'll update in real time, check our [Getting Started](https://docs.mocko.dev/getting-started/standalone/) guide for usage.
+In the files drawer on the left, you can change the mocks inside the `mocks` folder and they'll update in real time, check our [Getting Started](https://mocko.dev/docs/getting-started/standalone/) guide for usage.
 
 To one-click deploy to other PaaS providers like Heroku or DigitalOcean's App Platform, check [mocko-example](https://cdt.one/tsXeJfu)'s `README.md`.
 
@@ -40,7 +40,7 @@ FROM 'gabrielctpinheiro/mocko-proxy'
 COPY ./mocks ./mocks
 ```
 
-And in the `mocks` folder you can create your mock definitions, check our [Getting Started](https://docs.mocko.dev/getting-started/standalone/) guide for usage.
+And in the `mocks` folder you can create your mock definitions, check our [Getting Started](https://mocko.dev/docs/getting-started/standalone/) guide for usage.
 
 To change Mocko settings you can define envionment variables in your `Dockerfile` like so:
 ```sh

@@ -23,7 +23,7 @@ group, you might need `sudo`:
 docker-compose up
 ```
 
-And... That's it, access [http://localhost:8080](http://localhost:8080)
+And... That's it, access http://localhost:8080
 to use the UI. Your mocks will be served on `localhost:8081`.
 ## Next steps
 Before moving on, how about leaving us a star on GitHub? It'll take you
