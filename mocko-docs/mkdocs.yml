@@ -3,7 +3,9 @@ repo_url: https://github.com/mocko-app/mocko
 edit_uri: tree/master/mocko-docs/docs
 site_url: https://mocko.dev/docs/
 extra_css: ['extra.css']
-theme: bootstrap4
+theme:
+  name: bootstrap4
+  custom_dir: custom_theme/
 nav:
   - Overview: index.md
   - Getting Started:
