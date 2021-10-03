@@ -17,6 +17,7 @@ const { readFile, readdir, lstat } = promises;
 const MOCKS_DIR = process.env['MOCKS_FOLDER'] || "mocks";
 const MUST_LOAD_DIR = !!process.env['MOCKS_FOLDER'];
 const HCL_EXTENSION = ".hcl";
+const DOT = ".";
 
 export type FileOrDir = {
     name: string,
@@ -106,10 +107,12 @@ export class DefinitionProvider {
 
         const mockFiles = files
             .filter(f => !f.isDir)
+            .filter(f => !f.name.startsWith(DOT))
             .filter(f => f.name.endsWith(HCL_EXTENSION));
 
         const subDirContents = (await Promise.all(files
             .filter(f => f.isDir)
+            .filter(f => !f.name.startsWith(DOT))
             .map(f => this.getMockFilesContent(join(path, f.name)))))
                 .flat();
         
