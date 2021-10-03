@@ -25,4 +25,9 @@ module.exports = (mocko, _describe, it) => () => {
         const { status } = await mocko.post('/validate/query?foo=bar');
         expect(status).to.equal(201);
     });
+
+    it('should ignore files and directories starting with dot(.)', async () => {
+        const { status } = await mocko.post('/dot-route');
+        expect(status).to.equal(404);
+    });
 };
