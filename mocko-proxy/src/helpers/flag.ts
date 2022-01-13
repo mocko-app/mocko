@@ -15,8 +15,14 @@ function validateFlagKey(key: any): void {
     }
 }
 
-function validateUndefinedAndReturn(value: any): any {
-    return value === void 0 ? null : value;
+function validateFlagExpiration(ttlMillis: number): void {
+    if(typeof ttlMillis !== 'number') {
+        throw new TypeError('Flag expiration must be a number');
+    }
+
+    if(ttlMillis <= 0) {
+        throw new TypeError('Flag expiration must be a positive number');
+    }
 }
 
 export const getFlag = (flagService: FlagService) => (key: any): any => {
@@ -24,10 +30,15 @@ export const getFlag = (flagService: FlagService) => (key: any): any => {
     return wait(() => flagService.getFlag(key));
 };
 
-export const setFlag = (flagService: FlagService) => (key: any, value: any, ttlMillis: number): void => {
+export const setFlag = (flagService: FlagService) => function (key: any, value: any, ttlMillis: number): void {
     validateFlagKey(key);
 
-    wait(() => flagService.setFlag(key, validateUndefinedAndReturn(value), validateUndefinedAndReturn(ttlMillis)));
+    if (arguments.length === 3) {
+        wait(() => flagService.setFlag(key, value ?? null));
+    } else {
+        validateFlagExpiration(ttlMillis);
+        wait(() => flagService.setFlag(key, value ?? null, ttlMillis));
+    }
 };
 
 export const delFlag = (flagService: FlagService) => (key: any): void => {

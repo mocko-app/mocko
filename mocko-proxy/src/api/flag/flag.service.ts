@@ -20,7 +20,7 @@ export class FlagService {
         }
     }
 
-    async setFlag(key: string, value: any, ttlMillis: number): Promise<void> {
+    async setFlag(key: string, value: any, ttlMillis?: number): Promise<void> {
         await this.repository.set(key, value, ttlMillis);
     }
 

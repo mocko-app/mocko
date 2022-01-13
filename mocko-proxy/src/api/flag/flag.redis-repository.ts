@@ -10,7 +10,7 @@ export class FlagRedisRepository implements FlagRepository {
         private readonly redis: RedisProvider,
     ) { }
 
-    async set(key: string, value: any, ttlMillis: number): Promise<void> {
+    async set(key: string, value: any, ttlMillis?: number): Promise<void> {
         await this.redis.set(this.FLAG_PREFIX + key, value, ttlMillis);
     }
 
