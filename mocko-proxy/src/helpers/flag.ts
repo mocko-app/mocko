@@ -15,15 +15,19 @@ function validateFlagKey(key: any): void {
     }
 }
 
+function validateUndefinedAndReturn(value: any): any {
+    return value === void 0 ? null : value;
+}
+
 export const getFlag = (flagService: FlagService) => (key: any): any => {
     validateFlagKey(key);
     return wait(() => flagService.getFlag(key));
 };
 
-export const setFlag = (flagService: FlagService) => (key: any, value: any): void => {
+export const setFlag = (flagService: FlagService) => (key: any, value: any, ttlMillis: number): void => {
     validateFlagKey(key);
 
-    wait(() => flagService.setFlag(key, value === void 0 ? null : value));
+    wait(() => flagService.setFlag(key, validateUndefinedAndReturn(value), validateUndefinedAndReturn(ttlMillis)));
 };
 
 export const delFlag = (flagService: FlagService) => (key: any): void => {

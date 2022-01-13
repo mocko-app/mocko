@@ -5,7 +5,7 @@ import { FlagRepository } from "./flag.repository";
 export class FlagMemoryRepository implements FlagRepository {
     private readonly flags: Map<string, any> = new Map();
 
-    async set(key: string, value: any): Promise<void> {
+    async set(key: string, value: any, ttlMillis: number): Promise<void> {
         this.flags.set(key, value);
     }
 
