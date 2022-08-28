@@ -7,7 +7,7 @@ COPY . .
 RUN mkdocs build
 
 
-FROM nginx:1.16.1-alpine
+FROM nginx:1.23.1-alpine
 
 RUN rm /usr/share/nginx/html/*
 COPY --from=builder /home/mocko/site /usr/share/nginx/html
