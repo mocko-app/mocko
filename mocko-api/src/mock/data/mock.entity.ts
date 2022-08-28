@@ -1,6 +1,6 @@
 import {HttpMethod} from "./http-method";
 import {CreateMockRequestDto} from "./create-mock-request.dto";
-import {v4 as uuidv4} from 'node-uuid';
+import {v4 as uuidv4} from 'uuid';
 import { MockFailure } from "./mock-failure";
 
 export class Response {

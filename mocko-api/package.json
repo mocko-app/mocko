@@ -33,10 +33,10 @@
     "fs": "0.0.1-security",
     "ioredis": "^4.19.4",
     "morgan": "^1.10.0",
-    "node-uuid": "^1.4.8",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
