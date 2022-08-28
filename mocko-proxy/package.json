@@ -13,7 +13,7 @@
     "pretest:cov": "tsc",
     "test": "lab -I require -a @hapi/code",
     "test:cov": "lab -a @hapi/code -r html -o coverage.html",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
