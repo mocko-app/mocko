@@ -1,6 +1,6 @@
 {
   "name": "mocko-ui",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "license": "Apache-2.0",
   "dependencies": {
     "ace-builds": "^1.9.6",
