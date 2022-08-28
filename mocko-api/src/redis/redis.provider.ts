@@ -1,6 +1,6 @@
 import {Inject, Injectable, OnApplicationShutdown} from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { configService } from 'src/config/config.service';
+import { configService } from '../config/config.service';
 import {REDIS_CONNECTOR} from './redis.constants';
 
 const REDIS_PREFIX = configService.get('REDIS_PREFIX');

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { configService } from 'src/config/config.service';
-import { RedisProvider } from 'src/redis/redis.provider';
+import { configService } from '../config/config.service';
+import { RedisProvider } from '../redis/redis.provider';
 import { FlagKeyDto, FlagKeyType } from './data/flag-key.dto';
 
 const REDIS_PREFIX = configService.get('REDIS_PREFIX');

@@ -1,4 +1,4 @@
-FROM node:12-alpine AS builder
+FROM node:16-alpine AS builder
 
 WORKDIR /home/mocko
 
@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 
-FROM nginx:1.16.1-alpine
+FROM nginx:1.23.1-alpine
 
 COPY --from=builder /home/mocko/build /usr/share/nginx/html/build
 RUN rm /usr/share/nginx/html/*.html
