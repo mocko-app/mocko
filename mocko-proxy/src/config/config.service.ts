@@ -4,13 +4,15 @@ import {CONFIG_PATH, DEFAULT_CONFIG_PATH} from "./config.constants";
 import {Provider} from "../utils/decorators/provider";
 import {RedisOptions} from "ioredis";
 
+const debug = require('debug')('mocko:proxy:config');
+
 @Provider()
 export class ConfigProvider {
     private readonly config: Record<string, string>;
 
     constructor(configPath: string, defaultConfigPath: string) {
-        this.assertConfig(configPath, defaultConfigPath);
-        this.config = { ...this.fromFile(configPath), ...process.env };
+        const path = this.assertConfig(configPath, defaultConfigPath);
+        this.config = { ...this.fromFile(path), ...process.env };
     }
 
     get(key: string): string {
@@ -53,12 +55,18 @@ export class ConfigProvider {
         return dotenv.parse(fs.readFileSync(path));
     }
 
-    private assertConfig(configPath: string, defaultConfigPath: string) {
+    private assertConfig(configPath: string, defaultConfigPath: string): string {
         if (fs.existsSync(configPath)) {
-            return;
+            return configPath;
         }
 
-        fs.copyFileSync(defaultConfigPath, configPath);
+        try {
+            fs.copyFileSync(defaultConfigPath, configPath);
+            return configPath;
+        } catch(e) {
+            debug('Failed to copy default config to .env, using the default file');
+            return defaultConfigPath;
+        }
     }
 
 }
