@@ -19,7 +19,7 @@ export function App() {
         <Mocks.Provider value={mocks}>
             <BrowserRouter>
                 <Navbar>
-                    <Logo src="http://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
+                    <Logo src="https://cdn.codetunnel.net/mocko/logo-white.svg" alt="Mocko Logo"/>
                     Mocko
                 </Navbar>
                 <AppDrawer/>
