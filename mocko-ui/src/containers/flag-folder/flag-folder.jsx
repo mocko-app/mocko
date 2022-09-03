@@ -21,10 +21,14 @@ export const FLAG_ICON = (
 
 export function FlagFolder({ prefix }) {
     const [flags, setFlags] = useState(null);
+    const [isTruncated, setTruncated] = useState(false);
 
     useEffect(() => {
         setFlags(null);
-        client.get('/flags?prefix=' + prefix).then(({ data }) => setFlags(data));
+        client.get('/flags?prefix=' + prefix).then(({ data }) => {
+            setFlags(data.flagKeys);
+            setTruncated(data.isTruncated);
+        });
     }, [prefix]);
 
     if(flags === null) {
@@ -46,7 +50,7 @@ export function FlagFolder({ prefix }) {
     }
 
     return (
-        <Folder>
+        <Folder comment={isTruncated && '...and more'} >
             {flags.map(f =>
                 <File
                     key={f.type + prefix + f.name}

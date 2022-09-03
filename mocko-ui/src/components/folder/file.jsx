@@ -16,6 +16,7 @@ const FileView = styled.li`
     background-color: #030303;
     font-size: 0.875rem;
     transition: 0.2s background-color cubic-bezier(0.4, 0.0, 0.2, 1);
+    text-align: left;
 
     &:hover {
         background-color: #111;

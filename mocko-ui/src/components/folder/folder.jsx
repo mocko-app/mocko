@@ -24,9 +24,11 @@ const Files = styled.ul`
     margin: 1rem 0;
     overflow-x: hidden;
     overflow-y: auto;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
 `;
 
-export function Folder({ children }) {
+export function Folder({ children, comment }) {
     const [ activeFileId, setActiveFileId ] = useState(null);
     let content = null;
 
@@ -48,6 +50,7 @@ export function Folder({ children }) {
         <FolderView>
             <Files>
                 { files }
+                { comment }
             </Files>
             { content && <FolderContent>{ content }</FolderContent>}
         </FolderView>

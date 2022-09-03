@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { FlagKeyDto } from './data/flag-key.dto';
+import { FlagListDto } from './data/flag-list.dto';
 import { FlagDto } from './data/flag.dto';
 import { FlagService } from './flag.service';
 
@@ -10,7 +10,7 @@ export class FlagController {
     ) { }
 
     @Get()
-    async listFlags(@Query('prefix') prefix = ''): Promise<FlagKeyDto[]> {
+    async listFlags(@Query('prefix') prefix = ''): Promise<FlagListDto> {
         return await this.service.listFlags(prefix);
     }
 
