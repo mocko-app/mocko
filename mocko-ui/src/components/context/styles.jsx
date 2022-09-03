@@ -25,13 +25,13 @@ export const Backdrop = styled.aside`
     top: 4rem;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 4rem);
     background-color: #030303;
-    padding-top: 1rem;
+    padding: 1rem 0;
     overflow: auto;
     transition: 300ms top cubic-bezier(0.0, 0.0, 0.2, 1);
     z-index: 150;
-    
+
     ${({visibility}) => [HIDING, SHOWING].includes(visibility) ? `
         top: 100%;
         transition: 150ms top cubic-bezier(0.4, 0.0, 1, 1);
