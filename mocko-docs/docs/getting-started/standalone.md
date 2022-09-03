@@ -9,7 +9,7 @@ mocks with ease and provides you with great features to make it easier to develo
 them.
 
 <div class="alert alert-warning" role="alert">
-	You need NodeJS 12 or newer installed for this part.
+	You need NodeJS 14 or newer installed for this part.
 	<a href="https://cdt.one/BDSDgYN" target="_blank">Click here</a> to check our guide on updating
 </div>
 

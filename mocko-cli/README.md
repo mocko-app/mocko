@@ -5,7 +5,7 @@ you create dynamic mocks and proxy your API when no mocks are defined.
 
 ## Installation
 
-> :warning: **You need NodeJS 12 or newer installed**
+> :warning: **You need NodeJS 14 or newer installed**
 
 
 First install the Mocko CLI with npm, you might need `sudo` for Linux or Mac:
