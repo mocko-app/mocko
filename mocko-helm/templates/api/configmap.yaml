@@ -13,3 +13,5 @@ data:
     REDIS_PASSWORD={{ .Values.redis.password }}
     REDIS_DATABASE={{ .Values.redis.database }}
     REDIS_PREFIX={{ include "mocko.fullname" . }}:
+
+    FLAGS_LIST-LIMIT=128
