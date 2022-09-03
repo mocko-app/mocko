@@ -1,10 +1,11 @@
 import React from 'react';
 import { Badge } from '../../components/badge/badge';
-import { Drawer, DrawerItem, DrawerSeparator, DrawerItemAnchor } from '../../components/drawer/styles';
+import { Drawer, DrawerItem, DrawerSeparator, DrawerItemAnchor, DrawerTitle } from '../../components/drawer/styles';
 
 export function AppDrawer() {
     return (
         <Drawer>
+            <DrawerTitle>Project</DrawerTitle>
             <DrawerItem to="/mocks">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 12L18 16L16.59 14.59L18.17 13H12.94C12.6 16.1 10.68 18.72 8 20.05C7.96 21.69 6.64 23 5 23C3.34 23 2 21.66 2 20C2 18.34 3.34 17 5 17C5.95 17 6.78 17.45 7.33 18.14C9.23 17.11 10.59 15.23 10.91 13H7.81C7.4 14.16 6.3 15 5 15C3.34 15 2 13.66 2 12C2 10.34 3.34 9 5 9C6.3 9 7.4 9.84 7.82 11H10.92C10.6 8.77 9.23 6.9 7.33 5.86C6.78 6.55 5.95 7 5 7C3.34 7 2 5.66 2 4C2 2.34 3.34 1 5 1C6.64 1 7.96 2.31 7.99 3.95C10.67 5.28 12.59 7.9 12.93 11H18.16L16.58 9.41L18 8L22 12Z" fill="white"/>
@@ -18,6 +19,7 @@ export function AppDrawer() {
                 Flags <Badge color="GREEN">New</Badge>
             </DrawerItem>
             <DrawerSeparator/>
+            <DrawerTitle>Mocko</DrawerTitle>
             <DrawerItemAnchor href="https://docs.mocko.dev" target="_blank">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM16 18H8V16H16V18ZM16 14H8V12H16V14ZM13 9V3.5L18.5 9H13Z" fill="white" fillOpacity="0.6"/>

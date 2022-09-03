@@ -60,3 +60,15 @@ export const DrawerSeparator = styled.hr`
     opacity: 0.1;
     margin: 0.5rem 0;
 `;
+
+export const DrawerTitle = styled.h2`
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 0.875rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    margin: 1rem;
+    margin-bottom: 0.5em;
+    color: rgba(255, 255, 255, 0.5);
+`;
