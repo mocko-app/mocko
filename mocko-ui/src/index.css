@@ -34,12 +34,6 @@ html {
 @media screen and (min-width: 1400px){
     html { font-size: 20px; }
 }
-@media screen and (min-width: 2000px){
-    html { font-size: 24px; }
-}
-@media screen and (min-width: 2500px){
-    html { font-size: 32px; }
-}
 
 .loader {
     opacity: 1;
