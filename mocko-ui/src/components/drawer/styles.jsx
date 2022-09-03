@@ -6,6 +6,7 @@ export const Drawer = styled.div`
     top: 4rem;
     left: 0;
     height: calc(100% - 4rem);
+    overflow-y: auto;
     width: 14rem;
     padding: 1rem 0;
     color: #FFF;
