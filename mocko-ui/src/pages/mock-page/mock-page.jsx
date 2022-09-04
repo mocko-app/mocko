@@ -1,18 +1,17 @@
 import React, {useContext, useState} from 'react';
-import * as qs from 'qs';
 import {List} from "../../components/list/list";
 import {Button} from "../../components/button/button";
 import {MockItem} from "../../containers/mock-item/mock-item";
 import {Spinner} from "../../components/spinner/spinner";
 import {Mocks} from "../../contexts/mock";
-import {Link, useHistory, useLocation} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
 import { SearchIcon, SearchInput, SearchCloseIcon } from "./styles";
 import { Title, TitleButton, TitleText } from '../../components/title/styles';
 import { NoContent } from '../../components/no-content/no-content';
+import { useQuery } from '../../hooks/useQuery';
 
 export function MockPage() {
-    const location = useLocation();
-    const query = qs.parse(location.search, { ignoreQueryPrefix: true }).q || '';
+    const query = useQuery('q');
 
     const { mocks, isLoading, hasError } = useContext(Mocks);
     const [filter, setFilter] = useState(query);
