@@ -25,6 +25,11 @@ export function MockItem(params) {
         setMenuPos(null);
     };
 
+    const openEdition = () => {
+        setOpened(true);
+        setMenuPos(null);
+    };
+
     const kebab = (
         <Icon margin="s" onClick={ openMenu }>
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,12 +45,13 @@ export function MockItem(params) {
                 {!isEnabled && <Badge color="yellow">Disabled</Badge>}
             </>}
             description={`${method} ${path}`}
-            onClick={() => setOpened(true)}
+            onClick={ openEdition }
             button={kebab}/>
         {isOpened && <MockCrudCtx onClose={() => setOpened(false)} mock={params}/>}
         {menuPos && <MockMenu x={menuPos[0]} y={menuPos[1]}
             isEnabled={ isEnabled }
             onClose={ closeMenu }
+            onEdit={ openEdition }
             onDelete={ () => removeMock(id) }
             onDisable={ () => disableMock(id) }
             onEnable={ () => enableMock(id) } /> }

@@ -1,9 +1,14 @@
 import React from 'react';
 import { Menu, MenuItem } from '../../components/menu/menu';
 
-export function MockMenu({ x, y, isEnabled, onClose, onDelete, onDisable, onEnable }) {
+export function MockMenu({ x, y, isEnabled, onClose, onEdit, onDelete, onDisable, onEnable }) {
     return (
         <Menu onClose={onClose} x={x} y={y}>
+            <MenuItem title="Edit" onClick={ onEdit } icon={
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="white" />
+                </svg>
+            }/>
             { isEnabled ?
             <MenuItem title="Disable" onClick={ onDisable } icon={
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
