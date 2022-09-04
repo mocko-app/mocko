@@ -25,15 +25,18 @@ export class MockRepository {
 
     async listMocks(): Promise<Mock[]> {
         const mocks = await this.redis.getAll<Mock>(REDIS_MOCK_KEY);
-        return Object.values(mocks);
+        return Object
+            .values(mocks)
+            .map(Mock.ofEntity);
     }
 
     async findById(id: string): Promise<Mock> {
-        const mock = await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
+        let mock = await this.redis.hget<Mock>(REDIS_MOCK_KEY, id);
         if(!mock) {
             return null;
         }
 
+        mock = Mock.ofEntity(mock);
         mock.failure = await this.redis.get<MockFailure>(`mock_failure:${id}`);
         return mock;
     }

@@ -53,9 +53,22 @@ export class MockService {
         await this.deploy();
     }
 
+    async setEnabled(id: string, isEnabled: boolean): Promise<void> {
+        const mock = await this.repository.findById(id);
+        if(!mock) {
+            throw new NotFoundException(`Mock '${id}' not found`);
+        }
+
+        mock.isEnabled = isEnabled;
+
+        await this.repository.save(mock);
+        await this.deploy();
+    }
+
     private async deploy() {
         const mocks = await this.listAll();
-        const options = new MockOptions(mocks);
+        const enabledMocks = mocks.filter(m => m.isEnabled);
+        const options = new MockOptions(enabledMocks);
 
         await this.repository.setOptions(options);
         await this.redisProvider.publish(DEPLOY_CHANNEL);

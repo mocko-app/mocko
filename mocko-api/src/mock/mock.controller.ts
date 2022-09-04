@@ -40,4 +40,16 @@ export class MockController {
     async deleteOne(@Param('id') id: string): Promise<void> {
         await this.service.deleteOne(id);
     }
+
+    @Put(':id/enable')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async enable(@Param('id') id: string): Promise<void> {
+        await this.service.setEnabled(id, true);
+    }
+
+    @Put(':id/disable')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async disable(@Param('id') id: string): Promise<void> {
+        await this.service.setEnabled(id, false);
+    }
 }
