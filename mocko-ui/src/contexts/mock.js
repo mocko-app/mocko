@@ -35,11 +35,25 @@ export function useMocks() {
         await loadMocks();
     };
 
+    const enableMock = async (id) => {
+        await client.put(`/mocks/${id}/enable`);
+        await loadMocks();
+    };
+
+    const disableMock = async (id) => {
+        await client.put(`/mocks/${id}/disable`);
+        await loadMocks();
+    };
+
     useEffect(() => {
         loadMocks();
     }, []);
 
-    return { mocks, isLoading, hasError, removeMock, createMock, updateMock };
+    return {
+        mocks, isLoading, hasError, removeMock,
+        createMock, updateMock, enableMock,
+        disableMock,
+    };
 }
 
 export const Mocks = createContext(null);

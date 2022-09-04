@@ -3,8 +3,8 @@ import styled from 'styled-components';
 export const BadgeView = styled.span`
     display: inline-block;
     line-height: 1rem;
-    font-size: 0.875rem;
-    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
     margin: 0 0.25rem;
     border-radius: 1rem;
     font-weight: 500;

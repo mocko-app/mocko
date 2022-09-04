@@ -14,7 +14,7 @@ export function MockPage() {
     const location = useLocation();
     const query = qs.parse(location.search, { ignoreQueryPrefix: true }).q || '';
 
-    const { mocks, isLoading, hasError, removeMock } = useContext(Mocks);
+    const { mocks, isLoading, hasError } = useContext(Mocks);
     const [filter, setFilter] = useState(query);
 
     if(isLoading) {
@@ -44,7 +44,7 @@ export function MockPage() {
         <MockListTitle onChange={ setFilter } initialQuery={query} />
         <List>
             {filteredMocks.map(mock =>
-                <MockItem {...mock} key={mock.id} onRemove={() => removeMock(mock.id)}/>)}
+                <MockItem {...mock} key={mock.id}/>)}
         </List>
         </>
     );
