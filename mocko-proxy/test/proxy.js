@@ -6,11 +6,6 @@ module.exports = (mocko, _describe, it) => () => {
         expect(data).to.equal('hello from mocko-content');
     });
 
-    it('should proxy to host name', async () => {
-        const { status } = await mocko.get('/proxy-to-host');
-        expect(status).to.equal(200);
-    });
-
     it('should pass body through', async () => {
         const { status } = await mocko.post('/validate/body', { foo: 'bar' });
         expect(status).to.equal(201);
@@ -34,5 +29,44 @@ module.exports = (mocko, _describe, it) => () => {
             .catch(({ response }) => code = response.status);
 
         expect(code).to.equal(404);
+    });
+
+    it('should proxy to host name', async () => {
+        const { status: s1 } = await mocko.get('/host-one');
+        expect(s1).to.equal(200);
+        const { status: s2 } = await mocko.get('/host-two');
+        expect(s2).to.equal(200);
+    });
+
+    it('should proxy to host deppending on request host when no mock is mapped', async () => {
+        const { data: d1 } = await mocko.get('/host-default', {
+            headers: {
+                Host: 'v1.local',
+            },
+        });
+        expect(d1).to.equal('v1');
+
+        const { data: d2 } = await mocko.get('/host-default', {
+            headers: {
+                Host: 'v2.local',
+            },
+        });
+        expect(d2).to.equal('v2');
+    });
+
+    it('should proxy to host deppending on request host when using generic proxy helper', async () => {
+        const { data: d1 } = await mocko.get('/host-generic', {
+            headers: {
+                Host: 'v1.local',
+            },
+        });
+        expect(d1).to.equal('v1');
+
+        const { data: d2 } = await mocko.get('/host-generic', {
+            headers: {
+                Host: 'v2.local',
+            },
+        });
+        expect(d2).to.equal('v2');
     });
 };

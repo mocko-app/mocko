@@ -2,7 +2,14 @@ mock "GET /hello" {
     body = "hello from mocko-content"
 }
 
-mock "GET /proxy-to-host" { }
+mock "GET /v1/host-one" { }
+mock "GET /v2/host-two" { }
+mock "GET /{version}/host-default" {
+    body = "{{request.params.version}}"
+}
+mock "GET /{version}/host-generic" {
+    body = "{{request.params.version}}"
+}
 
 mock "POST /validate/body" {
     body = <<EOF
