@@ -1,4 +1,4 @@
-import { api } from "../utils/axios";
+import { api, proxy } from "../utils/axios";
 import { createMock, mockAndGet, sleep, DEPLOY_TIME } from "../utils/mock";
 import { v4 as uuidv4 } from "uuid";
 
@@ -58,5 +58,61 @@ describe('Mocko API', () => {
         expect(response.headers.foo).toBe('bar');
         expect(response.data).toBe('foo');
         expect(response.status).toBe(202);
+    });
+
+    it('must create mocks as enabled', async () => {
+        const name = uuidv4().split('-')[0];
+        const mock = await createMock(name);
+
+        expect(mock.isEnabled).toBe(true);
+    });
+
+    it('must disable mocks on list', async () => {
+        const name = uuidv4().split('-')[0];
+        const mock = await createMock(name);
+        await api.put(`/mocks/${mock.id}/disable`);
+
+        const { data: mocks } = await api.get('/mocks');
+        const updatedMock = mocks.find(m => m.id === mock.id);
+
+        expect(updatedMock.isEnabled).toBe(false);
+    });
+
+    it('must disable mocks on getOne', async () => {
+        const name = uuidv4().split('-')[0];
+        const mock = await createMock(name);
+        await api.put(`/mocks/${mock.id}/disable`);
+
+        const { data: updatedMock } = await api.get(`/mocks/${mock.id}`);
+
+        expect(updatedMock.isEnabled).toBe(false);
+    });
+
+    it('must not map disabled mocks', async () => {
+        expect.assertions(1);
+
+        const name = uuidv4().split('-')[0];
+        const mock = await createMock(name);
+        await api.put(`/mocks/${mock.id}/disable`);
+        await sleep(DEPLOY_TIME);
+
+        try {
+            await proxy.get(`${mock.path}`);
+        } catch(error) {
+            expect(error.response.status).toBe(404);
+        }
+    });
+
+    it('must map re-enabled mocks', async () => {
+        const name = uuidv4().split('-')[0];
+        const mock = await createMock(name);
+        await api.put(`/mocks/${mock.id}/disable`);
+        await sleep(DEPLOY_TIME);
+        await api.put(`/mocks/${mock.id}/enable`);
+        await sleep(DEPLOY_TIME);
+
+        const { status } = await proxy.get(`${mock.path}`);
+
+        expect(status).toBe(200);
     });
 });
