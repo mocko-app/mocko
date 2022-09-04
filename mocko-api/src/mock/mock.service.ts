@@ -14,7 +14,11 @@ export class MockService {
     ) { }
 
     async listAll(): Promise<Mock[]> {
-        return this.repository.listMocks();
+        const mocks = await this.repository.listMocks();
+        const enabledMocks = mocks.filter(m => m.isEnabled);
+        const disabledMocks = mocks.filter(m => !m.isEnabled);
+
+        return [...enabledMocks, ...disabledMocks];
     }
 
     async findById(id: string): Promise<Mock> {
