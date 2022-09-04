@@ -6,8 +6,8 @@ import { promisify } from "util";
 export const sleep = promisify(setTimeout);
 export const DEPLOY_TIME = 200;
 
-export async function createMock(name: string, body = 'body'): Promise<any> {
-    const path = `/${uuidv4()}`;
+export async function createMock(name: string, body = 'body', mockPath?: string): Promise<any> {
+    const path = mockPath || `/${uuidv4()}`;
     const { data } = await api.post('/mocks', {
         name,
         method: 'GET',

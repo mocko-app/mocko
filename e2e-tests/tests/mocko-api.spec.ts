@@ -115,4 +115,11 @@ describe('Mocko API', () => {
 
         expect(status).toBe(200);
     });
+
+    it('must create mocks with paths missing initial slash', async () => {
+        const name = uuidv4().split('-')[0];
+        await createMock(name, 'body', 'path-no-slash');
+        const { status } = await proxy.get(`/path-no-slash`);
+        expect(status).toBe(200);
+    });
 });
