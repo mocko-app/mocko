@@ -83,6 +83,9 @@ export class Server {
                     origin: ['*'],
                 } : false,
             },
+            debug: {
+                request: false,
+            },
         });
 
         this.logger.info('Mapping routes');
