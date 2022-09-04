@@ -20,7 +20,12 @@ export class Mock {
         public readonly response: Response,
         public isEnabled: boolean,
         public failure?: MockFailure,
-    ) { }
+    ) {
+        this.isEnabled = isEnabled ?? true;
+        if(!path.startsWith('/')) {
+            this.path = `/${path}`;
+        }
+    }
 
     static ofDto(dto: CreateMockRequestDto): Mock {
         const response = new Response(dto.response.code, dto.response.body, dto.response.headers);
@@ -34,6 +39,6 @@ export class Mock {
 
     static ofEntity(entity: Mock): Mock {
         return new Mock(entity.id, entity.name, entity.method, entity.path,
-            entity.response, entity.isEnabled ?? true);
+            entity.response, entity.isEnabled);
     }
 }
