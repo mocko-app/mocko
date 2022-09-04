@@ -1,4 +1,4 @@
-name: e2e tests
+name: Tests
 
 on:
   pull_request:
@@ -20,4 +20,15 @@ jobs:
     - name: Preparing tests
       run: cd e2e-tests; npm install
     - name: Testing
-      run: cd e2e-tests; npm run test
+      run: cd e2e-tests; npm test
+
+  proxy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Spinning dependencies up
+      run: cd mocko-proxy; docker-compose up -d
+    - name: Preparing tests
+      run: cd mocko-proxy; npm install
+    - name: Testing
+      run: cd mocko-proxy; npm test
