@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const MenuView = styled.ul`
-position: fixed;
+position: absolute;
 padding: 0.5rem;
 min-width: 10rem;
 max-height: calc(100% - 5rem);

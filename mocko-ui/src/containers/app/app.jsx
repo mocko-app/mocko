@@ -23,7 +23,7 @@ export function App() {
                     Mocko
                 </Navbar>
                 <AppDrawer/>
-                <AppView>
+                <AppView id="page">
                     <Routes/>
                 </AppView>
 

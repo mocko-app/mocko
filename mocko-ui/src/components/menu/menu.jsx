@@ -17,14 +17,23 @@ export function Menu({ children, x, y, onClose }) {
     const ref = useRef();
     useClickOutside(ref, onClose);
 
+    const [offsetX, offsetY] = getPortalOffset();
+
     return (
-        <Portal>
+        <Portal isPageChildren>
             <MenuView ref={ref} style={{
-                top: y + 'px',
-                left: x + 'px',
+                top: (y - offsetY) + 'px',
+                left: (x - offsetX) + 'px',
             }}>
                 { children }
             </MenuView>
         </Portal>
     );
+}
+
+function getPortalOffset() {
+    const portalTarget = document.getElementById('page');
+    const rect = portalTarget.getBoundingClientRect();
+    const scroll = portalTarget.scrollTop;
+    return [rect.left, rect.top - scroll];
 }
