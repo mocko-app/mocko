@@ -1,5 +1,6 @@
 # Mocko
 Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock
+![Usage example](https://cdn.codetunnel.net/mocko/docs-mocko-example.gif)
 
 ## Features
 - Choose how to manage your mocks
@@ -19,10 +20,11 @@ the back end to develop in parallel (after that, delete the mock and it'll be au
 proxied to the real service)
 
 # Getting started
-Check our full documentation and Getting Started on
+Check our full documentation and Getting Started at
 [docs.mocko.dev](https://cdt.one/WzuRdVq)
+
+Or use our SaaS version for ease of use at [mocko.dev](https://mocko.dev/)
 
 <!-- TODO contributing -->
 
-## For installation, usage or any help, email me:
-![](https://cdn.codetunnel.net/gabrielpinheiro/email.png)
+## For installation, usage or any help, email us contact@mocko.dev
