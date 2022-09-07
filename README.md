@@ -1,6 +1,32 @@
 # Mocko
-Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock
-![Usage example](https://cdn.codetunnel.net/mocko/docs-mocko-example.gif)
+Mocking made easy, create dynamic mocks, proxy your API and choose which endpoints to mock.
+
+## Getting started - CLI
+If you want to:
+- Manage your mocks in configuration files, structured and versioned in folders
+- Mock integrations for automated tests
+- Run it anywhere with a command and no dependencies
+
+Check the getting started guide for the Standalone Mode [here](https://mocko.dev/docs/getting-started/standalone/)
+![CLI example](https://cdn.codetunnel.net/mocko/docs-mocko-cli-example.gif)
+
+## Getting started - UI
+If you want to:
+- Manage your mocks in a web UI, no configuration or CLIs needed
+- Mock scenarions in your staging environments on-the-go
+- Mock integrations in your development environment
+
+Check the getting started guide for the Complete Stack [here](https://mocko.dev/docs/getting-started/complete/)
+![UI example](https://cdn.codetunnel.net/mocko/docs-mocko-example.gif)
+
+## Getting started - SaaS
+If you want to:
+- Create mocks that are available everywhere, in the cloud
+- No installation or configuration required
+- Manage your mocks in a web UI
+
+Check the Mocko Cloud [here](https://mocko.dev/)
+![SaaS example](https://cdn.codetunnel.net/mocko/docs-mocko-saas-example.gif)
 
 ## Features
 - Choose how to manage your mocks
