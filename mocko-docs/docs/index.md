@@ -5,8 +5,51 @@
         <a class="btn btn-primary btn-lg" href="https://cdt.one/L9ck7Gl" role="button">Quick Start</a>
     </div>
 </div>
-<!-- TODO add image -->
+
+## Getting started - CLI
+
+If you want to:
+
+- Manage your mocks in configuration files, structured and versioned in folders
+- Mock integrations for automated tests
+- Run it anywhere with a command and no dependencies
+
+<img alt="CLI example" src="https://cdn.codetunnel.net/mocko/docs-mocko-cli-example.gif" width="100%"/>
+
+<div class="d-flex justify-content-center" style="margin-bottom: 4rem;">
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/Q6afhJ4" role="button">Get started with the Standalone Mode</a>
+</div>
+
+## Getting started - UI
+
+If you want to:
+
+- Manage your mocks in a web UI, no configuration or CLIs needed
+- Mock scenarions in your staging environments on-the-go
+- Mock integrations in your development environment
+
+<img alt="UI example" src="https://cdn.codetunnel.net/mocko/docs-mocko-example.gif" width="100%"/>
+
+<div class="d-flex justify-content-center" style="margin-bottom: 4rem;">
+    <a class="btn btn-primary btn-lg" href="https://cdt.one/EKAUL29" role="button">Get started with the Complete Stack</a>
+</div>
+
+## Getting started - SaaS
+
+If you want to:
+
+- Create mocks that are available everywhere, in the cloud
+- No installation or configuration required
+- Manage your mocks in a web UI
+
+<img alt="SaaS example" src="https://cdn.codetunnel.net/mocko/docs-mocko-saas-example.gif" width="100%"/>
+
+<div class="d-flex justify-content-center" style="margin-bottom: 4rem;">
+    <a class="btn btn-primary btn-lg" href="https://app.mocko.dev/" role="button">Login with GitHub to Mocko Cloud</a>
+</div>
+
 ## Features
+
 - Choose how to manage your mocks
     - Use a simple web UI for speed
     - Use HCL files for documentation and versioning
@@ -21,42 +64,6 @@
 complicated scenarios
 - Mocking your future services on development environment to allow the front end and
 the back end to develop in parallel (after that, delete the mock and it'll be automatically
-proxied to the real service) 
+proxied to the real service)
 
-## Getting started
-There are two ways to use Mocko, let's get started with the one that fits your needs
-the most:
-
-### Mocko Standalone Mode
-- Manage your mocks in configuration files
-    - Great for documenting and versioning your mocks in a repository
-    - Great when you need a lot of mocks: Structure your mocks in folders
-    for easier organization
-- Only one service
-    - Lightweight: Built on top of [Hapi](https://hapi.dev/), a very lightweight framework
-    - Run anywhere, one process that you can spin with docker or the mocko CLI
-- Develop locally with a CLI
-    - Serve your dynamic mocks with one command
-    - Restarts automatically with changes
-    - Easy to debug: Reports errors with your configurations in a human readable way
-<div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="https://cdt.one/Q6afhJ4" role="button">Get started with the Standalone Mode</a>
-</div>
-<br/>
-
-### Mocko Complete Stack
-- Manage your mocks in a web UI, no configuration files or CLIs
-    - Great for running in your cluster for your team to create scenarions on-the-go
-    - No need to deploy on changes, in a click of a button your mocks are updated
-- Three services + [Redis](https://cdt.one/gFlZdpS)
-    - You'll need a [Redis](https://cdt.one/gFlZdpS) in your cluster to run this configuration
-    - For local development, the docker-compose already includes the redis
-- Run locally with [docker-compose](https://cdt.one/CUemuMt) or remotely with [Helm](https://cdt.one/AuWLMKA)
-    - Install it in your Kubernetes cluster with one command
-    - Run it locally with docker-compose
-
-
-<div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="https://cdt.one/EKAUL29" role="button">Get started with the Complete Stack</a>
-</div>
 <img src="https://cdt.one/v2v5MZS.gif" style="display: none;"/>
