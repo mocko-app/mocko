@@ -11,7 +11,7 @@ Click the button below to deploy the app to [glitch.com](https://cdt.one/UUBAcUL
 
 [![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://cdt.one/zAXGDPb)
 
-Wait until the app is deployed (check `Tools -> Logs` in the bottom left corner) and access it with the URL provided in the `Show -> In a New Window` button in the top left corner.
+Wait until the app is deployed (check `Logs` in the bottom) and access it with the URL provided in the `Preview` button also in the bottom.
 
 In the files drawer on the left, you can change the mocks inside the `mocks` folder and they'll update in real time, check our [Getting Started](https://mocko.dev/docs/getting-started/standalone/) guide for usage.
 
