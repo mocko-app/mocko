@@ -35,7 +35,7 @@ export class ProxyRouter implements IRouter {
             method: '*',
             path: '/{any*}',
             vhost: host.source,
-            handler: (req, h) => this.controller.proxyRequest(req, h, host.destination),
+            handler: (req, h) => this.controller.proxyRequest(req, h, host.destination, `@${host.name}`),
             config: {
                 payload: {
                     output: 'stream',
