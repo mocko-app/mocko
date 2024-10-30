@@ -6,7 +6,7 @@ if(!semver.satisfies(process.version, '>=14')) {
 
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
-const updateNotifier = require('update-notifier');
+const updateNotifier = require('simple-update-notifier');
 
 const pkg = require('../package.json');
 const { definition } = require('./definition');
@@ -17,8 +17,8 @@ const debug = require('debug')('mocko:cli:main');
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
 function run() {
-    debug('running update-notifier');
-    updateNotifier({pkg}).notify();
+    debug('running simple-update-notifier');
+    updateNotifier({pkg});
 
     debug('building args with bossy');
     const args = buildArgs();
@@ -27,7 +27,7 @@ function run() {
         console.log(`mocko-cli/${pkg.version} NodeJS/${process.version} v8/${process.versions.v8} openssl/${process.versions.openssl}`);
         process.exit(0);
     }
-    
+
     if(args.help || !args._ || args._.length !== 1) {
         console.log(usage);
         process.exit(0);
@@ -35,7 +35,7 @@ function run() {
 
     debug('validating args with joi');
     validateArgs(args);
-    
+
     const path = args._[0];
     const { port, url, timeout } = args;
 
@@ -46,7 +46,7 @@ function run() {
 
     debug('starting mocko-proxy');
     const { server } = require('@mocko/proxy');
-    
+
     if(args.watch) {
         debug('starting watcher with chokidar');
         watch(path, () => server.then(s => s.remapRoutes()));

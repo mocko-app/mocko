@@ -14,9 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Building services
-      run: cd e2e-tests; docker-compose build --parallel
+      run: cd e2e-tests; docker compose build --parallel
     - name: Spinning services up
-      run: cd e2e-tests; docker-compose up -d
+      run: cd e2e-tests; docker compose up -d
     - name: Preparing tests
       run: cd e2e-tests; npm install
     - name: Testing
@@ -27,7 +27,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Spinning dependencies up
-      run: cd mocko-proxy; docker-compose up -d
+      run: cd mocko-proxy; docker compose up -d
     - name: Preparing tests
       run: cd mocko-proxy; npm install
     - name: Testing

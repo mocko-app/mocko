@@ -1,6 +1,6 @@
 {
   "name": "@mocko/cli",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Mocking made easy, proxy your API and choose which endpoints to mock",
   "main": "bin/main.js",
   "bin": {
@@ -32,11 +32,11 @@
   "homepage": "https://github.com/mocko-app/mocko#readme",
   "dependencies": {
     "@hapi/bossy": "^6.0.0",
-    "@mocko/proxy": "^1.8.0",
+    "@mocko/proxy": "^1.8.1",
     "chokidar": "^3.4.3",
     "debug": "^4.3.1",
     "joi": "^17.3.0",
     "semver": "^7.3.4",
-    "update-notifier": "^5.1.0"
+    "simple-update-notifier": "^2.0.0"
   }
 }
