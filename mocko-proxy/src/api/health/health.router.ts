@@ -1,6 +1,7 @@
 import {IRouter} from "../../utils/router";
 import {Provider} from "../../utils/decorators/provider";
 import {HealthController} from "./health.controller";
+import { ServerRoute } from "@hapi/hapi";
 
 @Provider()
 export class HealthRouter implements IRouter {
@@ -8,7 +9,7 @@ export class HealthRouter implements IRouter {
         private readonly controller: HealthController,
     ) { }
 
-    async getRoutes() {
+    async getRoutes(): Promise<ServerRoute[]> {
         return [{
             method: 'GET',
             path: '/health',
