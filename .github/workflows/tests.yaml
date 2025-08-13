@@ -12,7 +12,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Building services
       run: cd e2e-tests; docker compose build --parallel
     - name: Spinning services up
@@ -25,7 +25,7 @@ jobs:
   proxy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Spinning dependencies up
       run: cd mocko-proxy; docker compose up -d
     - name: Preparing tests
