@@ -1,4 +1,4 @@
-FROM node:16-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /home/mocko
 COPY package.json .
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 
-FROM node:16-alpine
+FROM node:22-alpine
 
 WORKDIR /home/mocko
 COPY --from=builder /home/prod_modules ./node_modules

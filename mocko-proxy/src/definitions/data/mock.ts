@@ -1,5 +1,8 @@
 import * as Joi from 'joi';
 
+export const MOCK_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', '*'] as const;
+export type MockHttpMethod = typeof MOCK_METHODS[number];
+
 export type MockResponse = {
     code: number,
     delay?: number,
@@ -9,7 +12,7 @@ export type MockResponse = {
 
 export type Mock = {
     id?: string,
-    method: string,
+    method: MockHttpMethod,
     path: string,
     parse: boolean,
     host?: string,
@@ -17,7 +20,7 @@ export type Mock = {
 };
 
 const mockSchema = Joi.object({
-    method: Joi.string().uppercase().regex(/^([A-Z]+|\*)$/),
+    method: Joi.string().valid(...MOCK_METHODS),
     path: Joi.string(),
     parse: Joi.boolean().default(true),
     host: Joi.string().optional(),
