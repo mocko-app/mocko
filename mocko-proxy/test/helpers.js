@@ -55,9 +55,32 @@ module.exports = (mocko, describe, it) => () => {
             expect(headers).to.include({ 'x-foo': 'bar' });
         });
 
-        it('setHeader should set headers', async () => {
+        it('setHeader should merge with mocked headers', async () => {
+            const { headers } = await mocko.get('/set-both-headers');
+            expect(headers).to.include({ 'x-mocked': 'foo' });
+        });
+
+        it('setHeader should override headers', async () => {
             const { headers } = await mocko.get('/override-header');
             expect(headers).to.include({ 'x-foo': 'bar' });
+        });
+
+        it('setHeader should override headers with lower casing', async () => {
+            const { headers } = await mocko.get('/override-header-lower');
+            expect(headers).to.include({ 'x-foo': 'bar' });
+        });
+
+        it('setHeader should override headers with upper casing', async () => {
+            const { headers } = await mocko.get('/override-header-upper');
+            expect(headers).to.include({ 'x-foo': 'bar' });
+        });
+
+        it('setHeader should not persist between requests', async () => {
+            const { headers } = await mocko.get('/dynamic-header/true');
+            expect(headers).to.include({ 'x-foo': 'bar' });
+
+            const { headers: headers2 } = await mocko.get('/dynamic-header/false');
+            expect(headers2).to.not.include({ 'x-foo': 'bar' });
         });
 
         it('uuid should return valid UUID', async () => {
@@ -89,7 +112,7 @@ module.exports = (mocko, describe, it) => () => {
             await mocko.get('/flag/foo::bar')
                 .then(({ status }) => code = status)
                 .catch(({ response }) => code = response.status);
-            
+
             expect(code).to.equal(500);
         });
 
@@ -99,7 +122,7 @@ module.exports = (mocko, describe, it) => () => {
             await mocko.get('/flag/foo:')
                 .then(({ status }) => code = status)
                 .catch(({ response }) => code = response.status);
-            
+
             expect(code).to.equal(500);
         });
 
@@ -112,7 +135,7 @@ module.exports = (mocko, describe, it) => () => {
             const second = await mocko.get('/has-flag');
             expect(second.data).to.include('no');
         });
-        
+
         it('hasFlag must work without an else block', async () => {
             await mocko.put('/flag/foo');
             const first = await mocko.get('/has-flag-noelse');

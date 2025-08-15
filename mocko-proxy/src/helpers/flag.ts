@@ -1,4 +1,3 @@
-import { wait } from "@mocko/resync";
 import { FlagService } from "src/api/flag/flag.service";
 
 function validateFlagKey(key: any): void {
@@ -25,35 +24,30 @@ function validateFlagExpiration(ttlMillis: number): void {
     }
 }
 
-export const getFlag = (flagService: FlagService) => (key: any): any => {
+export const getFlag = (flagService: FlagService) => async (key: any): Promise<any> => {
     validateFlagKey(key);
-    return wait(() => flagService.getFlag(key));
+    return await flagService.getFlag(key);
 };
 
-export const setFlag = (flagService: FlagService) => function (key: any, value: any, ttlMillis: number): void {
+export const setFlag = (flagService: FlagService) => async function (key: any, value: any, ttlMillis: number): Promise<void> {
     validateFlagKey(key);
 
-    if (arguments.length === 3) {
-        wait(() => flagService.setFlag(key, value ?? null));
-    } else {
+    if (ttlMillis) {
         validateFlagExpiration(ttlMillis);
-        wait(() => flagService.setFlag(key, value ?? null, ttlMillis));
+        await flagService.setFlag(key, value ?? null, ttlMillis);
+    } else {
+        await flagService.setFlag(key, value ?? null);
     }
 };
 
-export const delFlag = (flagService: FlagService) => (key: any): void => {
+export const delFlag = (flagService: FlagService) => async (key: any): Promise<void> => {
     validateFlagKey(key);
 
-    wait(() => flagService.delFlag(key));
+    await flagService.delFlag(key);
 };
 
-export const hasFlag = (flagService: FlagService) => function (key: any, options): void {
+export const hasFlag = (flagService: FlagService) => async (key: any): Promise<boolean> => {
     validateFlagKey(key);
 
-    const hasFlag = wait(() => flagService.hasFlag(key));
-    if(hasFlag) {
-        return options.fn(this);
-    } else if(typeof options.inverse === 'function') {
-        return options.inverse(this);
-    }
+    return await flagService.hasFlag(key);
 };

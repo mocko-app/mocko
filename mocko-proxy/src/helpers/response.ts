@@ -1,25 +1,34 @@
-import { wait } from "@mocko/resync";
+import { MockoExecution } from "../api/mock/mock.handler";
 import { Host } from "../definitions/data/host";
 import { DefinitionProvider } from "src/definitions/definition.provider";
 
-export function setStatus(status: any, options): void {
-    if(isNaN(status)) {
+export function setStatus(this: MockoExecution, status: unknown): void {
+    let statusCode: number;
+    if (typeof status === 'string') {
+        statusCode = parseInt(status, 10);
+    } else if (typeof status === 'number') {
+        statusCode = status;
+    } else {
         throw new TypeError('Status must be a number');
     }
 
-    if(status < 200 || status >= 600) {
+    if (isNaN(statusCode)) {
+        throw new TypeError('Status must be a number');
+    }
+
+    if (statusCode < 200 || statusCode >= 600) {
         throw new TypeError('Status must be between 200 and 599');
     }
 
-    options.data.root.response.status = parseInt(status);
+    this.data.status = statusCode;
 }
 
-export function setHeader(key: any, value: any, options): void {
+export function setHeader(this: MockoExecution, key: unknown, value: unknown): void {
     if(typeof key !== 'string' || typeof value !== 'string') {
         throw new TypeError('Headers must be strings');
     }
 
-    options.data.root.response.headers[key] = value;
+    this.data.responseHeaders[key] = value;
 }
 
 function getHost(hosts: Host[], proxyUri: string, header: string): [string, string | null] {
@@ -40,21 +49,11 @@ function getHost(hosts: Host[], proxyUri: string, header: string): [string, stri
     return ['', null];
 }
 
-export const proxy = (definitionProvider: DefinitionProvider) => (param1: any, param2?: any): void => {
-    let proxyUri: string | null;
-    let options: any;
+export const proxy = (definitionProvider: DefinitionProvider) => async function (this: MockoExecution, proxyUri?: string): Promise<void> {
+    const hosts = (await definitionProvider.getDefinitions()).hosts;
+    const [url, label] = getHost(hosts, proxyUri, this.contexts[0].request.headers.host);
 
-    if(param2) {
-        proxyUri = param1;
-        options = param2;
-    } else {
-        proxyUri = null;
-        options = param1;
-    }
-
-    const hosts = wait(() => definitionProvider.getDefinitions()).hosts;
-    const [url, label] = getHost(hosts, proxyUri, options.data.root.request.headers.host);
-
-    options.data.root.response.proxyTo = url;
-    options.data.root.response.proxyLabel = label;
+    this.data.proxyTo = url;
+    this.data.proxyLabel = label;
+    this.halt();
 };

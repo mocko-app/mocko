@@ -50,11 +50,36 @@ mock "GET /set-header" {
     body = "{{setHeader 'x-foo' 'bar'}}"
 }
 
+mock "GET /set-both-headers" {
+    headers {
+        x-mocked = "foo"
+    }
+    body = "{{setHeader 'x-dynamic' 'bar'}}"
+}
+
 mock "GET /override-header" {
     headers {
         x-foo = "wrong"
     }
     body = "{{setHeader 'x-foo' 'bar'}}"
+}
+
+mock "GET /override-header-upper" {
+    headers {
+        x-foo = "wrong"
+    }
+    body = "{{setHeader 'X-Foo' 'bar'}}"
+}
+
+mock "GET /override-header-lower" {
+    headers {
+        X-Foo = "wrong"
+    }
+    body = "{{setHeader 'x-foo' 'bar'}}"
+}
+
+mock "GET /dynamic-header/{shouldSet}" {
+    body = "{{#is request.params.shouldSet 'true'}}{{setHeader 'X-Foo' 'bar'}}{{/is}}"
 }
 
 #-----------------------------

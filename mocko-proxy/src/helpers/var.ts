@@ -1,4 +1,4 @@
-import { affect, state } from "@mocko/resync";
+import { MockoExecution } from "../api/mock/mock.handler";
 
 function validate(key: string): void {
     if(typeof key !== "string") {
@@ -14,12 +14,12 @@ function validate(key: string): void {
     }
 }
 
-export function getVar(key: any, options): any {
+export function getVar(this: MockoExecution, key: any): any {
     validate(key);
-    return state(() => options.data.root.var[key]);
+    return this.data.vars[key];
 }
 
-export function setVar(key: any, value: any, options): void {
+export function setVar(this: MockoExecution, key: any, value: any): void {
     validate(key);
-    affect(() => options.data.root.var[key] = value);
+    this.data.vars[key] = value;
 }
