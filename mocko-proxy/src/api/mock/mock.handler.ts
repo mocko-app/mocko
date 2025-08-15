@@ -1,40 +1,44 @@
 import * as Hoek from '@hapi/hoek';
-import * as Handlebars from 'handlebars';
 import { Request, ResponseObject, ResponseToolkit } from "@hapi/hapi";
 import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
-import { resync } from '@mocko/resync';
 import { isStream } from '../../utils/stream';
 import { MockResponse } from '../../definitions/data/mock';
+import Bigodon, { TemplateRunner } from 'bigodon';
+import { Execution } from 'bigodon/dist/runner/execution';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
-const RESYNC_LIMIT = process.env.RESYNC_LIMIT || 100;
 
-type Context = {
+export type BigodonContext = {
     request: {
         params: Record<string, string>,
         headers: Record<string, string>,
         query: Record<string, string>,
-        body: any,
+        body: unknown,
     },
-    
-    response: {
-        status: number,
-        headers: Record<string, string>,
-        proxyTo: null | string,
-        proxyLabel: null | string,
-    },
-
     data: Record<string, any>,
-    var: Record<string, any>,
-}
+};
+
+export type BigodonData = {
+    status: number,
+    responseHeaders: Record<string, string>,
+    vars: Record<string, any>,
+    proxyTo?: string,
+    proxyLabel?: string | null,
+};
+
+export type MockoExecution = Execution & {
+    data: BigodonData,
+    contexts: [BigodonContext, ...unknown[]],
+};
 
 export class MockHandler {
-    private readonly bodyTemplate: (context: any, options?: RuntimeOptions) => Promise<string>;
+    private readonly bodyTemplate: TemplateRunner;
 
     constructor(
+        private readonly bigodon: Bigodon,
         private readonly repository: MockRepository,
         private readonly proxyController: ProxyController,
         private readonly logger: ILogger,
@@ -43,59 +47,66 @@ export class MockHandler {
         private readonly customData: Record<string, any> = {},
         private readonly mockId?: string,
     ) {
-        this.bodyTemplate = resync(Handlebars.compile(this.mockResponse.body), { limit: Number(RESYNC_LIMIT) });
+        this.bodyTemplate = this.bigodon.compile(this.mockResponse.body);
     }
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
         // Setting logger label
         request['_label'] = 'mock';
 
+        debug('creating context');
         const context = this.buildContext(request);
-        debug('building body from handlebars template');
-        const resBody = await this.buildBody(context);
+        const data = this.buildData();
+        debug('building body from bigodon template');
+        const resBody = await this.buildBody(context, data);
 
         if(this.mockResponse.delay) {
             debug(`waiting ${this.mockResponse.delay} ms`)
             await Hoek.wait(this.mockResponse.delay);
         }
 
-        if(context.response.proxyTo !== null) {
-            debug(`proxying`)
-            return await this.proxyController.proxyRequest(request, h, context.response.proxyTo, context.response.proxyLabel);
+        if(data.proxyTo) {
+            debug(`proxying due to helper request to '${data.proxyTo}'`);
+            return await this.proxyController.proxyRequest(request, h, data.proxyTo, data.proxyLabel);
         }
 
         debug('creating hapi response')
         const res = h
             .response(resBody)
-            .code(context.response.status);
+            .code(data.status);
 
-        Object.entries({ ...this.mockResponse.headers, ...context.response.headers })
+        Object.entries(data.responseHeaders)
             .forEach(([key, value]) => res.header(key, value));
 
         debug('done')
         return res;
     }
 
-    private buildContext(request: Request): Context {
-        const { params, headers, query, payload } = request;
-        const { code: status } = this.mockResponse;
-
+    private buildData(): BigodonData {
         return {
-            request: { params, headers, query, body: isStream(payload) ? null : payload },
-            response: { status, headers: {}, proxyTo: null, proxyLabel: null },
-            data: this.customData,
-            var: {},
+            status: this.mockResponse.code,
+            responseHeaders: { ...this.mockResponse.headers },
+            vars: {},
         };
     }
 
-    private async buildBody(context: any): Promise<string> {
+    private buildContext(request: Request): BigodonContext {
+        const { params, headers, query, payload } = request;
+
+        return {
+            request: { params, headers, query, body: isStream(payload) ? null : payload },
+            data: this.customData,
+        };
+    }
+
+    private async buildBody(context: BigodonContext, data: BigodonData): Promise<string> {
         try {
-            return await this.bodyTemplate(context);
+            return await this.bodyTemplate(context, { data });
         } catch(e) {
             debug('failed to build body from template, registering failure');
             await this.registerFailure(e);
             this.logger.error(e);
-            debug('done')
+            debug('done');
             throw e;
         }
     }
