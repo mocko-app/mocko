@@ -32,7 +32,7 @@ export const getFlag = (flagService: FlagService) => async (key: any): Promise<a
 export const setFlag = (flagService: FlagService) => async function (key: any, value: any, ttlMillis: number): Promise<void> {
     validateFlagKey(key);
 
-    if (ttlMillis) {
+    if (typeof ttlMillis !== 'undefined') {
         validateFlagExpiration(ttlMillis);
         await flagService.setFlag(key, value ?? null, ttlMillis);
     } else {
