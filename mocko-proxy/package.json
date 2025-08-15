@@ -1,6 +1,6 @@
 {
   "name": "@mocko/proxy",
-  "version": "1.8.1",
+  "version": "2.0.0-alpha.0",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
@@ -54,5 +54,9 @@
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
   }
 }
