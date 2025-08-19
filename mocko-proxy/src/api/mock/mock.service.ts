@@ -9,7 +9,6 @@ import { MockHandler } from "./mock.handler";
 import * as LogHelpers from "../../helpers/log";
 import * as ResponseHelpers from "../../helpers/response";
 import * as FlagHelpers from "../../helpers/flag";
-import * as VarHelpers from "../../helpers/var";
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import Bigodon from "bigodon";
 import { Mock } from "../../definitions/data/mock";
@@ -78,8 +77,5 @@ export class MockService {
         this.bigodon.addHelper('setFlag', FlagHelpers.setFlag(this.flagService));
         this.bigodon.addHelper('delFlag', FlagHelpers.delFlag(this.flagService));
         this.bigodon.addHelper('hasFlag', FlagHelpers.hasFlag(this.flagService));
-
-        this.bigodon.addHelper('get', VarHelpers.getVar);
-        this.bigodon.addHelper('set', VarHelpers.setVar);
     }
 }

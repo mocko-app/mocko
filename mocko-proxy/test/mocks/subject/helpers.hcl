@@ -124,27 +124,27 @@ mock "GET /has-flag-noelse" {
 #-----------------------------
 mock "GET /vars/1" {
     body = <<EOF
-        {{set 'foo' 'bar'}}
-        {{get 'foo'}}
+        {{= $foo 'bar'}}
+        {{ $foo }}
     EOF
 }
 
 mock "GET /vars/2" {
     body = <<EOF
-        {{set 'foo' 'WRONG'}}
+        {{= $foo 'WRONG'}}
         {{#eq true true}}
-            {{set 'foo' 'bar'}}
+            {{= $foo 'bar'}}
         {{/eq}}
         {{#hasFlag 'anything'}}{{/hasFlag}}
-        {{get 'foo'}}
+        {{ $foo }}
     EOF
 }
 
 mock "GET /vars/3" {
     body = <<EOF
-        {{set 'foo' 'bar'}}
-        {{get 'foo'}}
-        {{set 'foo' 'WRONG'}}
+        {{= $foo 'bar'}}
+        {{ $foo }}
+        {{= $foo 'WRONG'}}
         {{#hasFlag 'anything'}}{{/hasFlag}}
     EOF
 }
@@ -152,10 +152,10 @@ mock "GET /vars/3" {
 mock "GET /vars/4" {
     body = <<EOF
         {{#each data.arr.arr}}
-            {{set 'foo' 'bar'}}
+            {{= $foo 'bar'}}
         {{/each}}
 
-        {{get 'foo'}}
+        {{ $foo }}
     EOF
 }
 

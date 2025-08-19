@@ -24,7 +24,6 @@ export type BigodonContext = {
 export type BigodonData = {
     status: number,
     responseHeaders: Record<string, string>,
-    vars: Record<string, any>,
     proxyTo?: string,
     proxyLabel?: string | null,
 };
@@ -86,7 +85,6 @@ export class MockHandler {
         return {
             status: this.mockResponse.code,
             responseHeaders: { ...this.mockResponse.headers },
-            vars: {},
         };
     }
 
