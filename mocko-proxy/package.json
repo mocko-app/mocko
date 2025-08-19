@@ -32,7 +32,7 @@
     "@mocko/h2o2": "^9.2.0",
     "@mocko/logger": "^2.1.2",
     "@mocko/sync": "^0.2.2",
-    "bigodon": "^2.2.0",
+    "bigodon": "^2.3.0",
     "debug": "^4.4.1",
     "dotenv": "^8.6.0",
     "hcl-parser": "^0.1.1",
