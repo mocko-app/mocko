@@ -57,7 +57,8 @@ export class MockHandler {
         const context = this.buildContext(request);
         const data = this.buildData();
         debug('building body from bigodon template');
-        const resBody = await this.buildBody(context, data);
+        const renderedBody = await this.buildBody(context, data);
+        const resBody = this.normalizeBody(renderedBody, data);
 
         if(this.mockResponse.delay) {
             debug(`waiting ${this.mockResponse.delay} ms`)
@@ -107,6 +108,53 @@ export class MockHandler {
             debug('done');
             throw e;
         }
+    }
+
+    private normalizeBody(renderedBody: string, data: BigodonData): string {
+        const contentType = this.getEffectiveHeader(data.responseHeaders, 'content-type');
+
+        if(!contentType && renderedBody.trim() === '') {
+            return '';
+        }
+
+        if(contentType && !this.isJsonContentType(contentType)) {
+            return renderedBody;
+        }
+
+        try {
+            const parsed = JSON.parse(renderedBody);
+
+            if(!contentType) {
+                data.responseHeaders['Content-Type'] = 'application/json';
+            }
+
+            return JSON.stringify(parsed, null, 2);
+        } catch {
+            if(!contentType) {
+                this.logger.warn('Response is missing Content-Type, rendered body was not valid JSON, returning the raw body as text/plain');
+                data.responseHeaders['Content-Type'] = 'text/plain';
+                return renderedBody;
+            }
+
+            this.logger.error('Response declared a JSON Content-Type, but the rendered body was not valid JSON, returning the raw body');
+            return renderedBody;
+        }
+    }
+
+    private getEffectiveHeader(headers: Record<string, string>, target: string): string | undefined {
+        const normalizedTarget = target.toLowerCase();
+
+        for(const [key, value] of Object.entries(headers).reverse()) {
+            if(key.toLowerCase() === normalizedTarget) {
+                return value;
+            }
+        }
+
+        return undefined;
+    }
+
+    private isJsonContentType(contentType: string): boolean {
+        return contentType.toLowerCase().includes('json');
     }
 
     private async registerFailure(error: Error): Promise<void> {

@@ -90,6 +90,107 @@ describe('standalone', () => {
         });
     });
 
+    describe('json normalization', () => {
+        it('should pretty print valid json when content-type is missing', async () => {
+            const { data, headers } = await mocko.get('/json/no-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal(`{
+  "foo": "bar",
+  "nested": {
+    "baz": 1
+  }
+}`);
+            expect(headers['content-type']).to.startWith('application/json');
+        });
+
+        it('should pretty print valid json and preserve an existing json content-type', async () => {
+            const { data, headers } = await mocko.get('/json/with-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal(`{
+  "foo": "bar"
+}`);
+            expect(headers['content-type']).to.startWith('application/json+hal');
+        });
+
+        it('should skip json formatting when the content-type is not json', async () => {
+            const { data, headers } = await mocko.get('/json/text', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('{"foo":"bar"}');
+            expect(headers['content-type']).to.startWith('text/plain');
+        });
+
+        it('should consider headers set during rendering before formatting json', async () => {
+            const { data, headers } = await mocko.get('/json/dynamic-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal(`{
+  "foo": "bar"
+}`);
+            expect(headers['content-type']).to.startWith('application/json+hal');
+        });
+
+        it('should use the last content-type header case-insensitively when deciding json formatting', async () => {
+            const { data, headers } = await mocko.get('/json/override-text', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('{"foo":"bar"}');
+            expect(headers['content-type']).to.startWith('text/plain');
+        });
+
+        it('should return raw text and set text/plain when invalid json has no content-type', async () => {
+            const { data, headers } = await mocko.get('/json/invalid-no-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('{not-json');
+            expect(headers['content-type']).to.startWith('text/plain');
+        });
+
+        it('should return raw text and preserve a declared json content-type when json is invalid', async () => {
+            const { data, headers } = await mocko.get('/json/invalid-with-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('{not-json');
+            expect(headers['content-type']).to.startWith('application/json+hal');
+        });
+
+        it('should use json-like headers set during rendering when invalid json is returned', async () => {
+            const { data, headers } = await mocko.get('/json/invalid-dynamic-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('{not-json');
+            expect(headers['content-type']).to.startWith('application/json+hal');
+        });
+
+        it('should return an empty body without a content-type when the rendered body is empty', async () => {
+            const { data, headers } = await mocko.get('/json/empty-no-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('');
+            expect(headers['content-type']).to.startWith('text/html');
+        });
+
+        it('should collapse whitespace-only bodies to empty without a content-type', async () => {
+            const { data, headers } = await mocko.get('/json/whitespace-no-header', {
+                transformResponse: [(value) => value],
+            });
+
+            expect(data).to.equal('');
+            expect(headers['content-type']).to.startWith('text/html');
+        });
+    });
+
     describe('vhost', () => {
         it('registering a route with vhost should not override the global one', async () => {
             const { data } = await mocko.get('/vhost');
