@@ -1,4 +1,5 @@
 const { expect } = require('@hapi/code');
+const LogHelpers = require('../dist/helpers/log');
 
 module.exports = (mocko, describe, it) => () => {
     describe('context', () => {
@@ -33,6 +34,64 @@ module.exports = (mocko, describe, it) => () => {
         it('allows the usage of handlebars-helpers', async () => {
             const { data } = await mocko.get('/hbs-helpers');
             expect(data).to.include('Foo');
+        });
+
+        it('log formatter should keep strings raw and JSON format objects and arrays', () => {
+            let message;
+            const logger = {
+                info: (msg) => message = msg,
+                warn: () => {},
+                error: () => {},
+            };
+            const params = ['msg', { user: { id: 1 } }, ['a', 'b'], 42];
+
+            LogHelpers.log(logger)(...params);
+
+            expect(message).to.equal(`msg {
+  "user": {
+    "id": 1
+  }
+} [
+  "a",
+  "b"
+] 42`);
+        });
+
+        it('warn formatter should JSON format null-prototype objects', () => {
+            let message;
+            const logger = {
+                info: () => {},
+                warn: (msg) => message = msg,
+                error: () => {},
+            };
+            const nullProtoObj = Object.create(null);
+            nullProtoObj.foo = 'bar';
+            nullProtoObj.nested = { value: 1 };
+            const params = ['warn', nullProtoObj, 7];
+
+            LogHelpers.warn(logger)(...params);
+
+            expect(message).to.equal(`warn {
+  "foo": "bar",
+  "nested": {
+    "value": 1
+  }
+} 7`);
+        });
+
+        it('error formatter should convert primitives directly and not JSON stringify functions', () => {
+            let message;
+            const logger = {
+                info: () => {},
+                warn: () => {},
+                error: (msg) => message = msg,
+            };
+            const fn = () => 'failure';
+            const params = [null, undefined, false, fn];
+
+            LogHelpers.error(logger)(...params);
+
+            expect(message).to.equal("null undefined false () => 'failure'");
         });
 
         it('setStatus should override the status', async () => {
