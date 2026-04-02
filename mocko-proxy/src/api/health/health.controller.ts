@@ -9,8 +9,8 @@ export class HealthController {
     ) { }
 
     async healthCheck(request: Hapi.Request, h: Hapi.ResponseToolkit) {
-        await this.service.healthCheck();
-        return h.response()
-            .code(204);
+        const revision = await this.service.healthCheck();
+        return h.response({ revision })
+            .code(200);
     }
 }
