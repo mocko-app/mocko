@@ -9,6 +9,7 @@ import {ServerRoute} from "@hapi/hapi";
 import {ListenerProvider} from "./listeners";
 import {RedisProvider} from "./redis/redis.provider";
 import { DefinitionProvider } from "./definitions/definition.provider";
+import { HealthService } from "./api/health/health.service";
 
 const debug = require('debug')('mocko:proxy:server');
 
@@ -26,6 +27,7 @@ export class Server {
         private readonly listenerProvider: ListenerProvider,
         private readonly redisProvider: RedisProvider,
         private readonly definitionProvider: DefinitionProvider,
+        private readonly healthService: HealthService,
     ) { }
 
     async start(): Promise<Server> {
@@ -68,6 +70,7 @@ export class Server {
             debug('skipping garbage collection, use --expose-gc');
         }
 
+        this.healthService.bumpRevision();
         debug('finished remaping routes');
         return this;
     }
