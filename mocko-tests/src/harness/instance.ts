@@ -52,17 +52,36 @@ export class MockoInstance {
   }
 
   async createMock(hcl: string): Promise<void> {
-    const res = await this.client.get<HealthResponse>('/health');
-    const revision = res.data.revision;
+    const revision = await this.getRevision();
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
     await fs.writeFile(filename, hcl);
     if (this.watchEnabled) {
-      await waitForHealth(this.client, revision + 1, 2000);
+      await this.waitForRevision(revision, 2000);
     }
+  }
+
+  async getRevision(): Promise<number> {
+    const res = await this.client.get<HealthResponse>('/health');
+    return res.data.revision;
+  }
+
+  async waitForRemap(revision: number, timeout = 2000): Promise<void> {
+    if (!this.watchEnabled) {
+      return;
+    }
+
+    await this.waitForRevision(revision, timeout);
   }
 
   async stop(): Promise<void> {
     this.proc.kill();
     await fs.rm(this.tempDir, { recursive: true, force: true });
+  }
+
+  private async waitForRevision(
+    revision: number,
+    timeout: number,
+  ): Promise<void> {
+    await waitForHealth(this.client, revision + 1, timeout);
   }
 }
