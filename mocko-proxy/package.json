@@ -10,9 +10,7 @@
     "start:dev": "nodemon --config nodemon.json",
     "start:prod": "node --expose-gc dist/main",
     "pretest": "tsc",
-    "pretest:cov": "tsc",
-    "test": "lab -I require -a @hapi/code",
-    "test:cov": "lab -a @hapi/code -r html -o coverage.html",
+    "test": "echo 'Tests are in mocko-tests package'",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -43,8 +41,6 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@hapi/code": "^9.0.3",
-    "@hapi/lab": "^26.0.0",
     "@types/hapi__h2o2": "^8.3.2",
     "@types/ioredis": "^4.17.10",
     "@types/node": "^22.17.1",
