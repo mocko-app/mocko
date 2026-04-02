@@ -8,3 +8,4 @@
 .vscode/*
 /compose/data
 .eslintcache
+/node_modules

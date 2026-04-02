@@ -1,0 +1,9 @@
+{
+  "name": "mocko",
+  "private": true,
+  "workspaces": [
+    "mocko-proxy",
+    "mocko-cli",
+    "mocko-tests"
+  ]
+}
