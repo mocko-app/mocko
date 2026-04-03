@@ -1,6 +1,13 @@
-import { HttpResponseError } from "@/lib/http";
+import { HttpResponseError, tryCatch } from "@/lib/http";
+import { coreClient } from "@/lib/core/client";
+import {
+  toDeployDefinition,
+  toReadOnlyDetailsMock,
+  toReadOnlyMock,
+} from "@/lib/mock/mock.mapper";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
+import type { MockFailure } from "@/lib/types/dto";
 import type { Mock, MockResponse } from "@/lib/types/mock";
 import type {
   CreateMockInput,
@@ -11,16 +18,28 @@ export class MockService {
   constructor(private readonly store: Store) {}
 
   async listMocks(): Promise<Mock[]> {
-    return this.store.listMocks();
+    const storeMocks = await this.store.listMocks();
+    const storeIds = new Set(storeMocks.map((mock) => mock.id));
+    const fileMocks = await this.listReadOnlyMocks();
+
+    return [
+      ...storeMocks,
+      ...fileMocks.filter((mock) => !storeIds.has(mock.id)),
+    ];
   }
 
   async getMock(id: string): Promise<Mock> {
     const mock = await this.store.getMock(id);
-    if (!mock) {
-      throw HttpResponseError.mockNotFound(id);
+    if (mock) {
+      return mock;
     }
 
-    return mock;
+    const readOnlyMock = await this.getReadOnlyMock(id);
+    if (readOnlyMock) {
+      return readOnlyMock;
+    }
+
+    throw HttpResponseError.mockNotFound(id);
   }
 
   async createMock(data: CreateMockInput): Promise<Mock> {
@@ -35,11 +54,16 @@ export class MockService {
     };
 
     await this.store.saveMock(mock.id, mock);
+    await this.deploy();
     return mock;
   }
 
   async updateMock(id: string, data: PatchMockInput): Promise<Mock> {
-    const currentMock = await this.getMock(id);
+    const currentMock = await this.store.getMock(id);
+    if (!currentMock) {
+      throw HttpResponseError.mockNotFound(id);
+    }
+
     const mock: Mock = {
       ...currentMock,
       name: data.name ?? currentMock.name,
@@ -53,15 +77,22 @@ export class MockService {
     };
 
     await this.store.saveMock(id, mock);
+    await this.deploy();
     return mock;
   }
 
   async deleteMock(id: string): Promise<void> {
     await this.store.deleteMock(id);
+    await this.deploy();
   }
 
   async health(): Promise<void> {
     await this.store.health();
+  }
+
+  async getFailure(id: string): Promise<MockFailure | null> {
+    const [coreMock] = await tryCatch(() => coreClient.getCoreMock(id));
+    return coreMock?.failure ?? null;
   }
 
   private mergeResponse(
@@ -79,6 +110,37 @@ export class MockService {
           ? { ...currentResponse.headers }
           : { ...patchResponse.headers },
     };
+  }
+
+  private async deploy(): Promise<void> {
+    const mocks = await this.store.listMocks();
+    const deployDefinition = toDeployDefinition(mocks);
+
+    try {
+      await coreClient.deploy(deployDefinition);
+    } catch (error) {
+      console.error("Failed to deploy mocks to mocko-core:", error);
+    }
+  }
+
+  private async listReadOnlyMocks(): Promise<Mock[]> {
+    try {
+      const coreMocks = await coreClient.listCoreMocks();
+      return coreMocks
+        .filter((mock) => mock.source === "FILE")
+        .map(toReadOnlyMock);
+    } catch {
+      return [];
+    }
+  }
+
+  private async getReadOnlyMock(id: string): Promise<Mock | null> {
+    const [coreMock] = await tryCatch(() => coreClient.getCoreMock(id));
+    if (!coreMock || coreMock.source !== "FILE") {
+      return null;
+    }
+
+    return toReadOnlyDetailsMock(coreMock);
   }
 }
 

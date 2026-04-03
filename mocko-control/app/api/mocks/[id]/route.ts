@@ -29,7 +29,8 @@ export async function GET(
     return errorResponse(mockError);
   }
 
-  return jsonResponse(MockDetailsDto.ofMock(mock));
+  const [failure] = await tryCatch(() => mockService.getFailure(id));
+  return jsonResponse(MockDetailsDto.ofMock(mock, failure));
 }
 
 export async function PATCH(

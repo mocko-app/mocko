@@ -5,6 +5,10 @@ export type ValidationErrors = {
   formErrors: string[];
   fieldErrors: Record<string, string[] | undefined>;
 };
+export type MockFailure = {
+  message: string;
+  date: string;
+};
 
 export class MockResponseDto {
   private constructor(
@@ -51,10 +55,13 @@ export class MockDetailsDto {
     public readonly isEnabled: boolean,
     public readonly annotations: MockAnnotation[],
     public readonly response: MockResponseDto,
-    public readonly failure: null,
+    public readonly failure: MockFailure | null,
   ) {}
 
-  static ofMock(mock: Mock): MockDetailsDto {
+  static ofMock(
+    mock: Mock,
+    failure: MockFailure | null = null,
+  ): MockDetailsDto {
     return new MockDetailsDto(
       mock.id,
       mock.name,
@@ -63,7 +70,7 @@ export class MockDetailsDto {
       mock.isEnabled,
       [...mock.annotations],
       MockResponseDto.ofResponse(mock.response),
-      null,
+      failure,
     );
   }
 }
