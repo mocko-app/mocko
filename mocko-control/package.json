@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run lint && next build",
+    "build": "npm run lint && next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "prepublish": "npm run build"
