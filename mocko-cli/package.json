@@ -32,6 +32,7 @@
   "homepage": "https://github.com/mocko-app/mocko#readme",
   "dependencies": {
     "@hapi/bossy": "^6.0.0",
+    "@mocko/control": "*",
     "@mocko/proxy": "^2.0.0-alpha.2",
     "chokidar": "^3.4.3",
     "debug": "^4.3.1",
