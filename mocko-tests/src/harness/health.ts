@@ -23,3 +23,23 @@ export async function waitForHealth(
     `Timed out waiting for mocko health (revision ${targetRevision})`,
   );
 }
+
+export async function waitForStatus(
+  client: AxiosInstance,
+  path: string,
+  status: number,
+  timeout = 5000,
+): Promise<void> {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    try {
+      const res = await client.get(path);
+      if (res.status === status) {
+        return;
+      }
+    } catch {}
+    await sleep(POLL_INTERVAL);
+  }
+
+  throw new Error(`Timed out waiting for ${path} to return ${status}`);
+}
