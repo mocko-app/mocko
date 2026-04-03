@@ -27,6 +27,7 @@ export type FileOrDir = {
 @Provider()
 export class DefinitionProvider {
     private definitions: MockoDefinition;
+    private deployDefinition: MockoDefinition | null = null;
 
     constructor(
         @inject(Logger)
@@ -47,20 +48,21 @@ export class DefinitionProvider {
         this.definitions = null;
     }
 
+    setDeployDefinition(definition: MockoDefinition): void {
+        this.deployDefinition = definition;
+        this.clearDefinitions();
+    }
+
     private async buildDefinitions(): Promise<MockoDefinition> {
-        const fileMocks = await this.getFileDefinitions();
+        const fileDefinitions = await this.getFileDefinitions();
+        const deployDefinitions = this.deployDefinition;
 
         if(this.redis.isEnabled) {
-            const redisMocks = await this.getRedisDefinitions();
-
-            return {
-                mocks: [...redisMocks.mocks, ...fileMocks.mocks],
-                data: fileMocks.data,
-                hosts: fileMocks.hosts,
-            };
+            const redisDefinitions = await this.getRedisDefinitions();
+            return this.mergeDefinitions(fileDefinitions, redisDefinitions, deployDefinitions);
         }
 
-        return fileMocks;
+        return this.mergeDefinitions(fileDefinitions, null, deployDefinitions);
     }
 
     private async getFileDefinitions(): Promise<MockoDefinition> {
@@ -74,15 +76,49 @@ export class DefinitionProvider {
 
     private async getRedisDefinitions(): Promise<MockoDefinition> {
         debug('fetching mocks from redis');
-        const mocks = await this.redis.get<MockoDefinition>(REDIS_OPTIONS_DEPLOYMENT);
+        const definitions = await this.redis.get<Partial<MockoDefinition>>(REDIS_OPTIONS_DEPLOYMENT);
 
-        if(!mocks) {
+        if(!definitions) {
             debug('no mocks found, running proxy only');
             return { mocks: [], hosts: [] };
         }
 
-        debug(`found ${mocks.mocks.length} mocks`);
-        return mocks;
+        const normalizedDefinitions = {
+            mocks: definitions.mocks || [],
+            hosts: definitions.hosts || [],
+            data: definitions.data,
+        };
+
+        debug(`found ${normalizedDefinitions.mocks.length} mocks`);
+        return normalizedDefinitions;
+    }
+
+    private mergeDefinitions(
+        fileDefinitions: MockoDefinition,
+        redisDefinitions?: MockoDefinition | null,
+        deployDefinitions?: MockoDefinition | null,
+    ): MockoDefinition {
+        const mocks = [
+            ...(deployDefinitions?.mocks || []),
+            ...(redisDefinitions?.mocks || []),
+            ...fileDefinitions.mocks,
+        ];
+        const hosts = [
+            ...(deployDefinitions?.hosts || []),
+            ...(redisDefinitions?.hosts || []),
+            ...fileDefinitions.hosts,
+        ];
+        const data = {
+            ...(fileDefinitions.data || {}),
+            ...(redisDefinitions?.data || {}),
+            ...(deployDefinitions?.data || {}),
+        };
+
+        return {
+            mocks,
+            hosts,
+            data,
+        };
     }
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockoDefinition[]> {

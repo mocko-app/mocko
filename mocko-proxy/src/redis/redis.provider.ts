@@ -2,7 +2,8 @@ import {Provider} from "../utils/decorators/provider";
 import {ConfigProvider} from "../config/config.service";
 import * as Redis from 'ioredis';
 import {IListener} from "../utils/listener";
-import {Server} from "../server";
+import { inject } from "inversify";
+import { ILogger, Logger } from "../utils/logger";
 @Provider()
 export class RedisProvider {
     private readonly connector: Redis.Redis;
@@ -12,6 +13,8 @@ export class RedisProvider {
     private readonly REDIS_PREFIX: string;
 
     constructor(
+        @inject(Logger)
+        private readonly logger: ILogger,
         private readonly config: ConfigProvider,
     ) {
         this.REDIS_ENABLED = config.getBoolean('REDIS_ENABLED');
@@ -46,7 +49,7 @@ export class RedisProvider {
         }
     }
 
-    async registerListener(listener: IListener, server: Server): Promise<void> {
+    async registerListener(listener: IListener): Promise<void> {
         if(!this.isEnabled) {
             return;
         }
@@ -57,7 +60,8 @@ export class RedisProvider {
                 return;
             }
 
-            listener.onMessage(message, server);
+            Promise.resolve(listener.onMessage(message))
+                .catch(e => this.logger.error(`Listener '${listener.channel}' failed: ${e.message}`));
         });
     }
 

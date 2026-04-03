@@ -1,13 +1,20 @@
+import * as Joi from 'joi';
 import { mergeRecords } from "../../utils/utils";
 import { Data } from "./data";
-import { Host, hostFromConfig } from "./host";
-import { Mock, mockFromConfig } from "./mock";
+import { Host, hostFromConfig, validateHost } from "./host";
+import { Mock, mockFromConfig, validateMock } from "./mock";
 
 export type MockoDefinition = {
     mocks: Mock[],
     hosts: Host[],
     data?: Data,
 };
+
+const definitionSchema = Joi.object({
+    mocks: Joi.array().items(Joi.any()).required(),
+    hosts: Joi.array().items(Joi.any()).required(),
+    data: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
+});
 
 export const definitionFromConfig = (config: any): MockoDefinition => {
     const mocks = Object.entries(mergeRecords(config.mock || []))
@@ -23,3 +30,16 @@ export const definitionFromConfig = (config: any): MockoDefinition => {
 
     return { mocks, data, hosts };
 };
+
+export function validateDefinition(definition: unknown): MockoDefinition {
+    const validation = definitionSchema.validate(definition);
+    if(validation.error) {
+        throw new Error(validation.error.message);
+    }
+
+    return {
+        mocks: validation.value.mocks.map(validateMock),
+        hosts: validation.value.hosts.map(validateHost),
+        data: validation.value.data,
+    };
+}

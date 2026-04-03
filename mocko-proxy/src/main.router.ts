@@ -3,6 +3,7 @@ import {Provider} from "./utils/decorators/provider";
 import {ProxyRouter} from "./api/proxy/proxy.router";
 import {MockRouter} from "./api/mock/mock.router";
 import {HealthRouter} from "./api/health/health.router";
+import {DeployRouter} from "./api/deploy/deploy.router";
 
 @Provider()
 export class MainRouter implements IRouter {
@@ -10,6 +11,7 @@ export class MainRouter implements IRouter {
         private readonly proxyRouter: ProxyRouter,
         private readonly mockRouter: MockRouter,
         private readonly healthRouter: HealthRouter,
+        private readonly deployRouter: DeployRouter,
     ) { }
 
     async getRoutes() {
@@ -17,6 +19,7 @@ export class MainRouter implements IRouter {
             this.proxyRouter.getRoutes(),
             this.mockRouter.getRoutes(),
             this.healthRouter.getRoutes(),
+            this.deployRouter.getRoutes(),
         ]);
 
         return routes.flat();

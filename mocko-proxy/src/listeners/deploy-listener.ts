@@ -1,12 +1,16 @@
 import {IListener} from "../utils/listener";
 import {Provider} from "../utils/decorators/provider";
-import {Server} from "../server";
+import {RemapEventBus} from "../utils/remap-event-bus";
 
 @Provider()
 export class DeployListener implements IListener {
     readonly channel = 'deploy';
 
-    async onMessage(_message: string, server: Server) {
-        await server.remapRoutes();
+    constructor(
+        private readonly remapEventBus: RemapEventBus,
+    ) { }
+
+    async onMessage(_message: string) {
+        await this.remapEventBus.emit();
     }
 }

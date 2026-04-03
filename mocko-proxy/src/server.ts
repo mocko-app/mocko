@@ -10,6 +10,7 @@ import {ListenerProvider} from "./listeners";
 import {RedisProvider} from "./redis/redis.provider";
 import { DefinitionProvider } from "./definitions/definition.provider";
 import { HealthService } from "./api/health/health.service";
+import { RemapEventBus } from "./utils/remap-event-bus";
 
 const debug = require('debug')('mocko:proxy:server');
 
@@ -28,12 +29,14 @@ export class Server {
         private readonly redisProvider: RedisProvider,
         private readonly definitionProvider: DefinitionProvider,
         private readonly healthService: HealthService,
+        private readonly remapEventBus: RemapEventBus,
     ) { }
 
     async start(): Promise<Server> {
         debug('registering listeners');
+        this.remapEventBus.subscribe(async () => { await this.remapRoutes(); });
         const listenerRegistrationTasks = this.listenerProvider.listeners
-            .map(l => this.redisProvider.registerListener(l, this));
+            .map(l => this.redisProvider.registerListener(l));
         await Promise.all(listenerRegistrationTasks);
         return await this.startServer();
     }
@@ -48,7 +51,7 @@ export class Server {
         }
     }
 
-    async remapRoutes(): Promise<Server> {
+    private async remapRoutes(): Promise<Server> {
         this.logger.info('Remapping routes');
         debug('building routes');
         this.definitionProvider.clearDefinitions();

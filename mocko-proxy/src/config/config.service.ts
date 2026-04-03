@@ -24,6 +24,19 @@ export class ConfigProvider {
         return value;
     }
 
+    getOptional(key: string): string | undefined {
+        return this.config[key];
+    }
+
+    getOptionalBoolean(key: string): boolean | undefined {
+        const value = this.getOptional(key);
+        if(typeof value === 'undefined') {
+            return undefined;
+        }
+
+        return value.toLowerCase() === 'true';
+    }
+
     getNumber(key: string): number {
         const value = Number(this.get(key));
         if (isNaN(value)) {
@@ -45,10 +58,6 @@ export class ConfigProvider {
             db: this.getNumber('REDIS_DATABASE'),
             keyPrefix: this.get('REDIS_PREFIX'),
         };
-    }
-
-    private getOptional(key: string): string | undefined {
-        return this.config[key];
     }
 
     private fromFile(path: string): Record<string, string> {

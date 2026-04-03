@@ -32,6 +32,15 @@ const mockSchema = Joi.object({
     }),
 });
 
+export function validateMock(mock: any): Mock {
+    const validation = mockSchema.validate(mock, { convert: true });
+    if(validation.error) {
+        throw new Error(validation.error.message);
+    }
+
+    return validation.value;
+}
+
 export function mockFromConfig(req: string, res: any): Mock {
     const [rawMethod, ...pathParts] = req.split(" ");
     const method = rawMethod.toUpperCase();
@@ -51,10 +60,9 @@ export function mockFromConfig(req: string, res: any): Mock {
         },
     };
 
-    const validation = mockSchema.validate(definition, { convert: true });
-    if(validation.error) {
-        throw new Error(`On mock '${req}', ${validation.error.message}`);
+    try {
+        return validateMock(definition);
+    } catch(error) {
+        throw new Error(`On mock '${req}', ${error.message}`);
     }
-
-    return validation.value;
 }
