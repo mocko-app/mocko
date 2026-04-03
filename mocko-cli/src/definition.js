@@ -32,4 +32,14 @@ module.exports.definition = {
         type: 'number',
         default: 30000,
     },
+    ui: {
+        description: 'Enables UI mode on the default UI port (6625)',
+        type: 'boolean',
+        default: false,
+    },
+    P: {
+        description: 'Enables UI mode on the given UI port',
+        alias: 'ui-port',
+        type: 'number',
+    },
 };

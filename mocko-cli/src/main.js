@@ -7,12 +7,14 @@ if(!semver.satisfies(process.version, '>=14')) {
 const Bossy = require('@hapi/bossy');
 const Joi = require('joi');
 const updateNotifier = require('simple-update-notifier');
+const Crypto = require('node:crypto');
 
 const pkg = require('../package.json');
 const { definition } = require('./definition');
 const { watch } = require('./watcher');
 
 const debug = require('debug')('mocko:cli:main');
+const DEFAULT_UI_PORT = 6625;
 
 const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
 
@@ -38,11 +40,20 @@ function run() {
 
     const path = args._[0];
     const { port, url, timeout } = args;
+    const uiEnabled = Boolean(args.ui || args.P);
 
     process.env['SERVER_PORT'] = port;
     process.env['PROXY_BASE-URI'] = url;
     process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
     process.env['MOCKS_FOLDER'] = path;
+
+    if(uiEnabled) {
+        const uiPort = args.P ?? DEFAULT_UI_PORT;
+        const deploySecret = generateDeploySecret();
+
+        process.env['DEPLOY_ENDPOINT_ENABLED'] = 'true';
+        process.env['DEPLOY_SECRET'] = deploySecret;
+    }
 
     debug('starting mocko-proxy');
     const { server } = require('@mocko/proxy');
@@ -78,6 +89,10 @@ function validateArgs({ url }) {
         console.error(validation.error.message);
         process.exit(1);
     }
+}
+
+function generateDeploySecret() {
+    return Crypto.randomBytes(32).toString('hex');
 }
 
 module.exports.run = run;
