@@ -9,12 +9,12 @@ describe('proxy', () => {
   let subject: MockoInstance;
   let content: MockoInstance;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     content = await createContent();
     subject = await createSubject();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await subject.stop();
     await content.stop();
   });

@@ -65,7 +65,7 @@ export class MockHandler {
             await Hoek.wait(this.mockResponse.delay);
         }
 
-        if(data.proxyTo) {
+        if(data.proxyTo !== undefined) {
             debug(`proxying due to helper request to '${data.proxyTo}'`);
             return await this.proxyController.proxyRequest(request, h, data.proxyTo, data.proxyLabel);
         }
