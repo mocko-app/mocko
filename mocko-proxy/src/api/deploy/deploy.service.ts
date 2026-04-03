@@ -6,6 +6,7 @@ import { MockoDefinition } from "../../definitions/data/mocko-definition";
 import { RemapEventBus } from "../../utils/remap-event-bus";
 
 const DEPLOY_ENDPOINT_ENABLED = configProvider.getOptionalBoolean('DEPLOY_ENDPOINT_ENABLED');
+const DEPLOY_AUTH_ENABLED = configProvider.getOptionalBoolean('DEPLOY_AUTH_ENABLED') !== false;
 const DEPLOY_SECRET = configProvider.getOptional('DEPLOY_SECRET');
 
 @Service()
@@ -14,7 +15,11 @@ export class DeployService {
         private readonly definitionProvider: DefinitionProvider,
         private readonly remapEventBus: RemapEventBus,
     ) {
-        if(DEPLOY_ENDPOINT_ENABLED && !DEPLOY_SECRET) {
+        if(
+            DEPLOY_ENDPOINT_ENABLED &&
+            DEPLOY_AUTH_ENABLED &&
+            !DEPLOY_SECRET
+        ) {
             throw new Error('Missing DEPLOY_SECRET config');
         }
     }
@@ -24,6 +29,10 @@ export class DeployService {
     }
 
     authorize(authorization?: string): void {
+        if(!DEPLOY_AUTH_ENABLED) {
+            return;
+        }
+
         const token = authorization?.trim();
 
         if(!token || token !== `Bearer ${DEPLOY_SECRET}`) {
