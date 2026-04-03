@@ -5,10 +5,12 @@ import { ILogger, Logger } from "../utils/logger";
 import { RedisProvider } from "../redis/redis.provider";
 import { REDIS_OPTIONS_DEPLOYMENT } from "./definition.constants";
 import { promises } from "fs";
-import { join } from "path";
+import { join, relative } from "path";
 import {parse} from 'hcl-parser';
 import * as Hoek from '@hapi/hoek';
 import { Synchronize } from '@mocko/sync';
+import { v5 as uuidv5 } from 'uuid';
+import { Mock, MockSource } from "./data/mock";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -18,6 +20,7 @@ const MOCKS_DIR = process.env['MOCKS_FOLDER'] || "mocks";
 const MUST_LOAD_DIR = !!process.env['MOCKS_FOLDER'];
 const HCL_EXTENSION = ".hcl";
 const DOT = ".";
+const FILE_ID_NAMESPACE = '4e88cbd8-4eaf-48c1-a4e9-d958802337e3';
 
 export type FileOrDir = {
     name: string,
@@ -99,9 +102,9 @@ export class DefinitionProvider {
         deployDefinitions?: MockoDefinition | null,
     ): MockoDefinition {
         const mocks = [
-            ...(deployDefinitions?.mocks || []),
-            ...(redisDefinitions?.mocks || []),
-            ...fileDefinitions.mocks,
+            ...this.withSource(deployDefinitions?.mocks || [], 'DEPLOYED'),
+            ...this.withSource(redisDefinitions?.mocks || [], 'DEPLOYED'),
+            ...this.withSource(fileDefinitions.mocks, 'FILE'),
         ];
         const hosts = [
             ...(deployDefinitions?.hosts || []),
@@ -168,10 +171,34 @@ export class DefinitionProvider {
         }
 
         try {
-            return definitionFromConfig(data);
+            const definition = definitionFromConfig(data);
+            definition.mocks = definition.mocks.map((mock) =>
+                this.withFileMetadata(path, mock),
+            );
+            return definition;
         } catch(e) {
             this.logger.warn(`Invalid mock on file '${path}': ${e.message}`);
             return null;
         }
+    }
+
+    private withSource(mocks: Mock[], source: MockSource): Mock[] {
+        return mocks.map((mock) => ({
+            ...mock,
+            source: mock.source || source,
+        }));
+    }
+
+    private withFileMetadata(filePath: string, mock: Mock): Mock {
+        const normalizedFilePath = relative(MOCKS_DIR, filePath)
+            .replace(/\\/g, '/');
+        const idSeed = `${normalizedFilePath}:${mock.method}:${mock.path}`;
+
+        return {
+            ...mock,
+            id: mock.id || uuidv5(idSeed, FILE_ID_NAMESPACE),
+            name: mock.name || normalizedFilePath,
+            source: 'FILE',
+        };
     }
 }

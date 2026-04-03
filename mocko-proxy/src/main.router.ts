@@ -16,10 +16,10 @@ export class MainRouter implements IRouter {
 
     async getRoutes() {
         const routes = await Promise.all([
-            this.proxyRouter.getRoutes(),
-            this.mockRouter.getRoutes(),
-            this.healthRouter.getRoutes(),
             this.deployRouter.getRoutes(),
+            this.healthRouter.getRoutes(),
+            this.mockRouter.getRoutes(),
+            this.proxyRouter.getRoutes(),
         ]);
 
         return routes.flat();

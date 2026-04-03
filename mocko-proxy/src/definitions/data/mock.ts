@@ -2,6 +2,7 @@ import * as Joi from 'joi';
 
 export const MOCK_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', '*'] as const;
 export type MockHttpMethod = typeof MOCK_METHODS[number];
+export type MockSource = 'FILE' | 'DEPLOYED';
 
 export type MockResponse = {
     code: number,
@@ -12,6 +13,8 @@ export type MockResponse = {
 
 export type Mock = {
     id?: string,
+    name?: string,
+    source?: MockSource,
     method: MockHttpMethod,
     path: string,
     parse: boolean,
@@ -20,6 +23,9 @@ export type Mock = {
 };
 
 const mockSchema = Joi.object({
+    id: Joi.string().optional(),
+    name: Joi.string().optional(),
+    source: Joi.string().valid('FILE', 'DEPLOYED').optional(),
     method: Joi.string().valid(...MOCK_METHODS),
     path: Joi.string(),
     parse: Joi.boolean().default(true),
