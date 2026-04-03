@@ -6,17 +6,20 @@ export const CONTENT_PORT = 6650;
 
 export async function createSubject(
   options: InstanceOptions = {},
+  env: NodeJS.ProcessEnv = {},
 ): Promise<MockoInstance> {
-  const instance = new MockoInstance({ '--watch': true, ...options });
+  const instance = new MockoInstance({ '--watch': true, ...options }, env);
   await instance.init();
   return instance;
 }
 
-export async function createContent(): Promise<MockoInstance> {
+export async function createContent(
+  env: NodeJS.ProcessEnv = {},
+): Promise<MockoInstance> {
   const instance = new MockoInstance({
     '--watch': true,
     '--port': CONTENT_PORT,
-  });
+  }, env);
   await instance.init();
   return instance;
 }

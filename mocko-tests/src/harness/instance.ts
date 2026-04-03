@@ -19,22 +19,24 @@ export class MockoInstance {
   private proc!: ChildProcess;
   private tempDir!: string;
   private mockCounter = 0;
-  private readonly port: number;
+  private readonly serverPort: number;
   private readonly watchEnabled: boolean;
   private readonly flags: InstanceOptions;
+  private readonly extraEnv: NodeJS.ProcessEnv;
   private exitCode: number | null = null;
   private intentionallyStopped = false;
 
-  constructor(options: InstanceOptions = {}) {
+  constructor(options: InstanceOptions = {}, env: NodeJS.ProcessEnv = {}) {
     const port = options['--port'] ?? options['-p'];
-    this.port = Number(port ?? nextPort());
+    this.serverPort = Number(port ?? nextPort());
     this.watchEnabled = Boolean(options['--watch'] || options['-w']);
     this.flags = { ...options };
+    this.extraEnv = { ...env };
     if (!port) {
-      this.flags['--port'] = this.port;
+      this.flags['--port'] = this.serverPort;
     }
     this.client = axios.create({
-      baseURL: `http://localhost:${this.port}`,
+      baseURL: `http://localhost:${this.serverPort}`,
       validateStatus: () => true,
     });
   }
@@ -46,7 +48,7 @@ export class MockoInstance {
   async start(): Promise<void> {
     const args = buildArgs(this.flags);
     this.proc = spawn('node', [CLI_BIN, ...args, this.tempDir], {
-      env: { ...process.env, SILENT: 'true' },
+      env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
       stdio: 'ignore',
     });
     this.proc.on('close', (code) => {
@@ -66,6 +68,10 @@ export class MockoInstance {
 
   get dir(): string {
     return this.tempDir;
+  }
+
+  get port(): number {
+    return this.serverPort;
   }
 
   async createMock(hcl: string): Promise<void> {
