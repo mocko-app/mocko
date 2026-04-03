@@ -1,7 +1,4 @@
-import {
-  createSubject,
-  MockoInstance,
-} from '../../harness';
+import { createSubject, MockoInstance } from '../../harness';
 import { nextPort } from '../../harness/port';
 
 async function createContentOn(port: number): Promise<MockoInstance> {
@@ -19,7 +16,9 @@ describe('cli options', () => {
     beforeAll(async () => {
       contentPort = nextPort();
       content = await createContentOn(contentPort);
-      subject = await createSubject({ '-u': `http://localhost:${contentPort}` });
+      subject = await createSubject({
+        '-u': `http://localhost:${contentPort}`,
+      });
     });
 
     afterAll(async () => {

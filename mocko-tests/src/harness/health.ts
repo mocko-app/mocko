@@ -19,5 +19,7 @@ export async function waitForHealth(
     } catch {}
     await sleep(POLL_INTERVAL);
   }
-  throw new Error(`Timed out waiting for mocko health (revision ${targetRevision})`);
+  throw new Error(
+    `Timed out waiting for mocko health (revision ${targetRevision})`,
+  );
 }

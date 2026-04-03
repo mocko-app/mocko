@@ -16,10 +16,13 @@ export async function createSubject(
 export async function createContent(
   env: NodeJS.ProcessEnv = {},
 ): Promise<MockoInstance> {
-  const instance = new MockoInstance({
-    '--watch': true,
-    '--port': CONTENT_PORT,
-  }, env);
+  const instance = new MockoInstance(
+    {
+      '--watch': true,
+      '--port': CONTENT_PORT,
+    },
+    env,
+  );
   await instance.init();
   return instance;
 }

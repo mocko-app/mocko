@@ -28,12 +28,18 @@ describe('watch mode', () => {
       const filePath = path.join(subject.dir, 'watch-edit.hcl');
 
       let rev = await subject.getRevision();
-      await fs.writeFile(filePath, `mock "GET /watch-edit" { body = "original" }`);
+      await fs.writeFile(
+        filePath,
+        `mock "GET /watch-edit" { body = "original" }`,
+      );
       await subject.waitForRemap(rev);
       expect((await subject.client.get('/watch-edit')).data).toBe('original');
 
       rev = await subject.getRevision();
-      await fs.writeFile(filePath, `mock "GET /watch-edit" { body = "updated" }`);
+      await fs.writeFile(
+        filePath,
+        `mock "GET /watch-edit" { body = "updated" }`,
+      );
       await subject.waitForRemap(rev);
       expect((await subject.client.get('/watch-edit')).data).toBe('updated');
     });
@@ -42,7 +48,10 @@ describe('watch mode', () => {
       const filePath = path.join(subject.dir, 'watch-delete.hcl');
 
       let rev = await subject.getRevision();
-      await fs.writeFile(filePath, `mock "GET /watch-delete" { body = "exists" }`);
+      await fs.writeFile(
+        filePath,
+        `mock "GET /watch-delete" { body = "exists" }`,
+      );
       await subject.waitForRemap(rev);
       expect((await subject.client.get('/watch-delete')).status).toBe(200);
 

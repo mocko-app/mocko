@@ -12,22 +12,27 @@ describe('deploy endpoint', () => {
 
     it('serves deployed mocks when deploy auth is disabled', async () => {
       const route = randomPath();
-      subject = await createSubject({}, {
-        DEPLOY_ENDPOINT_ENABLED: 'true',
-        DEPLOY_AUTH_ENABLED: 'false',
-      });
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_AUTH_ENABLED: 'false',
+        },
+      );
 
       const res = await subject.client.post('/__mocko__/deploy', {
-        mocks: [{
-          method: 'GET',
-          path: route,
-          parse: true,
-          response: {
-            code: 200,
-            body: 'from deploy',
-            headers: {},
+        mocks: [
+          {
+            method: 'GET',
+            path: route,
+            parse: true,
+            response: {
+              code: 200,
+              body: 'from deploy',
+              headers: {},
+            },
           },
-        }],
+        ],
         hosts: [],
       });
 
@@ -36,10 +41,13 @@ describe('deploy endpoint', () => {
     });
 
     it('rejects deploy without token when auth is enabled', async () => {
-      subject = await createSubject({}, {
-        DEPLOY_ENDPOINT_ENABLED: 'true',
-        DEPLOY_SECRET: 'secret',
-      });
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_SECRET: 'secret',
+        },
+      );
 
       const res = await subject.client.post('/__mocko__/deploy', {
         mocks: [],
@@ -50,10 +58,13 @@ describe('deploy endpoint', () => {
     });
 
     it('rejects deploy with wrong token when auth is enabled', async () => {
-      subject = await createSubject({}, {
-        DEPLOY_ENDPOINT_ENABLED: 'true',
-        DEPLOY_SECRET: 'secret',
-      });
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_SECRET: 'secret',
+        },
+      );
 
       const res = await subject.client.post(
         '/__mocko__/deploy',
@@ -67,38 +78,45 @@ describe('deploy endpoint', () => {
     it('replaces prior deployed state on a second deploy', async () => {
       const firstRoute = randomPath();
       const secondRoute = randomPath();
-      subject = await createSubject({}, {
-        DEPLOY_ENDPOINT_ENABLED: 'true',
-        DEPLOY_AUTH_ENABLED: 'false',
-      });
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_AUTH_ENABLED: 'false',
+        },
+      );
 
       const firstDeploy = await subject.client.post('/__mocko__/deploy', {
-        mocks: [{
-          method: 'GET',
-          path: firstRoute,
-          parse: true,
-          response: {
-            code: 200,
-            body: 'first',
-            headers: {},
+        mocks: [
+          {
+            method: 'GET',
+            path: firstRoute,
+            parse: true,
+            response: {
+              code: 200,
+              body: 'first',
+              headers: {},
+            },
           },
-        }],
+        ],
         hosts: [],
       });
       expect(firstDeploy.status).toBe(204);
       expect((await subject.client.get(firstRoute)).data).toBe('first');
 
       const secondDeploy = await subject.client.post('/__mocko__/deploy', {
-        mocks: [{
-          method: 'GET',
-          path: secondRoute,
-          parse: true,
-          response: {
-            code: 200,
-            body: 'second',
-            headers: {},
+        mocks: [
+          {
+            method: 'GET',
+            path: secondRoute,
+            parse: true,
+            response: {
+              code: 200,
+              body: 'second',
+              headers: {},
+            },
           },
-        }],
+        ],
         hosts: [],
       });
       expect(secondDeploy.status).toBe(204);
@@ -108,10 +126,13 @@ describe('deploy endpoint', () => {
 
     it('keeps serving file mocks after invalid deploy attempts', async () => {
       const route = randomPath();
-      subject = await createSubject({}, {
-        DEPLOY_ENDPOINT_ENABLED: 'true',
-        DEPLOY_AUTH_ENABLED: 'false',
-      });
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_AUTH_ENABLED: 'false',
+        },
+      );
 
       await subject.createMock(`
         mock "GET ${route}" {
@@ -124,30 +145,37 @@ describe('deploy endpoint', () => {
           mocks: [],
         },
         {
-          mocks: [{
-            method: 'INVALID',
-            path: '/bad-method',
-            parse: true,
-            response: {
-              code: 200,
-              body: 'bad',
-              headers: {},
+          mocks: [
+            {
+              method: 'INVALID',
+              path: '/bad-method',
+              parse: true,
+              response: {
+                code: 200,
+                body: 'bad',
+                headers: {},
+              },
             },
-          }],
+          ],
           hosts: [],
         },
         {
           mocks: [],
-          hosts: [{
-            name: 'bad-host',
-            source: 'not a hostname',
-            destination: 'http://localhost:3000',
-          }],
+          hosts: [
+            {
+              name: 'bad-host',
+              source: 'not a hostname',
+              destination: 'http://localhost:3000',
+            },
+          ],
         },
       ];
 
       for (const payload of invalidDeploys) {
-        const deployRes = await subject.client.post('/__mocko__/deploy', payload);
+        const deployRes = await subject.client.post(
+          '/__mocko__/deploy',
+          payload,
+        );
 
         expect(deployRes.status).toBe(400);
         expect((await subject.client.get(route)).data).toBe('from file');
