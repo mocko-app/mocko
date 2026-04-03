@@ -105,6 +105,54 @@ describe('deploy endpoint', () => {
       expect((await subject.client.get(firstRoute)).status).toBe(404);
       expect((await subject.client.get(secondRoute)).data).toBe('second');
     });
+
+    it('keeps serving file mocks after invalid deploy attempts', async () => {
+      const route = randomPath();
+      subject = await createSubject({}, {
+        DEPLOY_ENDPOINT_ENABLED: 'true',
+        DEPLOY_AUTH_ENABLED: 'false',
+      });
+
+      await subject.createMock(`
+        mock "GET ${route}" {
+          body = "from file"
+        }
+      `);
+
+      const invalidDeploys = [
+        {
+          mocks: [],
+        },
+        {
+          mocks: [{
+            method: 'INVALID',
+            path: '/bad-method',
+            parse: true,
+            response: {
+              code: 200,
+              body: 'bad',
+              headers: {},
+            },
+          }],
+          hosts: [],
+        },
+        {
+          mocks: [],
+          hosts: [{
+            name: 'bad-host',
+            source: 'not a hostname',
+            destination: 'http://localhost:3000',
+          }],
+        },
+      ];
+
+      for (const payload of invalidDeploys) {
+        const deployRes = await subject.client.post('/__mocko__/deploy', payload);
+
+        expect(deployRes.status).toBe(400);
+        expect((await subject.client.get(route)).data).toBe('from file');
+      }
+    });
   });
 
   describe('cli ui wiring', () => {
