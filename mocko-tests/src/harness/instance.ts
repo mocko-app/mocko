@@ -22,6 +22,8 @@ export class MockoInstance {
   private readonly port: number;
   private readonly watchEnabled: boolean;
   private readonly flags: InstanceOptions;
+  private exitCode: number | null = null;
+  private intentionallyStopped = false;
 
   constructor(options: InstanceOptions = {}) {
     const port = options['--port'] ?? options['-p'];
@@ -37,14 +39,29 @@ export class MockoInstance {
     });
   }
 
-  async init(): Promise<void> {
+  async prepare(): Promise<void> {
     this.tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mocko-'));
+  }
+
+  async start(): Promise<void> {
     const args = buildArgs(this.flags);
     this.proc = spawn('node', [CLI_BIN, ...args, this.tempDir], {
       env: { ...process.env, SILENT: 'true' },
       stdio: 'ignore',
     });
+    this.proc.on('close', (code) => {
+      this.exitCode = code;
+    });
     await waitForHealth(this.client);
+  }
+
+  async init(): Promise<void> {
+    await this.prepare();
+    await this.start();
+  }
+
+  hasCrashed(): boolean {
+    return !this.intentionallyStopped && this.exitCode !== null;
   }
 
   get dir(): string {
@@ -74,6 +91,7 @@ export class MockoInstance {
   }
 
   async stop(): Promise<void> {
+    this.intentionallyStopped = true;
     this.proc.kill();
     await fs.rm(this.tempDir, { recursive: true, force: true });
   }
