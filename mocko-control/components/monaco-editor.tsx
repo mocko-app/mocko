@@ -45,16 +45,22 @@ const EDITOR_OPTIONS: EditorProps["options"] = {
   padding: { top: 8, bottom: 8 },
 };
 
-interface BodyEditorProps {
+type BodyEditorProps = {
   value: string;
   onChange: (value: string) => void;
-}
+  readOnly?: boolean;
+};
 
-export function BodyEditor({ value, onChange }: BodyEditorProps) {
+export function BodyEditor({
+  value,
+  onChange,
+  readOnly = false,
+}: BodyEditorProps) {
   const [language, setLanguage] = useState<BodyLanguage>("json");
 
   return (
     <div className="flex flex-col gap-1">
+      {/*
       <div
         className="flex items-center gap-1"
         role="group"
@@ -72,6 +78,7 @@ export function BodyEditor({ value, onChange }: BodyEditorProps) {
           </button>
         ))}
       </div>
+      */}
       <div className="h-48 rounded-lg overflow-hidden border border-border">
         <MonacoEditor
           height="100%"
@@ -79,7 +86,7 @@ export function BodyEditor({ value, onChange }: BodyEditorProps) {
           theme="vs-dark"
           value={value}
           onChange={(v) => onChange(v ?? "")}
-          options={EDITOR_OPTIONS}
+          options={{ ...EDITOR_OPTIONS, readOnly }}
         />
       </div>
     </div>

@@ -4,15 +4,15 @@ import { PlusIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Header {
+type Header = {
   key: string;
   value: string;
-}
+};
 
-interface HeadersEditorProps {
+type HeadersEditorProps = {
   headers: Header[];
   onChange: (headers: Header[]) => void;
-}
+};
 
 export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
   function addRow() {
@@ -37,8 +37,8 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
           <Input
             value={header.key}
             onChange={(e) => updateRow(i, "key", e.target.value)}
-            placeholder="Header name"
-            aria-label={`Header key ${i + 1}`}
+            placeholder="Name"
+            aria-label={`Header name ${i + 1}`}
             className="flex-1"
           />
           <Input
