@@ -13,13 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-interface DeleteDialogProps {
+type DeleteDialogProps = {
   open: boolean;
   mockName: string;
   onConfirm: () => void;
   onCancel: () => void;
   onDontAskAgain: () => void;
-}
+};
 
 export function DeleteDialog({
   open,
@@ -67,7 +67,7 @@ export function DeleteDialog({
             Don&apos;t ask again this session
           </Label>
         </div>
-        <DialogFooter className="border-[#2e2e2e]">
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={onCancel}
