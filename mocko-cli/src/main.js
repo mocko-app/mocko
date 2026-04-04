@@ -67,6 +67,8 @@ async function run() {
             coreUrl: `http://127.0.0.1:${port}`,
             deploySecret,
         });
+
+        console.log(`Manage your mocks on http://localhost:${uiPort}`);
     }
 
     if(args.watch) {
