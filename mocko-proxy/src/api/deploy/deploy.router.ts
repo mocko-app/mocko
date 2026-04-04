@@ -21,6 +21,9 @@ export class DeployRouter implements IRouter {
             method: 'POST',
             path: '/__mocko__/deploy',
             handler: this.controller.deploy.bind(this.controller),
+            rules: {
+                mapSilently: true,
+            },
         }];
     }
 }
