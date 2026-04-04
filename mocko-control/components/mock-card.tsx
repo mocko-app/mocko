@@ -17,7 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Mock, HttpMethod } from "@/lib/types/mock";
+import type { MockDto } from "@/lib/types/dto";
+import type { HttpMethod } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 
 const METHOD_COLORS: Record<HttpMethod, string> = {
@@ -29,9 +30,9 @@ const METHOD_COLORS: Record<HttpMethod, string> = {
 };
 
 export const MockCard: React.FC<{
-  mock: Mock;
+  mock: MockDto;
   onEdit: (id: string) => void;
-  onDelete: (mock: Mock) => void;
+  onDelete: (mock: MockDto) => void;
   onToggleEnabled: (id: string, enabled: boolean) => void;
 }> = ({ mock, onEdit, onDelete, onToggleEnabled }) => {
   const isReadOnly = mock.annotations.includes("READ_ONLY");

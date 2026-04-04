@@ -1,19 +1,59 @@
-import { use } from "react";
-import { notFound } from "next/navigation";
+"use client";
+
+import Link from "next/link";
 import { MockForm } from "@/components/mock-form";
-import { FIXTURE_MOCKS } from "@/lib/mock/mock.fixtures";
+import { Button } from "@/components/ui/button";
+import { ApiError } from "@/lib/frontend/api";
+import { useMock } from "@/lib/frontend/hooks/resources";
+import { useParam } from "@/lib/frontend/hooks/use-param";
 
-export default function EditMockPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const mock = FIXTURE_MOCKS.find((m) => m.id === id);
+function EditMissingState() {
+  return (
+    <div className="max-w-2xl mx-auto px-8 pt-8 pb-8 text-center">
+      <h1 className="text-lg font-semibold text-foreground">Mock not found</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        This mock does not exist or is no longer available.
+      </p>
+      <div className="mt-4 flex justify-center">
+        <Button nativeButton={false} render={<Link href="/mocks" />}>
+          Back to mocks
+        </Button>
+      </div>
+    </div>
+  );
+}
 
-  if (!mock) {
-    notFound();
+export default function EditMockPage() {
+  const id = useParam("id");
+  const { data, error, isLoading } = useMock(id);
+
+  if (!id) {
+    return <EditMissingState />;
   }
 
-  return <MockForm mode="edit" initial={mock} />;
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-8 pt-8 pb-8 text-sm text-muted-foreground">
+        Loading mock...
+      </div>
+    );
+  }
+
+  if (error instanceof ApiError && error.status === 404) {
+    return <EditMissingState />;
+  }
+
+  if (error || !data) {
+    return (
+      <div className="max-w-2xl mx-auto px-8 pt-8 pb-8">
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2">
+          <p className="text-xs text-destructive">
+            Failed to load this mock. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <MockForm mode="edit" initial={data} />;
 }

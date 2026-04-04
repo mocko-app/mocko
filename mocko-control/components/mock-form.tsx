@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,18 +18,24 @@ import {
 } from "@/components/ui/select";
 import { HeadersEditor } from "@/components/headers-editor";
 import { BodyEditor } from "@/components/monaco-editor";
+import {
+  ApiError,
+  createMock,
+  patchMock,
+  toFormValidationErrors,
+} from "@/lib/frontend/api";
+import type { CreateMockDto, MockDetailsDto } from "@/lib/types/dto";
 import { HTTP_METHODS } from "@/lib/types/mock";
-import type { Mock } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 
 type MockFormProps = {
-  initial?: Mock;
+  initial?: MockDetailsDto;
   mode: "create" | "edit";
 };
 
 type FormState = {
   name: string;
-  method: Mock["method"];
+  method: CreateMockDto["method"];
   path: string;
   statusCode: string;
   headers: { key: string; value: string }[];
@@ -35,6 +43,7 @@ type FormState = {
 };
 
 type FormErrors = {
+  form?: string;
   name?: string;
   path?: string;
   statusCode?: string;
@@ -44,6 +53,18 @@ const RESERVED_PREFIX = "/__mocko__";
 
 function headersToRows(headers: Record<string, string>) {
   return Object.entries(headers).map(([key, value]) => ({ key, value }));
+}
+
+function rowsToHeaders(rows: Array<{ key: string; value: string }>) {
+  const headers: Record<string, string> = {};
+  for (const row of rows) {
+    const key = row.key.trim();
+    if (!key) {
+      continue;
+    }
+    headers[key] = row.value;
+  }
+  return headers;
 }
 
 function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
@@ -124,6 +145,7 @@ const MockFormHeader: React.FC<{
 };
 
 export function MockForm({ initial, mode }: MockFormProps) {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>({
     name: initial?.name ?? "",
     method: initial?.method ?? "GET",
@@ -133,25 +155,71 @@ export function MockForm({ initial, mode }: MockFormProps) {
     body: initial?.response.body ?? "",
   });
   const [hideErrors, setHideErrors] = useState(true);
+  const [serverErrors, setServerErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
   const submitLabel = mode === "create" ? "Create" : "Save changes";
   const hasNestPathParams = /\/:[A-Za-z0-9_-]+/.test(form.path);
-  const errors = getFormErrors(form);
+  const localErrors = getFormErrors(form);
+  const errors: FormErrors = {
+    form: serverErrors.form,
+    name: localErrors.name ?? serverErrors.name,
+    path: localErrors.path ?? serverErrors.path,
+    statusCode: localErrors.statusCode ?? serverErrors.statusCode,
+  };
   const hasErrors = Boolean(errors.name || errors.path || errors.statusCode);
   const showErrors = !hideErrors;
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setHideErrors(true);
+    setServerErrors({});
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (hasErrors) {
       setHideErrors(false);
       return;
+    }
+
+    const statusCode = Number(form.statusCode.trim());
+    const payload = {
+      name: form.name.trim(),
+      method: form.method,
+      path: form.path.trim(),
+      response: {
+        code: statusCode,
+        body: form.body === "" ? undefined : form.body,
+        headers: rowsToHeaders(form.headers),
+      },
+    };
+
+    setIsSubmitting(true);
+    try {
+      if (mode === "create") {
+        await createMock(payload);
+        toast.success("Mock created.");
+      } else {
+        if (!initial) {
+          throw new Error("Mock ID is required for edit mode");
+        }
+        await patchMock(initial.id, payload);
+        toast.success("Mock updated.");
+      }
+
+      router.push("/mocks");
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "BAD_REQUEST") {
+        setServerErrors(toFormValidationErrors(error.validation));
+        setHideErrors(false);
+      } else {
+        toast.error("Failed to save mock.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -162,7 +230,19 @@ export function MockForm({ initial, mode }: MockFormProps) {
       aria-label={title}
     >
       <MockFormHeader isReadOnly={isReadOnly} title={title} />
-      <fieldset className="flex flex-col gap-4" disabled={isReadOnly}>
+      {showErrors && errors.form && (
+        <div
+          className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-xs text-destructive">{errors.form}</p>
+        </div>
+      )}
+      <fieldset
+        className="flex flex-col gap-4"
+        disabled={isReadOnly || isSubmitting}
+      >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="mock-name">Name</Label>
           <Input
@@ -184,7 +264,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
             <Label htmlFor="mock-method">Method</Label>
             <Select
               value={form.method}
-              onValueChange={(v) => set("method", v as Mock["method"])}
+              onValueChange={(v) => set("method", v as CreateMockDto["method"])}
             >
               <SelectTrigger
                 id="mock-method"
@@ -276,7 +356,11 @@ export function MockForm({ initial, mode }: MockFormProps) {
         >
           Cancel
         </Button>
-        {!isReadOnly && <Button type="submit">{submitLabel}</Button>}
+        {!isReadOnly && (
+          <Button type="submit" disabled={isSubmitting}>
+            {submitLabel}
+          </Button>
+        )}
       </div>
     </form>
   );

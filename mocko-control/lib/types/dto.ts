@@ -1,5 +1,10 @@
 import { ZodError } from "zod";
-import type { Mock, MockAnnotation, MockResponse } from "@/lib/types/mock";
+import type {
+  HttpMethod,
+  Mock,
+  MockAnnotation,
+  MockResponse,
+} from "@/lib/types/mock";
 
 export type ValidationErrors = {
   formErrors: string[];
@@ -8,6 +13,21 @@ export type ValidationErrors = {
 export type MockFailure = {
   message: string;
   date: string;
+};
+
+export type CreateMockDto = {
+  name: string;
+  method: HttpMethod;
+  path: string;
+  response: MockResponse;
+};
+
+export type PatchMockDto = {
+  name?: string;
+  method?: HttpMethod;
+  path?: string;
+  response?: Partial<MockResponse>;
+  isEnabled?: boolean;
 };
 
 export class MockResponseDto {

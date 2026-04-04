@@ -9,7 +9,7 @@ import {
   BookOpenIcon,
   SquareCodeIcon,
 } from "lucide-react";
-import { FIXTURE_MOCKS } from "@/lib/mock/mock.fixtures";
+import { useMocks } from "@/lib/frontend/hooks/resources";
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
@@ -18,7 +18,8 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const mockCount = FIXTURE_MOCKS.length;
+  const { data } = useMocks();
+  const mockCount = data?.length ?? 0;
 
   return (
     <aside

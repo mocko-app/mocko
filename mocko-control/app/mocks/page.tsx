@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon, SearchIcon } from "lucide-react";
+import { toast } from "sonner";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { MockCard } from "@/components/mock-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FIXTURE_MOCKS } from "@/lib/mock/mock.fixtures";
-import type { Mock } from "@/lib/types/mock";
+import { deleteMock, patchMock } from "@/lib/frontend/api";
+import { useMocks } from "@/lib/frontend/hooks/resources";
+import type { MockDto } from "@/lib/types/dto";
+
+const EMPTY_MOCKS: MockDto[] = [];
 
 const MocksPageHeader: React.FC<{
   totalCount: number;
@@ -100,21 +104,40 @@ const FilteredOutNotice: React.FC<{
   );
 };
 
+const PollErrorBanner: React.FC = () => {
+  return (
+    <div
+      className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2"
+      role="status"
+      aria-live="polite"
+    >
+      <p className="text-xs text-amber-400">
+        Could not fetch mocks, refresh the page or restart Mocko
+      </p>
+    </div>
+  );
+};
+
 const MocksPage: React.FC = () => {
   const router = useRouter();
-  const [mocks, setMocks] = useState<Mock[]>(FIXTURE_MOCKS);
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<Mock | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MockDto>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
 
-  const filtered = mocks.filter((m) => {
+  const { data, error, isLoading, mutate } = useMocks();
+
+  const mocks = data ?? EMPTY_MOCKS;
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return (
-      m.name.toLowerCase().includes(q) ||
-      m.path.toLowerCase().includes(q) ||
-      m.method.toLowerCase().includes(q)
-    );
-  });
+    return mocks.filter((m) => {
+      return (
+        m.name.toLowerCase().includes(q) ||
+        m.path.toLowerCase().includes(q) ||
+        m.method.toLowerCase().includes(q)
+      );
+    });
+  }, [mocks, search]);
+
   const filteredOutCount = mocks.length - filtered.length;
   const activeCount = mocks.filter((m) => m.isEnabled).length;
 
@@ -122,30 +145,56 @@ const MocksPage: React.FC = () => {
     router.push(`/mocks/${id}`);
   }
 
-  function handleDelete(mock: Mock) {
+  async function handleDelete(mock: MockDto) {
     if (skipDeleteConfirm) {
-      setMocks((prev) => prev.filter((m) => m.id !== mock.id));
-    } else {
-      setDeleteTarget(mock);
+      try {
+        await deleteMock(mock.id);
+        await mutate();
+      } catch (error) {
+        console.error("Failed to delete mock", error);
+        toast.error("Failed to delete mock");
+      }
+      return;
+    }
+
+    setDeleteTarget(mock);
+  }
+
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) {
+      return;
+    }
+
+    try {
+      await deleteMock(deleteTarget.id);
+      await mutate();
+      setDeleteTarget(undefined);
+    } catch (error) {
+      console.error("Failed to delete mock", error);
+      toast.error("Failed to delete mock");
     }
   }
 
-  function handleDeleteConfirm() {
-    if (deleteTarget) {
-      setMocks((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-      setDeleteTarget(null);
+  async function handleToggleEnabled(id: string, enabled: boolean) {
+    try {
+      await patchMock(id, { isEnabled: enabled });
+      await mutate();
+    } catch (error) {
+      if (enabled) {
+        console.error("Failed to enable mock", error);
+        toast.error("Failed to enable mock");
+      } else {
+        console.error("Failed to disable mock", error);
+        toast.error("Failed to disable mock");
+      }
     }
-  }
-
-  function handleToggleEnabled(id: string, enabled: boolean) {
-    setMocks((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, isEnabled: enabled } : m)),
-    );
   }
 
   return (
     <div className="px-8 pt-8 pb-8 max-w-3xl mx-auto">
       <MocksPageHeader totalCount={mocks.length} activeCount={activeCount} />
+
+      {Boolean(error) && <PollErrorBanner />}
 
       <div className="relative mb-6">
         <SearchIcon
@@ -161,13 +210,23 @@ const MocksPage: React.FC = () => {
         />
       </div>
 
-      {filtered.length === 0 && search && (
+      {isLoading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="text-sm text-muted-foreground"
+        >
+          Loading mocks...
+        </div>
+      )}
+
+      {!isLoading && filtered.length === 0 && search && (
         <EmptySearchResult search={search} onClear={() => setSearch("")} />
       )}
 
-      {filtered.length === 0 && !search && <EmptyMocks />}
+      {!isLoading && filtered.length === 0 && !search && <EmptyMocks />}
 
-      {filtered.length > 0 && (
+      {!isLoading && filtered.length > 0 && (
         <>
           <div
             className="flex flex-col gap-2"
@@ -198,7 +257,7 @@ const MocksPage: React.FC = () => {
           open={true}
           mockName={deleteTarget.name}
           onConfirm={handleDeleteConfirm}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(undefined)}
           onDontAskAgain={() => setSkipDeleteConfirm(true)}
         />
       )}
