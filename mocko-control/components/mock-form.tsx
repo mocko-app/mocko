@@ -24,6 +24,7 @@ import {
   patchMock,
   toFormValidationErrors,
 } from "@/lib/frontend/api";
+import { useMocks } from "@/lib/frontend/hooks/resources";
 import type { CreateMockDto, MockDetailsDto } from "@/lib/types/dto";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
@@ -146,6 +147,7 @@ const MockFormHeader: React.FC<{
 
 export function MockForm({ initial, mode }: MockFormProps) {
   const router = useRouter();
+  const { mutate } = useMocks();
   const [form, setForm] = useState<FormState>({
     name: initial?.name ?? "",
     method: initial?.method ?? "GET",
@@ -210,6 +212,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
         toast.success("Mock updated.");
       }
 
+      await mutate();
       router.push("/mocks");
     } catch (error) {
       if (error instanceof ApiError && error.code === "BAD_REQUEST") {
