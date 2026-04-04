@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutGridIcon, ArrowUpFromLineIcon } from "lucide-react";
+import {
+  LayoutGridIcon,
+  FlagIcon,
+  BookOpenIcon,
+  SquareCodeIcon,
+} from "lucide-react";
 import { FIXTURE_MOCKS } from "@/lib/mock/mock.fixtures";
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
-  { label: "Flags", href: "/flags", icon: ArrowUpFromLineIcon, disabled: true },
+  { label: "Flags", href: "/flags", icon: FlagIcon },
 ];
 
 export function Sidebar() {
@@ -21,32 +26,22 @@ export function Sidebar() {
       aria-label="Main navigation"
     >
       <div className="px-3 mb-5 flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 4h8M2 8h5"
-              stroke="var(--primary-foreground)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+        <img
+          src="https://cdn.codetunnel.net/mocko/logo-white.svg"
+          alt=""
+          aria-hidden="true"
+          className="w-8 h-8 object-contain shrink-0"
+        />
         <span className="font-semibold text-sm tracking-tight text-white">
-          mocko
+          Mocko
         </span>
       </div>
 
       <div className="px-3 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-        Workspace
+        Project
       </div>
 
-      <nav className="flex flex-col gap-0.5" role="navigation">
+      <nav className="flex flex-col gap-1" role="navigation">
         {navItems.map(({ label, href, icon: Icon, disabled }) => {
           const active = pathname.startsWith(href);
 
@@ -85,6 +80,39 @@ export function Sidebar() {
             </Link>
           );
         })}
+      </nav>
+
+      <div className="px-3 mt-4 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+        Links
+      </div>
+      <nav className="flex flex-col gap-1" aria-label="External links">
+        <a
+          href="https://mocko.dev/docs/"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <BookOpenIcon className="size-[14px] shrink-0" aria-hidden="true" />
+          Documentation
+        </a>
+        <a
+          href="https://github.com/mocko-app/mocko"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <SquareCodeIcon className="size-[14px] shrink-0" aria-hidden="true" />
+          GitHub
+        </a>
+        {/* <a
+          href="https://status.mocko.dev/"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <ActivityIcon className="size-[14px] shrink-0" aria-hidden="true" />
+          Status
+        </a> */}
       </nav>
     </aside>
   );
