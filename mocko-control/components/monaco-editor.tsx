@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import type { EditorProps } from "@monaco-editor/react";
 
@@ -14,14 +13,6 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 });
 
 type BodyLanguage = "json" | "hbs" | "plaintext" | "xml" | "html";
-
-const LANGUAGE_LABELS: Record<BodyLanguage, string> = {
-  json: "JSON",
-  hbs: "Bigodon",
-  plaintext: "Plain text",
-  xml: "XML",
-  html: "HTML",
-};
 
 const MONACO_LANGUAGE: Record<BodyLanguage, string> = {
   json: "json",
@@ -57,7 +48,7 @@ export function BodyEditor({
   onChange,
   readOnly = false,
 }: BodyEditorProps) {
-  const [language, setLanguage] = useState<BodyLanguage>("json");
+  const language: BodyLanguage = "json";
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-1">

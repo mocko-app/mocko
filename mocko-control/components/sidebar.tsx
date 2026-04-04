@@ -54,7 +54,12 @@ export function Sidebar() {
           return (
             <Tooltip key={href}>
               <TooltipTrigger
-                render={<Link href={href} aria-current={active ? "page" : undefined} />}
+                render={
+                  <Link
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                  />
+                }
                 className={cn(
                   "flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm transition-colors",
                   active
@@ -84,7 +89,13 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1" aria-label="External links">
         <Tooltip>
           <TooltipTrigger
-            render={<a href="https://mocko.dev/docs/" target="_blank" rel="noreferrer" />}
+            render={
+              <a
+                href="https://mocko.dev/docs/"
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
             className="flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <BookOpenIcon className="size-[14px] shrink-0" aria-hidden="true" />
@@ -96,10 +107,19 @@ export function Sidebar() {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
-            render={<a href="https://github.com/mocko-app/mocko" target="_blank" rel="noreferrer" />}
+            render={
+              <a
+                href="https://github.com/mocko-app/mocko"
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
             className="flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
-            <SquareCodeIcon className="size-[14px] shrink-0" aria-hidden="true" />
+            <SquareCodeIcon
+              className="size-[14px] shrink-0"
+              aria-hidden="true"
+            />
             <span className="hidden lg:block">GitHub</span>
           </TooltipTrigger>
           <TooltipContent side="right" className="lg:hidden">

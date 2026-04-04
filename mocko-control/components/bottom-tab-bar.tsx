@@ -8,7 +8,12 @@ import { LayoutGridIcon, FlagIcon, BookOpenIcon } from "lucide-react";
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon, external: false },
   { label: "Flags", href: "/flags", icon: FlagIcon, external: false },
-  { label: "Docs", href: "https://mocko.dev/docs/", icon: BookOpenIcon, external: true },
+  {
+    label: "Docs",
+    href: "https://mocko.dev/docs/",
+    icon: BookOpenIcon,
+    external: true,
+  },
 ];
 
 export function BottomTabBar() {

@@ -16,9 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full dark">
       <body className="h-full bg-background text-foreground antialiased">
-        <TooltipProvider delay={300}>
-          {children}
-        </TooltipProvider>
+        <TooltipProvider delay={300}>{children}</TooltipProvider>
         <Toaster />
       </body>
     </html>
