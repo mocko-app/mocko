@@ -7,6 +7,7 @@
     "dev": "next dev",
     "prebuild": "npm run lint",
     "build": "next build --webpack",
+    "postbuild": "node scripts/prepare-standalone-assets.js",
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier . --write",
