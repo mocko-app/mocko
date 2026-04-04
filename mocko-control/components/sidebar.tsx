@@ -42,21 +42,8 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1" role="navigation">
-        {navItems.map(({ label, href, icon: Icon, disabled }) => {
+        {navItems.map(({ label, href, icon: Icon }) => {
           const active = pathname.startsWith(href);
-
-          if (disabled) {
-            return (
-              <span
-                key={href}
-                aria-disabled="true"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground cursor-default select-none"
-              >
-                <Icon className="size-[14px] shrink-0" aria-hidden="true" />
-                {label}
-              </span>
-            );
-          }
 
           return (
             <Link
