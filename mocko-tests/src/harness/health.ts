@@ -2,7 +2,7 @@ import { AxiosInstance } from 'axios';
 
 export type HealthResponse = { revision: number };
 
-const POLL_INTERVAL = 10;
+const POLL_INTERVAL = 50;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

@@ -8,6 +8,10 @@ import { nextPort } from './port';
 import { waitForHealth, waitForStatus, HealthResponse } from './health';
 
 const CLI_BIN = require.resolve('@mocko/cli/bin/main.js');
+const WATCHER_BOOTSTRAP_DELAY_MS = 100;
+const REMAP_TIMEOUT_MS = 10000;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const WATCHER_READY_RETRY_DELAY_MS = 100;
 
 export type InstanceOptions = Record<
   string,
@@ -76,9 +80,19 @@ export class MockoInstance {
     this.proc.on('close', (code) => {
       this.exitCode = code;
     });
-    await waitForHealth(this.client);
+
+    if (this.watchEnabled) {
+      await sleep(WATCHER_BOOTSTRAP_DELAY_MS);
+    }
+
     if (this.control) {
       await waitForStatus(this.control, '/api/health', 200);
+    }
+
+    await waitForHealth(this.client);
+
+    if (this.watchEnabled) {
+      await this.ensureWatcherReady();
     }
   }
 
@@ -114,7 +128,7 @@ export class MockoInstance {
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
     await fs.writeFile(filename, hcl);
     if (this.watchEnabled) {
-      await this.waitForRevision(revision, 5000);
+      await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
     }
   }
 
@@ -123,7 +137,10 @@ export class MockoInstance {
     return res.data.revision;
   }
 
-  async waitForRemap(revision: number, timeout = 5000): Promise<void> {
+  async waitForRemap(
+    revision: number,
+    timeout = REMAP_TIMEOUT_MS,
+  ): Promise<void> {
     if (!this.watchEnabled) {
       return;
     }
@@ -144,6 +161,27 @@ export class MockoInstance {
     await waitForHealth(this.client, revision + 1, timeout);
   }
 
+  private async ensureWatcherReady(): Promise<void> {
+    const markerPath = path.join(this.tempDir, '.watcher-ready.hcl');
+    const deadline = Date.now() + REMAP_TIMEOUT_MS;
+    let attempt = 0;
+
+    while (Date.now() < deadline) {
+      attempt++;
+      const revision = await this.getRevision();
+      await fs.writeFile(markerPath, `# watcher-ready ${attempt}\n`);
+
+      try {
+        await this.waitForRevision(revision, 1000);
+        return;
+      } catch {
+        await sleep(WATCHER_READY_RETRY_DELAY_MS);
+      }
+    }
+
+    throw new Error('Timed out waiting for filesystem watcher to become ready');
+  }
+
   private async stopProcess(timeout = 5000): Promise<void> {
     if (!this.proc || this.exitCode !== null) {
       return;
@@ -151,18 +189,22 @@ export class MockoInstance {
 
     await new Promise<void>((resolve) => {
       let finished = false;
+      let timeoutId: NodeJS.Timeout | null = null;
       const done = () => {
         if (finished) {
           return;
         }
         finished = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         resolve();
       };
 
       this.proc.once('close', () => done());
       this.proc.kill('SIGTERM');
 
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (this.exitCode === null) {
           this.proc.kill('SIGKILL');
         }

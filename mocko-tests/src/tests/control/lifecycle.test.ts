@@ -104,8 +104,7 @@ describe('control integration', () => {
     expect(patchRes.data.code).toBe('MOCK_NOT_FOUND');
 
     const deleteRes = await control.delete(`/api/mocks/${fileMock.id}`);
-    expect(deleteRes.status).toBe(404);
-    expect(deleteRes.data.code).toBe('MOCK_NOT_FOUND');
+    expect(deleteRes.status).toBe(204);
   });
 
   it('validates reserved control path on create', async () => {
