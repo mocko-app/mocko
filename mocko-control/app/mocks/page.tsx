@@ -191,7 +191,7 @@ const MocksPage: React.FC = () => {
   }
 
   return (
-    <div className="px-8 pt-8 pb-8 max-w-3xl mx-auto">
+    <div>
       <MocksPageHeader totalCount={mocks.length} activeCount={activeCount} />
 
       {Boolean(error) && <PollErrorBanner />}

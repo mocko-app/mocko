@@ -9,7 +9,7 @@ import { useParam } from "@/lib/frontend/hooks/use-param";
 
 function EditMissingState() {
   return (
-    <div className="max-w-2xl mx-auto px-8 pt-8 pb-8 text-center">
+    <div className="max-w-2xl mx-auto text-center">
       <h1 className="text-lg font-semibold text-foreground">Mock not found</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         This mock does not exist or is no longer available.
@@ -33,7 +33,7 @@ export default function EditMockPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto px-8 pt-8 pb-8 text-sm text-muted-foreground">
+      <div className="max-w-2xl mx-auto text-sm text-muted-foreground">
         Loading mock...
       </div>
     );
@@ -45,7 +45,7 @@ export default function EditMockPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-2xl mx-auto px-8 pt-8 pb-8">
+      <div className="max-w-2xl mx-auto">
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2">
           <p className="text-xs text-destructive">
             Failed to load this mock. Please try again.

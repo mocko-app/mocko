@@ -225,7 +225,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
 
   return (
     <form
-      className="flex flex-col gap-6 max-w-2xl mx-auto px-8 pt-8 pb-8"
+      className="flex flex-col gap-6"
       onSubmit={handleSubmit}
       aria-label={title}
     >
@@ -259,8 +259,8 @@ export function MockForm({ initial, mode }: MockFormProps) {
           )}
         </div>
 
-        <div className="flex gap-3">
-          <div className="flex flex-col gap-1.5 w-36">
+        <div className="flex w-full gap-3">
+          <div className="flex w-28 shrink-0 flex-col gap-1.5">
             <Label htmlFor="mock-method">Method</Label>
             <Select
               value={form.method}
@@ -283,7 +283,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-1 flex-col gap-1.5">
             <Label htmlFor="mock-path">Path</Label>
             <Input
               id="mock-path"
@@ -311,7 +311,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 w-36">
+        <div className="flex w-36 flex-col gap-1.5">
           <Label htmlFor="mock-status">Status code</Label>
           <Input
             id="mock-status"
@@ -330,7 +330,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex w-full flex-col gap-1.5">
           <Label>Response headers</Label>
           <HeadersEditor
             headers={form.headers}
@@ -338,7 +338,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex w-full flex-col gap-1.5">
           <Label htmlFor="mock-body">Response body</Label>
           <BodyEditor
             value={form.body}

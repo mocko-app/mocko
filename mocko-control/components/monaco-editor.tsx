@@ -33,6 +33,7 @@ const MONACO_LANGUAGE: Record<BodyLanguage, string> = {
 
 const EDITOR_OPTIONS: EditorProps["options"] = {
   accessibilitySupport: "on",
+  automaticLayout: true,
   minimap: { enabled: false },
   scrollBeyondLastLine: false,
   fontSize: 13,
@@ -59,7 +60,7 @@ export function BodyEditor({
   const [language, setLanguage] = useState<BodyLanguage>("json");
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex w-full min-w-0 flex-col gap-1">
       {/*
       <div
         className="flex items-center gap-1"
@@ -79,9 +80,10 @@ export function BodyEditor({
         ))}
       </div>
       */}
-      <div className="h-48 rounded-lg overflow-hidden border border-border">
+      <div className="h-48 w-full min-w-0 overflow-hidden rounded-lg border border-border">
         <MonacoEditor
           height="100%"
+          width="100%"
           language={MONACO_LANGUAGE[language]}
           theme="vs-dark"
           value={value}

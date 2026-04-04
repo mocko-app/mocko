@@ -10,6 +10,11 @@ import {
   SquareCodeIcon,
 } from "lucide-react";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
@@ -23,22 +28,22 @@ export function Sidebar() {
 
   return (
     <aside
-      className="flex w-52 shrink-0 flex-col py-5 px-3 gap-1"
+      className="hidden md:flex w-12 lg:w-52 shrink-0 flex-col py-5 px-1.5 lg:px-3 gap-1"
       aria-label="Main navigation"
     >
-      <div className="px-3 mb-5 flex items-center gap-2">
+      <div className="px-1.5 lg:px-3 mb-5 flex items-center justify-center lg:justify-start gap-2">
         <img
           src="https://cdn.codetunnel.net/mocko/logo-white.svg"
           alt=""
           aria-hidden="true"
           className="w-8 h-8 object-contain shrink-0"
         />
-        <span className="font-semibold text-sm tracking-tight text-white">
+        <span className="hidden lg:block font-semibold text-sm tracking-tight text-white">
           Mocko
         </span>
       </div>
 
-      <div className="px-3 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+      <div className="hidden lg:block px-3 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
         Project
       </div>
 
@@ -47,60 +52,60 @@ export function Sidebar() {
           const active = pathname.startsWith(href);
 
           return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-                active
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
-            >
-              <Icon className="size-[14px] shrink-0" aria-hidden="true" />
-              {label}
-              {active && (
-                <span className="ml-auto text-[10px] font-mono bg-primary/20 text-primary px-1.5 py-1 rounded leading-none">
-                  {mockCount}
-                </span>
-              )}
-            </Link>
+            <Tooltip key={href}>
+              <TooltipTrigger
+                render={<Link href={href} aria-current={active ? "page" : undefined} />}
+                className={cn(
+                  "flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm transition-colors",
+                  active
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                <Icon className="size-[14px] shrink-0" aria-hidden="true" />
+                <span className="hidden lg:block">{label}</span>
+                {active && (
+                  <span className="hidden lg:block ml-auto text-[10px] font-mono bg-primary/20 text-primary px-1.5 py-1 rounded leading-none">
+                    {mockCount}
+                  </span>
+                )}
+              </TooltipTrigger>
+              <TooltipContent side="right" className="lg:hidden">
+                {label}
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </nav>
 
-      <div className="px-3 mt-4 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+      <div className="hidden lg:block px-3 mt-4 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
         Links
       </div>
       <nav className="flex flex-col gap-1" aria-label="External links">
-        <a
-          href="https://mocko.dev/docs/"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <BookOpenIcon className="size-[14px] shrink-0" aria-hidden="true" />
-          Documentation
-        </a>
-        <a
-          href="https://github.com/mocko-app/mocko"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <SquareCodeIcon className="size-[14px] shrink-0" aria-hidden="true" />
-          GitHub
-        </a>
-        {/* <a
-          href="https://status.mocko.dev/"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <ActivityIcon className="size-[14px] shrink-0" aria-hidden="true" />
-          Status
-        </a> */}
+        <Tooltip>
+          <TooltipTrigger
+            render={<a href="https://mocko.dev/docs/" target="_blank" rel="noreferrer" />}
+            className="flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <BookOpenIcon className="size-[14px] shrink-0" aria-hidden="true" />
+            <span className="hidden lg:block">Documentation</span>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="lg:hidden">
+            Documentation
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={<a href="https://github.com/mocko-app/mocko" target="_blank" rel="noreferrer" />}
+            className="flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <SquareCodeIcon className="size-[14px] shrink-0" aria-hidden="true" />
+            <span className="hidden lg:block">GitHub</span>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="lg:hidden">
+            GitHub
+          </TooltipContent>
+        </Tooltip>
       </nav>
     </aside>
   );
