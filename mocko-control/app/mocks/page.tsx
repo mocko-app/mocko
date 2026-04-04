@@ -3,141 +3,104 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  PlusIcon,
-  SearchIcon,
-  MoreHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-  ToggleLeftIcon,
-  ToggleRightIcon,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { PlusIcon, SearchIcon } from "lucide-react";
 import { DeleteDialog } from "@/components/delete-dialog";
+import { MockCard } from "@/components/mock-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { FIXTURE_MOCKS } from "@/lib/mock/mock.fixtures";
 import type { Mock } from "@/lib/types/mock";
-import { cn } from "@/lib/utils";
 
-const METHOD_COLORS: Record<Mock["method"], string> = {
-  GET: "text-sky-400",
-  POST: "text-emerald-500",
-  PUT: "text-amber-400",
-  PATCH: "text-violet-400",
-  DELETE: "text-red-400",
-};
-
-interface MockCardProps {
-  mock: Mock;
-  onEdit: (id: string) => void;
-  onDelete: (mock: Mock) => void;
-  onToggleEnabled: (id: string, enabled: boolean) => void;
-}
-
-function MockCard({ mock, onEdit, onDelete, onToggleEnabled }: MockCardProps) {
-  const isReadOnly = mock.annotations.includes("READ_ONLY");
-
+const MocksPageHeader: React.FC<{
+  totalCount: number;
+  activeCount: number;
+}> = ({ totalCount, activeCount }) => {
   return (
-    <div
-      className="group flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3.5 transition-colors hover:border-[#252528]"
-      role="row"
-      aria-label={`Mock: ${mock.name}`}
-    >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2.5 mb-1.5">
-          <span className="text-sm font-medium text-white truncate">
-            {mock.name}
-          </span>
-          {mock.annotations.includes("TEMPORARY") && (
-            <Badge variant="annotationTemporary">Temporary</Badge>
-          )}
-          {isReadOnly && <Badge variant="annotationReadOnly">Read Only</Badge>}
-        </div>
-        <div className="flex items-center gap-2 font-mono text-xs">
-          <span
-            className={cn(
-              METHOD_COLORS[mock.method],
-              "tracking-wider shrink-0",
-            )}
-          >
-            {mock.method}
-          </span>
-          <span className="text-muted-foreground truncate">{mock.path}</span>
-        </div>
+    <div className="flex items-center justify-between mb-5">
+      <div>
+        <h1 className="text-2xl font-semibold text-white tracking-tight">
+          Mocks
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {totalCount} total · {activeCount} active
+        </p>
       </div>
-
-      <div className="flex items-center gap-2.5 shrink-0">
-        {!mock.isEnabled && (
-          <div className="flex items-center gap-1.5" aria-label="Disabled">
-            <span
-              className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"
-              aria-hidden="true"
-            />
-            <span className="text-xs text-red-400 font-medium">off</span>
-          </div>
-        )}
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
-                aria-label={`Actions for ${mock.name}`}
-              />
-            }
-          >
-            <MoreHorizontalIcon aria-hidden="true" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {!isReadOnly ? (
-              <>
-                <DropdownMenuItem onClick={() => onEdit(mock.id)}>
-                  <PencilIcon aria-hidden="true" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onToggleEnabled(mock.id, !mock.isEnabled)}
-                >
-                  {mock.isEnabled ? (
-                    <ToggleLeftIcon aria-hidden="true" />
-                  ) : (
-                    <ToggleRightIcon aria-hidden="true" />
-                  )}
-                  {mock.isEnabled ? "Disable" : "Enable"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(mock)}
-                >
-                  <TrashIcon aria-hidden="true" />
-                  Delete
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <DropdownMenuItem onClick={() => onEdit(mock.id)}>
-                <PencilIcon aria-hidden="true" />
-                View
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <Button
+        nativeButton={false}
+        render={<Link href="/mocks/new" aria-label="Create new mock" />}
+      >
+        <PlusIcon aria-hidden="true" />
+        New mock
+      </Button>
     </div>
   );
-}
+};
 
-export default function MocksPage() {
+const EmptySearchResult: React.FC<{
+  search: string;
+  onClear: () => void;
+}> = ({ search, onClear }) => {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-2 py-16 text-center"
+      role="status"
+      aria-live="polite"
+    >
+      <p className="text-muted-foreground text-sm">
+        No mocks match &ldquo;{search}&rdquo;
+      </p>
+      <Button variant="ghost" size="sm" onClick={onClear}>
+        Clear search
+      </Button>
+    </div>
+  );
+};
+
+const EmptyMocks: React.FC = () => {
+  return (
+    <div className="px-6 py-12 text-center" role="status">
+      <h2 className="text-lg font-medium text-foreground mb-2">No mocks yet</h2>
+      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+        No mocks yet. Create one with the button below, or add an HCL file and
+        it will appear here automatically. See{" "}
+        <a
+          href="https://mocko.dev/docs/"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          docs
+        </a>
+        .
+      </p>
+      <Button
+        size="sm"
+        nativeButton={false}
+        render={<Link href="/mocks/new" />}
+      >
+        Create your first mock
+      </Button>
+    </div>
+  );
+};
+
+const FilteredOutNotice: React.FC<{
+  count: number;
+  onClear: () => void;
+}> = ({ count, onClear }) => {
+  return (
+    <div className="mt-3 flex items-center justify-between rounded-lg border border-border/70 bg-card/40 px-3 py-2">
+      <p className="text-xs text-muted-foreground">
+        {count} more {count === 1 ? "mock was" : "mocks were"} filtered out.
+      </p>
+      <Button variant="ghost" size="sm" onClick={onClear}>
+        Clear search
+      </Button>
+    </div>
+  );
+};
+
+const MocksPage: React.FC = () => {
   const router = useRouter();
   const [mocks, setMocks] = useState<Mock[]>(FIXTURE_MOCKS);
   const [search, setSearch] = useState("");
@@ -152,7 +115,7 @@ export default function MocksPage() {
       m.method.toLowerCase().includes(q)
     );
   });
-
+  const filteredOutCount = mocks.length - filtered.length;
   const activeCount = mocks.filter((m) => m.isEnabled).length;
 
   function handleEdit(id: string) {
@@ -182,29 +145,11 @@ export default function MocksPage() {
 
   return (
     <div className="px-8 pt-8 pb-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-end justify-between mb-5">
-        <div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">
-            Mocks
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {mocks.length} total · {activeCount} active
-          </p>
-        </div>
-        <Button
-          nativeButton={false}
-          render={<Link href="/mocks/new" aria-label="Create new mock" />}
-        >
-          <PlusIcon aria-hidden="true" />
-          New mock
-        </Button>
-      </div>
+      <MocksPageHeader totalCount={mocks.length} activeCount={activeCount} />
 
-      {/* Search */}
       <div className="relative mb-6">
         <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 size-[14px] text-[#444] pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#444] pointer-events-none"
           aria-hidden="true"
         />
         <Input
@@ -216,56 +161,36 @@ export default function MocksPage() {
         />
       </div>
 
-      {/* Empty: no search match */}
       {filtered.length === 0 && search && (
-        <div
-          className="flex flex-col items-center justify-center gap-2 py-16 text-center"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-muted-foreground text-sm">
-            No mocks match &ldquo;{search}&rdquo;
-          </p>
-          <Button variant="ghost" size="sm" onClick={() => setSearch("")}>
-            Clear search
-          </Button>
-        </div>
+        <EmptySearchResult search={search} onClear={() => setSearch("")} />
       )}
 
-      {/* Empty: no mocks at all */}
-      {filtered.length === 0 && !search && (
-        <div
-          className="flex flex-col items-center justify-center gap-3 py-16 text-center"
-          role="status"
-        >
-          <p className="text-muted-foreground text-sm">No mocks yet.</p>
-          <Button
-            size="sm"
-            nativeButton={false}
-            render={<Link href="/mocks/new" />}
-          >
-            Create your first mock
-          </Button>
-        </div>
-      )}
+      {filtered.length === 0 && !search && <EmptyMocks />}
 
-      {/* List */}
       {filtered.length > 0 && (
-        <div
-          className="flex flex-col gap-2"
-          role="list"
-          aria-label="Mocks list"
-        >
-          {filtered.map((mock) => (
-            <MockCard
-              key={mock.id}
-              mock={mock}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onToggleEnabled={handleToggleEnabled}
+        <>
+          <div
+            className="flex flex-col gap-2"
+            role="list"
+            aria-label="Mocks list"
+          >
+            {filtered.map((mock) => (
+              <MockCard
+                key={mock.id}
+                mock={mock}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleEnabled={handleToggleEnabled}
+              />
+            ))}
+          </div>
+          {search && filteredOutCount > 0 && (
+            <FilteredOutNotice
+              count={filteredOutCount}
+              onClear={() => setSearch("")}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {deleteTarget && (
@@ -279,4 +204,6 @@ export default function MocksPage() {
       )}
     </div>
   );
-}
+};
+
+export default MocksPage;
