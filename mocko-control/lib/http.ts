@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
-import { ErrorDto, type ParsingError } from "@/lib/types/dto";
+import { ErrorDto, type ParsingError } from "@/lib/types/error-dtos";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store",

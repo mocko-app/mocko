@@ -2,7 +2,7 @@
 
 import useSWR, { type SWRConfiguration } from "swr";
 import { api, toApiError, type ApiError } from "@/lib/frontend/api";
-import type { MockDetailsDto, MockDto } from "@/lib/types/dto";
+import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 
 export function useMocks(options?: SWRConfiguration<MockDto[], ApiError>) {
   return useSWR<MockDto[], ApiError>(

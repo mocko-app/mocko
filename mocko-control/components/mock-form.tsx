@@ -27,11 +27,8 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
-import type {
-  CreateMockDto,
-  MockDetailsDto,
-  ParsingError,
-} from "@/lib/types/dto";
+import type { ParsingError } from "@/lib/types/error-dtos";
+import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 

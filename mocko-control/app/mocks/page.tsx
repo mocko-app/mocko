@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
-import type { MockDto } from "@/lib/types/dto";
+import type { MockDto } from "@/lib/types/mock-dtos";
 
 const EMPTY_MOCKS: MockDto[] = [];
 

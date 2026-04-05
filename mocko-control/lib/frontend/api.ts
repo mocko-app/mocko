@@ -1,11 +1,10 @@
 import axios, { AxiosError } from "axios";
 import type {
-  CreateMockDto,
   ErrorDto,
   ParsingError,
-  PatchMockDto,
   ValidationErrors,
-} from "@/lib/types/dto";
+} from "@/lib/types/error-dtos";
+import type { CreateMockDto, PatchMockDto } from "@/lib/types/mock-dtos";
 
 export type ApiErrorDto = ErrorDto;
 export type ApiValidationErrors = ValidationErrors;

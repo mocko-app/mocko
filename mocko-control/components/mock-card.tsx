@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { MockDto } from "@/lib/types/dto";
+import type { MockDto } from "@/lib/types/mock-dtos";
 import type { HttpMethod } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 

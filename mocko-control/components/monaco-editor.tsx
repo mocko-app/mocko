@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef } from "react";
 import type { EditorProps } from "@monaco-editor/react";
-import type { ParsingError } from "@/lib/types/dto";
+import type { ParsingError } from "@/lib/types/error-dtos";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -42,6 +42,12 @@ type BodyEditorProps = {
   readOnly?: boolean;
   language?: string;
   parsingError?: ParsingError | null;
+};
+
+type FlagEditorProps = {
+  value: string;
+  onChange: (value: string) => void;
+  readOnly?: boolean;
 };
 
 export function BodyEditor({
@@ -96,6 +102,32 @@ export function BodyEditor({
         onMount={(editor, monaco) => {
           editorRef.current = editor;
           monacoRef.current = monaco;
+        }}
+        options={{ ...EDITOR_OPTIONS, readOnly }}
+      />
+    </div>
+  );
+}
+
+export function FlagEditor({
+  value,
+  onChange,
+  readOnly = false,
+}: FlagEditorProps) {
+  return (
+    <div className="h-96 w-full min-w-0 overflow-hidden rounded-lg border border-border">
+      <MonacoEditor
+        height="100%"
+        width="100%"
+        language="json"
+        theme="vs-dark"
+        value={value}
+        onChange={(v) => onChange(v ?? "")}
+        beforeMount={(monaco) => {
+          monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+            validate: false,
+            schemaValidation: "ignore",
+          });
         }}
         options={{ ...EDITOR_OPTIONS, readOnly }}
       />

@@ -9,7 +9,7 @@ import {
 } from "@/lib/mock/mock.mapper";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
-import type { MockFailure } from "@/lib/types/dto";
+import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock, MockResponse } from "@/lib/types/mock";
 import type {
   CreateMockInput,

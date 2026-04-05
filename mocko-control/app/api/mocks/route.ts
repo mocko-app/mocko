@@ -6,7 +6,7 @@ import {
   tryCatch,
 } from "@/lib/http";
 import { mockService } from "@/lib/mock/mock.service";
-import { MockDto } from "@/lib/types/dto";
+import { MockDto } from "@/lib/types/mock-dtos";
 import { createMockSchema } from "@/lib/validation/mock.schema";
 
 export const runtime = "nodejs";
