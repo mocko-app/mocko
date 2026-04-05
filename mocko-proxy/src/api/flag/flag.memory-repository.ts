@@ -20,4 +20,10 @@ export class FlagMemoryRepository implements FlagRepository {
     async has(key: string): Promise<boolean> {
         return this.flags.has(key);
     }
+
+    async listFlags(prefix: string): Promise<string[]> {
+        return Array.from(this.flags.keys())
+            .filter((key) => key.startsWith(prefix))
+            .sort((a, b) => a.localeCompare(b));
+    }
 }

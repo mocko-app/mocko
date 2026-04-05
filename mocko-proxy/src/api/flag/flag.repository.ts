@@ -3,4 +3,5 @@ export interface FlagRepository {
     get(key: string): Promise<any>;
     del(key: string): Promise<void>;
     has(key: string): Promise<boolean>;
+    listFlags(prefix: string): Promise<string[]>;
 }

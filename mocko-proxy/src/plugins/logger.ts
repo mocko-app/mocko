@@ -12,6 +12,8 @@ export class LoggerPlugin implements IPlugin {
             '/__mocko__/deploy',
             '/__mocko__/mocks',
             '/__mocko__/mocks/{id}',
+            '/__mocko__/flags',
+            '/__mocko__/flags/{key}',
         ]
     };
 }
