@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
-import { ErrorDto } from "@/lib/types/dto";
+import { ErrorDto, type ParsingError } from "@/lib/types/dto";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store",
@@ -51,6 +51,13 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(404, ErrorDto.ofMockNotFound(id));
   }
 
+  static templateParseError(parsingError: ParsingError): HttpResponseError {
+    return new HttpResponseError(
+      400,
+      ErrorDto.ofTemplateParseError(parsingError),
+    );
+  }
+
   toResponse(): NextResponse {
     return NextResponse.json(this.body, {
       status: this.status,
@@ -76,6 +83,22 @@ export function noContentResponse(status = 204): NextResponse {
 export function errorResponse(error: unknown): NextResponse {
   if (error instanceof HttpResponseError) {
     return error.toResponse();
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof (error as { status: unknown }).status === "number" &&
+    "body" in error &&
+    typeof (error as { body: unknown }).body === "object" &&
+    (error as { body: unknown }).body !== null
+  ) {
+    const { status, body } = error as { status: number; body: unknown };
+    return NextResponse.json(body, {
+      status,
+      headers: NO_STORE_HEADERS,
+    });
   }
 
   throw error;

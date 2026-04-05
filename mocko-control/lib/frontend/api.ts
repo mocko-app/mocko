@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import type {
   CreateMockDto,
   ErrorDto,
+  ParsingError,
   PatchMockDto,
   ValidationErrors,
 } from "@/lib/types/dto";
@@ -24,6 +25,10 @@ export class ApiError extends Error {
 
   get validation(): ApiValidationErrors | undefined {
     return this.body?.errors;
+  }
+
+  get parsingError(): ParsingError | undefined {
+    return this.body?.parsingError;
   }
 }
 

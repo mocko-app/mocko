@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Callout } from "@/components/callout";
 import { HeadersEditor } from "@/components/headers-editor";
 import { BodyEditor } from "@/components/monaco-editor";
 import {
@@ -26,7 +27,11 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
-import type { CreateMockDto, MockDetailsDto } from "@/lib/types/dto";
+import type {
+  CreateMockDto,
+  MockDetailsDto,
+  ParsingError,
+} from "@/lib/types/dto";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 
@@ -246,6 +251,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
   });
   const [hideErrors, setHideErrors] = useState(true);
   const [serverErrors, setServerErrors] = useState<FormErrors>({});
+  const [templateError, setTemplateError] = useState<ParsingError | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
@@ -273,6 +279,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setHideErrors(true);
     setServerErrors({});
+    setTemplateError(null);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -315,14 +322,32 @@ export function MockForm({ initial, mode }: MockFormProps) {
     } catch (error) {
       if (error instanceof ApiError && error.code === "BAD_REQUEST") {
         setServerErrors(toFormValidationErrors(error.validation));
+        setTemplateError(null);
         setHideErrors(false);
+      } else if (
+        error instanceof ApiError &&
+        error.code === "TEMPLATE_PARSE_ERROR"
+      ) {
+        setTemplateError(
+          error.parsingError ?? {
+            message: error.message,
+            line: null,
+            column: null,
+          },
+        );
+        setHideErrors(false);
+        setServerErrors({});
       } else {
+        setTemplateError(null);
+        setHideErrors(false);
         toast.error("Failed to save mock.");
       }
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const bodyError = templateError;
 
   return (
     <form
@@ -460,11 +485,18 @@ export function MockForm({ initial, mode }: MockFormProps) {
               ))}
             </ToggleGroup>
           </div>
+          {bodyError && (
+            <Callout
+              title="There is an issue with your template"
+              message={bodyError.message}
+            />
+          )}
           <BodyEditor
             value={form.body}
             onChange={(v) => set("body", v)}
             readOnly={isReadOnly}
             language={activeContentType.monacoLanguage}
+            parsingError={bodyError}
           />
         </div>
       </fieldset>

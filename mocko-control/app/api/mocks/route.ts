@@ -25,6 +25,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return errorResponse(bodyError);
   }
 
-  const mock = await mockService.createMock(body);
+  const [mock, createError] = await tryCatch(() =>
+    mockService.createMock(body),
+  );
+  if (createError) {
+    return errorResponse(createError);
+  }
+
   return jsonResponse(MockDto.ofMock(mock), 201);
 }

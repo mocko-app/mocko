@@ -14,6 +14,11 @@ export type MockFailure = {
   message: string;
   date: string;
 };
+export type ParsingError = {
+  message: string;
+  line: number | null;
+  column: number | null;
+};
 
 export type CreateMockDto = {
   name: string;
@@ -100,6 +105,7 @@ export class ErrorDto {
     public readonly code: string,
     public readonly message: string,
     public readonly errors?: ValidationErrors,
+    public readonly parsingError?: ParsingError,
   ) {}
 
   static ofBadRequest(message: string): ErrorDto {
@@ -116,5 +122,14 @@ export class ErrorDto {
 
   static ofMockNotFound(id: string): ErrorDto {
     return new ErrorDto("MOCK_NOT_FOUND", `Mock "${id}" was not found`);
+  }
+
+  static ofTemplateParseError(parsingError: ParsingError): ErrorDto {
+    return new ErrorDto(
+      "TEMPLATE_PARSE_ERROR",
+      parsingError.message,
+      undefined,
+      parsingError,
+    );
   }
 }

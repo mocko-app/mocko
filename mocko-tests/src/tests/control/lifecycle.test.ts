@@ -148,4 +148,63 @@ describe('control integration', () => {
     expect(res.status).toBe(400);
     expect(res.data.code).toBe('BAD_REQUEST');
   });
+
+  it('rejects save when response body has invalid bigodon template', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const res = await control.post('/api/mocks', {
+      name: 'invalid template',
+      method: 'GET',
+      path: randomPath(),
+      response: {
+        code: 200,
+        body: '{{#if value}}x{{/each}}',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.data.code).toBe('TEMPLATE_PARSE_ERROR');
+    expect(res.data.parsingError).toBeTruthy();
+    expect(res.data.message).toContain('Error at line');
+    expect(typeof res.data.parsingError.line).toBe('number');
+    expect(typeof res.data.parsingError.column).toBe('number');
+  });
+
+  it('rejects patch when response body has invalid bigodon template', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/mocks', {
+      name: 'to patch',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        body: 'ok',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      },
+    });
+
+    expect(createRes.status).toBe(201);
+
+    const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
+      response: {
+        body: '{{#if value}}x{{/each}}',
+      },
+    });
+
+    expect(patchRes.status).toBe(400);
+    expect(patchRes.data.code).toBe('TEMPLATE_PARSE_ERROR');
+    expect(patchRes.data.parsingError).toBeTruthy();
+    expect(patchRes.data.message).toContain('Error at line');
+    expect(typeof patchRes.data.parsingError.line).toBe('number');
+    expect(typeof patchRes.data.parsingError.column).toBe('number');
+  });
 });

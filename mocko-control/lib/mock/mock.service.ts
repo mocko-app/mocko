@@ -1,4 +1,6 @@
 import { HttpResponseError, tryCatch } from "@/lib/http";
+import { $template } from "bigodon/dist/parser";
+import { State } from "pierrejs";
 import { coreClient } from "@/lib/core/client";
 import {
   toDeployDefinition,
@@ -43,6 +45,8 @@ export class MockService {
   }
 
   async createMock(data: CreateMockInput): Promise<Mock> {
+    this.assertTemplateIsValid(data.response.body);
+
     const mock: Mock = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -75,6 +79,8 @@ export class MockService {
         : currentMock.response,
       annotations: [...currentMock.annotations],
     };
+
+    this.assertTemplateIsValid(mock.response.body);
 
     await this.store.saveMock(id, mock);
     await this.deploy();
@@ -141,6 +147,44 @@ export class MockService {
     }
 
     return toReadOnlyDetailsMock(coreMock);
+  }
+
+  private assertTemplateIsValid(body?: string): void {
+    if (!body) {
+      return;
+    }
+
+    const parseResult = $template.applyTo(State.of(body));
+    if (parseResult.error) {
+      const { line, column } = this.indexToLineAndColumn(
+        body,
+        parseResult.state.index,
+      );
+      throw HttpResponseError.templateParseError({
+        message: `Error at line ${line}, column ${column}: ${parseResult.error}`,
+        line,
+        column,
+      });
+    }
+  }
+
+  private indexToLineAndColumn(
+    code: string,
+    index: number,
+  ): { line: number; column: number } {
+    let line = 1;
+    let column = 1;
+
+    for (let i = 0; i < index; i += 1) {
+      if (code[i] === "\n") {
+        line += 1;
+        column = 1;
+        continue;
+      }
+      column += 1;
+    }
+
+    return { line, column };
   }
 }
 

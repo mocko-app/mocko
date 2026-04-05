@@ -1,7 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef } from "react";
 import type { EditorProps } from "@monaco-editor/react";
+import type { ParsingError } from "@/lib/types/dto";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -39,6 +41,7 @@ type BodyEditorProps = {
   onChange: (value: string) => void;
   readOnly?: boolean;
   language?: string;
+  parsingError?: ParsingError | null;
 };
 
 export function BodyEditor({
@@ -46,16 +49,54 @@ export function BodyEditor({
   onChange,
   readOnly = false,
   language = "json",
+  parsingError = null,
 }: BodyEditorProps) {
+  const resolvedLanguage = value.includes("{{") ? "handlebars" : language;
+  const editorRef = useRef<
+    Parameters<NonNullable<EditorProps["onMount"]>>[0] | null
+  >(null);
+  const monacoRef = useRef<
+    Parameters<NonNullable<EditorProps["onMount"]>>[1] | null
+  >(null);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    const model = editor?.getModel();
+    if (!editor || !monaco || !model) {
+      return;
+    }
+
+    const markers =
+      parsingError?.line && parsingError?.column
+        ? [
+            {
+              startLineNumber: parsingError.line,
+              startColumn: parsingError.column,
+              endLineNumber: parsingError.line,
+              endColumn: parsingError.column + 1,
+              message: parsingError.message,
+              severity: monaco.MarkerSeverity.Error,
+            },
+          ]
+        : [];
+
+    monaco.editor.setModelMarkers(model, "mocko-control-template", markers);
+  }, [parsingError, value]);
+
   return (
     <div className="h-48 w-full min-w-0 overflow-hidden rounded-lg border border-border">
       <MonacoEditor
         height="100%"
         width="100%"
-        language={language}
+        language={resolvedLanguage}
         theme="vs-dark"
         value={value}
         onChange={(v) => onChange(v ?? "")}
+        onMount={(editor, monaco) => {
+          editorRef.current = editor;
+          monacoRef.current = monaco;
+        }}
         options={{ ...EDITOR_OPTIONS, readOnly }}
       />
     </div>
