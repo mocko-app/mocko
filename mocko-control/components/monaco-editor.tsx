@@ -25,7 +25,11 @@ const EDITOR_OPTIONS: EditorProps["options"] = {
   renderLineHighlight: "none",
   overviewRulerLanes: 0,
   hideCursorInOverviewRuler: true,
-  scrollbar: { vertical: "auto", horizontal: "auto" },
+  scrollbar: {
+    vertical: "auto",
+    horizontal: "auto",
+    alwaysConsumeMouseWheel: false,
+  },
   wordWrap: "on",
   padding: { top: 8, bottom: 8 },
 };
