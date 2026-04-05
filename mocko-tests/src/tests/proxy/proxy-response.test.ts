@@ -1,7 +1,4 @@
-import {
-  createSubject,
-  MockoInstance,
-} from '../../harness';
+import { createSubject, MockoInstance } from '../../harness';
 import { nextPort } from '../../harness/port';
 
 describe('proxy response passthrough', () => {

@@ -6,6 +6,14 @@ import { hapiRequestLogger } from "@mocko/logger";
 export class LoggerPlugin implements IPlugin {
     readonly plugin = hapiRequestLogger;
     readonly options = {
-        ignoredRoutes: ['/health']
+        ignoredRoutes: [
+            '/health',
+            '/__mocko__',
+            '/__mocko__/deploy',
+            '/__mocko__/mocks',
+            '/__mocko__/mocks/{id}',
+            '/__mocko__/flags',
+            '/__mocko__/flags/{key}',
+        ]
     };
 }

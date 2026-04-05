@@ -1,10 +1,13 @@
 import { RedisProvider } from "../../redis/redis.provider";
 import {Service} from "../../utils/decorators/service";
 import { FlagRepository } from "./flag.repository";
+import * as Boom from "@hapi/boom";
 
 @Service()
 export class FlagRedisRepository implements FlagRepository {
     private readonly FLAG_PREFIX = 'flags:';
+    private readonly MANAGED_API_UNSUPPORTED_MESSAGE =
+        'Redis flags cannot be accessed via api here';
 
     constructor(
         private readonly redis: RedisProvider,
@@ -25,5 +28,9 @@ export class FlagRedisRepository implements FlagRepository {
     async has(key: string): Promise<boolean> {
         const value = await this.get(key);
         return value !== null;
+    }
+
+    async listFlags(_prefix: string): Promise<string[]> {
+        throw Boom.badData(this.MANAGED_API_UNSUPPORTED_MESSAGE);
     }
 }

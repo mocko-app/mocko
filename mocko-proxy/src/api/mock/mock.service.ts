@@ -12,6 +12,7 @@ import * as FlagHelpers from "../../helpers/flag";
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import Bigodon from "bigodon";
 import { Mock } from "../../definitions/data/mock";
+import { CoreMockDetailsDto, CoreMockDto } from "./data/core-mock.dto";
 
 @Service()
 export class MockService {
@@ -26,11 +27,13 @@ export class MockService {
         private readonly definitionProvider: DefinitionProvider,
     ) { }
 
-    async getRoutes(): Promise<ServerRoute[]> {
+    async getMockRoutes(): Promise<ServerRoute[]> {
         const options = await this.definitionProvider.getDefinitions();
         this.registerHelpers();
 
-        return options.mocks.map(mock => this.mockToRoute(mock, options.data));
+        return options.mocks
+            .filter((mock) => !this.isReservedPath(mock.path))
+            .map((mock) => this.mockToRoute(mock, options.data));
     }
 
     private mockToRoute(mock: Mock, data: Record<string, any>): ServerRoute {
@@ -62,6 +65,28 @@ export class MockService {
             // @ts-expect-error Extra config for @mocko/h2o2, not on official hapi types
             config,
         };
+    }
+
+    async listMocks(): Promise<CoreMockDto[]> {
+        const options = await this.definitionProvider.getDefinitions();
+        return options.mocks.map((mock) => CoreMockDto.ofMock(mock));
+    }
+
+    async getMockById(id: string): Promise<CoreMockDetailsDto | null> {
+        const options = await this.definitionProvider.getDefinitions();
+        const mock = options.mocks.find((item) => item.id === id);
+
+        if(!mock) {
+            return null;
+        }
+
+        const failure = await this.repository.getFailure(id);
+
+        return CoreMockDetailsDto.of(mock, failure);
+    }
+
+    private isReservedPath(path: string): boolean {
+        return path === '/__mocko__' || path.startsWith('/__mocko__/');
     }
 
     private registerHelpers() {

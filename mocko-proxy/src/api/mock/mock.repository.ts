@@ -17,4 +17,12 @@ export class MockRepository {
 
         await this.redis.set(`mock_failure:${id}`, failure, MOCK_FAILURE_DURATION);
     }
+
+    async getFailure(id: string): Promise<MockFailure | null> {
+        if(!this.redis.isEnabled) {
+            return null;
+        }
+
+        return (await this.redis.get<MockFailure | null>(`mock_failure:${id}`)) || null;
+    }
 }

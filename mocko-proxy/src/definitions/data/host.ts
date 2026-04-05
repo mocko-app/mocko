@@ -12,6 +12,15 @@ const hostSchema = Joi.object({
     destination: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
 });
 
+export function validateHost(host: Host): Host {
+    const validation = hostSchema.validate(host);
+    if(validation.error) {
+        throw new Error(validation.error.message);
+    }
+
+    return validation.value;
+}
+
 export function hostFromConfig(name: string, data: any): Host {
     const host = {
         name,
@@ -19,10 +28,9 @@ export function hostFromConfig(name: string, data: any): Host {
         destination: data?.[0]?.destination,
     };
 
-    const validation = hostSchema.validate(host);
-    if(validation.error) {
-        throw new Error(`On host '${name}', ${validation.error.message}`);
+    try {
+        return validateHost(host);
+    } catch(error) {
+        throw new Error(`On host '${name}', ${error.message}`);
     }
-
-    return validation.value;
 };

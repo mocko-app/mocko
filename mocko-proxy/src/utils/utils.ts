@@ -9,3 +9,23 @@ export function mergeRecords(array: Record<string, any[]>[]): Record<string, any
 
     return output;
 }
+
+export type TryCatchResult<T, E = Error> =
+    | [result: T, error: null]
+    | [result: null, error: E];
+
+export function tryCatchSync<T, E = Error>(callback: () => T): TryCatchResult<T, E> {
+    try {
+        return [callback(), null];
+    } catch(error) {
+        return [null, error as E];
+    }
+}
+
+export async function tryCatch<T, E = Error>(callback: () => Promise<T>): Promise<TryCatchResult<T, E>> {
+    try {
+        return [await callback(), null];
+    } catch(error) {
+        return [null, error as E];
+    }
+}

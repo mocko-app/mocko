@@ -63,7 +63,9 @@ describe('data stanza', () => {
       }
     `);
     expect((await subject.client.get('/data/nested-first')).data).toBe('John');
-    expect((await subject.client.get('/data/nested-second')).data).toBe('Alice');
+    expect((await subject.client.get('/data/nested-second')).data).toBe(
+      'Alice',
+    );
   });
 
   it('merges data from different files', async () => {
