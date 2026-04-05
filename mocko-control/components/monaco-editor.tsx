@@ -15,6 +15,9 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 const EDITOR_OPTIONS: EditorProps["options"] = {
   accessibilitySupport: "on",
   automaticLayout: true,
+  detectIndentation: false,
+  insertSpaces: true,
+  tabSize: 2,
   minimap: { enabled: false },
   scrollBeyondLastLine: false,
   fontSize: 13,
