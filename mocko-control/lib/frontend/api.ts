@@ -4,12 +4,7 @@ import type {
   ParsingError,
   ValidationErrors,
 } from "@/lib/types/error-dtos";
-import type {
-  CreateFlagDto,
-  FlagDto,
-  FlagListDto,
-  PatchFlagDto,
-} from "@/lib/types/flag-dtos";
+import type { FlagDto, FlagListDto, PutFlagDto } from "@/lib/types/flag-dtos";
 import type { CreateMockDto, PatchMockDto } from "@/lib/types/mock-dtos";
 
 export type ApiErrorDto = ErrorDto;
@@ -101,22 +96,13 @@ export async function getFlag(key: string): Promise<FlagDto> {
   }
 }
 
-export async function createFlag(payload: CreateFlagDto): Promise<FlagDto> {
-  try {
-    const response = await api.post<FlagDto>("/api/flags", payload);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
-
-export async function patchFlag(
+export async function putFlag(
   key: string,
-  payload: PatchFlagDto,
+  payload: PutFlagDto,
 ): Promise<FlagDto> {
   try {
     const encodedKey = encodeURIComponent(key);
-    const response = await api.patch<FlagDto>(
+    const response = await api.put<FlagDto>(
       `/api/flags/${encodedKey}`,
       payload,
     );

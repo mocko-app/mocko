@@ -1,4 +1,5 @@
 type CoreMockSource = "FILE" | "DEPLOYED";
+type CoreFlagType = "PREFIX" | "FLAG";
 
 export type CoreMockDto = {
   id: string;
@@ -35,4 +36,22 @@ export type CoreDeployDefinition = {
   }>;
   hosts: [];
   data?: undefined;
+};
+
+export type CoreFlagKeyDto = {
+  type: CoreFlagType;
+  name: string;
+};
+
+export type CoreFlagListDto = {
+  flagKeys: CoreFlagKeyDto[];
+  isTruncated: boolean;
+};
+
+export type CoreFlagDto = {
+  value: string;
+};
+
+export type CorePutFlagDto = {
+  value: string;
 };

@@ -19,11 +19,6 @@ export class FlagDto {
   constructor(public readonly value: string) {}
 }
 
-export type CreateFlagDto = {
-  key: string;
-  value: string;
-};
-
-export type PatchFlagDto = {
+export type PutFlagDto = {
   value: string;
 };

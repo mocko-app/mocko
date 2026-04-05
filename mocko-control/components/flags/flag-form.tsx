@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
-import { createFlag, deleteFlag, patchFlag } from "@/lib/frontend/api";
+import { deleteFlag, putFlag } from "@/lib/frontend/api";
 
 type FlagFormProps =
   | { mode: "create"; prefix?: string }
@@ -110,38 +110,25 @@ export function FlagForm(props: FlagFormProps) {
       return;
     }
 
-    if (isCreate) {
-      const key = keyInput.trim();
-      if (!key) {
+    const targetKey = isCreate ? keyInput.trim() : flagKey;
+    if (!targetKey) {
+      if (isCreate) {
         toast.error("Flag key is required");
-        return;
       }
-
-      try {
-        setIsSubmitting(true);
-        await createFlag({ key, value });
-        await revalidateFlagCaches();
-        router.push(`/flags/${encodeURIComponent(key)}`);
-      } catch (error) {
-        console.error("Failed to create flag", error);
-        toast.error("Failed to create flag");
-      } finally {
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
-    if (!flagKey) {
       return;
     }
 
     try {
       setIsSubmitting(true);
-      await patchFlag(flagKey, { value });
+      await putFlag(targetKey, { value });
       await revalidateFlagCaches();
-      setIsEditing(false);
+      if (isCreate) {
+        router.push(`/flags/${encodeURIComponent(targetKey)}`);
+      } else {
+        setIsEditing(false);
+      }
     } catch (error) {
-      console.error("Failed to update flag", error);
+      console.error("Failed to save flag", error);
       toast.error("Failed to save flag");
     } finally {
       setIsSubmitting(false);

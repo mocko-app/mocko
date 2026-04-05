@@ -6,8 +6,8 @@ import {
   parseRequestBody,
   tryCatch,
 } from "@/lib/http";
-import { getFlagService } from "@/lib/flag/flag.service";
-import { patchFlagSchema } from "@/lib/validation/flag.schema";
+import { flagService } from "@/lib/flag/flag.service";
+import { putFlagSchema } from "@/lib/validation/flag.schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,8 +17,6 @@ type RouteContext = {
     key: string;
   }>;
 };
-
-const flagService = getFlagService();
 
 export async function GET(
   _request: Request,
@@ -34,12 +32,12 @@ export async function GET(
   return jsonResponse(flag);
 }
 
-export async function PATCH(
+export async function PUT(
   request: Request,
   context: RouteContext,
 ): Promise<NextResponse> {
   const [body, bodyError] = await tryCatch(() =>
-    parseRequestBody(request, patchFlagSchema),
+    parseRequestBody(request, putFlagSchema),
   );
   if (bodyError) {
     return errorResponse(bodyError);
@@ -47,11 +45,9 @@ export async function PATCH(
 
   const { key: rawKey } = await context.params;
   const key = decodeURIComponent(rawKey);
-  const [flag, patchError] = await tryCatch(() =>
-    flagService.updateFlag(key, body),
-  );
-  if (patchError) {
-    return errorResponse(patchError);
+  const [flag, putError] = await tryCatch(() => flagService.setFlag(key, body));
+  if (putError) {
+    return errorResponse(putError);
   }
 
   return jsonResponse(flag);
