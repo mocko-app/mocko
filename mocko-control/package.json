@@ -1,7 +1,7 @@
 {
   "name": "@mocko/control",
-  "version": "0.1.0",
-  "private": true,
+  "version": "2.0.0-alpha.4",
+  "description": "Mocko control service, the UI used to manage your mocks, part of @mocko/cli.",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier . --write",
-    "prepublish": "npm run build"
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -42,5 +42,9 @@
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
   }
 }
