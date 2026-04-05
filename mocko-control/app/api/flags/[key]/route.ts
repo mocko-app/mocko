@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  HttpResponseError,
   errorResponse,
   jsonResponse,
   noContentResponse,
@@ -7,7 +8,10 @@ import {
   tryCatch,
 } from "@/lib/http";
 import { flagService } from "@/lib/flag/flag.service";
-import { putFlagSchema } from "@/lib/validation/flag.schema";
+import {
+  getFlagKeyValidationError,
+  putFlagSchema,
+} from "@/lib/validation/flag.schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +49,10 @@ export async function PUT(
 
   const { key: rawKey } = await context.params;
   const key = decodeURIComponent(rawKey);
+  const keyError = getFlagKeyValidationError(key);
+  if (keyError) {
+    return errorResponse(HttpResponseError.badRequest(keyError));
+  }
   const [flag, putError] = await tryCatch(() => flagService.setFlag(key, body));
   if (putError) {
     return errorResponse(putError);
