@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm run build --prefix ./mocko-proxy && npm run build --prefix ./mocko-control",
+    "test": "npm test --prefix ./mocko-tests",
     "prestart": "npm run build",
     "start": "node ./mocko-cli/bin/main.js ./mocko-proxy/mocks --ui --watch"
   },
