@@ -1,6 +1,11 @@
 {
   "name": "mocko",
   "private": true,
+  "scripts": {
+    "build": "npm run build --prefix ./mocko-proxy && npm run build --prefix ./mocko-control",
+    "prestart": "npm run build",
+    "start": "node ./mocko-cli/bin/main.js ./mocko-proxy/mocks --ui --watch"
+  },
   "workspaces": [
     "mocko-control",
     "mocko-proxy",
