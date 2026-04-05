@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -32,10 +33,12 @@ export function Sidebar() {
       aria-label="Main navigation"
     >
       <div className="px-1.5 lg:px-3 mb-5 flex items-center justify-center lg:justify-start gap-2">
-        <img
+        <Image
           src="https://cdn.codetunnel.net/mocko/logo-white.svg"
           alt=""
           aria-hidden="true"
+          width={32}
+          height={32}
           className="w-8 h-8 object-contain shrink-0"
         />
         <span className="hidden lg:block font-semibold text-sm tracking-tight text-white">
