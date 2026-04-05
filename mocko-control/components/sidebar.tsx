@@ -10,7 +10,6 @@ import {
   BookOpenIcon,
   SquareCodeIcon,
 } from "lucide-react";
-import { useMocks } from "@/lib/frontend/hooks/resources";
 import {
   Tooltip,
   TooltipTrigger,
@@ -24,8 +23,6 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { data } = useMocks();
-  const mockCount = data?.length ?? 0;
 
   return (
     <aside
@@ -72,11 +69,6 @@ export function Sidebar() {
               >
                 <Icon className="size-[14px] shrink-0" aria-hidden="true" />
                 <span className="hidden lg:block">{label}</span>
-                {active && (
-                  <span className="hidden lg:block ml-auto text-[10px] font-mono bg-primary/20 text-primary px-1.5 py-1 rounded leading-none">
-                    {mockCount}
-                  </span>
-                )}
               </TooltipTrigger>
               <TooltipContent side="right" className="lg:hidden">
                 {label}
