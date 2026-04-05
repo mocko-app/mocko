@@ -7,6 +7,7 @@ import { PlusIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { MockCard } from "@/components/mock-card";
+import { MocksListSkeleton } from "@/components/mocks-list-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
@@ -210,15 +211,7 @@ const MocksPage: React.FC = () => {
         />
       </div>
 
-      {isLoading && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="text-sm text-muted-foreground"
-        >
-          Loading mocks...
-        </div>
-      )}
+      {isLoading && <MocksListSkeleton />}
 
       {!isLoading && filtered.length === 0 && search && (
         <EmptySearchResult search={search} onClear={() => setSearch("")} />
