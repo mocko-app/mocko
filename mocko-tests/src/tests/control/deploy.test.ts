@@ -75,6 +75,52 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(401);
     });
 
+    it('rejects mock management routes without token when auth is enabled', async () => {
+      const route = randomPath();
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_SECRET: 'secret',
+        },
+      );
+
+      await subject.createMock(`
+        mock "GET ${route}" {
+          body = "from file"
+        }
+      `);
+
+      const listRes = await subject.client.get('/__mocko__/mocks');
+      expect(listRes.status).toBe(401);
+
+      const authListRes = await subject.client.get('/__mocko__/mocks', {
+        headers: { Authorization: 'Bearer secret' },
+      });
+      expect(authListRes.status).toBe(200);
+
+      const createdMock = authListRes.data.find(
+        (mock: any) => mock.path === route,
+      );
+      expect(createdMock).toBeTruthy();
+
+      const detailsRes = await subject.client.get(
+        `/__mocko__/mocks/${createdMock.id}`,
+      );
+      expect(detailsRes.status).toBe(401);
+    });
+
+    it('allows mock management routes without token when auth is disabled', async () => {
+      subject = await createSubject(
+        {},
+        {
+          DEPLOY_AUTH_ENABLED: 'false',
+        },
+      );
+
+      const res = await subject.client.get('/__mocko__/mocks');
+      expect(res.status).toBe(200);
+    });
+
     it('replaces prior deployed state on a second deploy', async () => {
       const firstRoute = randomPath();
       const secondRoute = randomPath();
