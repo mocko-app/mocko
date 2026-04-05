@@ -7,6 +7,7 @@ import { useSWRConfig } from "swr";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Callout } from "@/components/callout";
+import { FlagsListSkeleton } from "@/components/flags-list-skeleton";
 import { parsePrefixCrumbs } from "@/components/flags/crumbs";
 import { FlagDeleteDialog } from "@/components/flags/flag-delete-dialog";
 import {
@@ -184,11 +185,7 @@ const FlagsPage: React.FC = () => {
         />
       </div>
 
-      {isLoading && (
-        <div className="text-sm text-muted-foreground px-1">
-          Loading flags...
-        </div>
-      )}
+      {isLoading && <FlagsListSkeleton />}
 
       {!isLoading && search && filtered.length === 0 && (
         <EmptySearch search={search} onClear={() => setSearch("")} />
