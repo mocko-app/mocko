@@ -3,6 +3,11 @@
 import { PlusIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Header = {
   key: string;
@@ -12,9 +17,14 @@ type Header = {
 type HeadersEditorProps = {
   headers: Header[];
   onChange: (headers: Header[]) => void;
+  lockedHeaders?: Header[];
 };
 
-export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
+export function HeadersEditor({
+  headers,
+  onChange,
+  lockedHeaders = [],
+}: HeadersEditorProps) {
   function addRow() {
     onChange([...headers, { key: "", value: "" }]);
   }
@@ -32,6 +42,40 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 
   return (
     <div className="flex flex-col gap-2">
+      {lockedHeaders.map((header, i) => (
+        <div key={`locked-${i}`} className="flex items-center gap-2">
+          <Input
+            value={header.key}
+            disabled
+            placeholder="Name"
+            aria-label={`Locked header name ${i + 1}`}
+            className="flex-1"
+          />
+          <Input
+            value={header.value}
+            disabled
+            placeholder="Value"
+            aria-label={`Locked header value ${i + 1}`}
+            className="flex-1"
+          />
+          <Tooltip>
+            <TooltipTrigger render={<span className="inline-flex" />}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled
+                aria-label={`Remove locked header ${i + 1}`}
+              >
+                <XIcon aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Added because you selected a body format
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ))}
       {headers.map((header, i) => (
         <div key={i} className="flex items-center gap-2">
           <Input

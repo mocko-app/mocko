@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { HeadersEditor } from "@/components/headers-editor";
 import { BodyEditor } from "@/components/monaco-editor";
 import {
@@ -29,6 +30,41 @@ import type { CreateMockDto, MockDetailsDto } from "@/lib/types/dto";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 
+const CONTENT_TYPES = [
+  {
+    id: "json",
+    label: "JSON",
+    contentTypeHeader: "application/json",
+    monacoLanguage: "json",
+  },
+  {
+    id: "xml",
+    label: "XML",
+    contentTypeHeader: "application/xml",
+    monacoLanguage: "xml",
+  },
+  {
+    id: "html",
+    label: "HTML",
+    contentTypeHeader: "text/html",
+    monacoLanguage: "html",
+  },
+  {
+    id: "plaintext",
+    label: "Plain Text",
+    contentTypeHeader: "text/plain",
+    monacoLanguage: "plaintext",
+  },
+  {
+    id: "other",
+    label: "Other",
+    contentTypeHeader: null,
+    monacoLanguage: "plaintext",
+  },
+] as const;
+
+type ContentType = (typeof CONTENT_TYPES)[number]["id"];
+
 type MockFormProps = {
   initial?: MockDetailsDto;
   mode: "create" | "edit";
@@ -41,6 +77,7 @@ type FormState = {
   statusCode: string;
   headers: { key: string; value: string }[];
   body: string;
+  contentType: ContentType;
 };
 
 type FormErrors = {
@@ -66,6 +103,40 @@ function rowsToHeaders(rows: Array<{ key: string; value: string }>) {
     headers[key] = row.value;
   }
   return headers;
+}
+
+function deriveInitialContentType(headers: Record<string, string>): {
+  contentType: ContentType;
+  filteredHeaders: { key: string; value: string }[];
+} {
+  const entry = Object.entries(headers).find(
+    ([k]) => k.toLowerCase() === "content-type",
+  );
+  const filteredHeaders = headersToRows(
+    Object.fromEntries(
+      Object.entries(headers).filter(
+        ([k]) => k.toLowerCase() !== "content-type",
+      ),
+    ),
+  );
+
+  if (!entry) {
+    return { contentType: "other", filteredHeaders };
+  }
+
+  const match = CONTENT_TYPES.find(
+    (c) =>
+      c.contentTypeHeader &&
+      entry[1].toLowerCase() === c.contentTypeHeader.toLowerCase(),
+  );
+  if (match) {
+    return { contentType: match.id, filteredHeaders };
+  }
+
+  return {
+    contentType: "other",
+    filteredHeaders: [{ key: entry[0], value: entry[1] }, ...filteredHeaders],
+  };
 }
 
 function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
@@ -148,13 +219,30 @@ const MockFormHeader: React.FC<{
 export function MockForm({ initial, mode }: MockFormProps) {
   const router = useRouter();
   const { mutate } = useMocks();
-  const [form, setForm] = useState<FormState>({
-    name: initial?.name ?? "",
-    method: initial?.method ?? "GET",
-    path: initial?.path ?? "",
-    statusCode: String(initial?.response.code ?? "200"),
-    headers: initial ? headersToRows(initial.response.headers) : [],
-    body: initial?.response.body ?? "",
+  const [form, setForm] = useState<FormState>(() => {
+    if (!initial) {
+      return {
+        name: "",
+        method: "GET",
+        path: "",
+        statusCode: "200",
+        headers: [],
+        body: "",
+        contentType: "json",
+      };
+    }
+    const { contentType, filteredHeaders } = deriveInitialContentType(
+      initial.response.headers,
+    );
+    return {
+      name: initial.name,
+      method: initial.method,
+      path: initial.path,
+      statusCode: String(initial.response.code),
+      headers: filteredHeaders,
+      body: initial.response.body ?? "",
+      contentType,
+    };
   });
   const [hideErrors, setHideErrors] = useState(true);
   const [serverErrors, setServerErrors] = useState<FormErrors>({});
@@ -173,6 +261,13 @@ export function MockForm({ initial, mode }: MockFormProps) {
   };
   const hasErrors = Boolean(errors.name || errors.path || errors.statusCode);
   const showErrors = !hideErrors;
+
+  const activeContentType = CONTENT_TYPES.find(
+    (c) => c.id === form.contentType,
+  )!;
+  const lockedHeader = activeContentType.contentTypeHeader
+    ? [{ key: "Content-Type", value: activeContentType.contentTypeHeader }]
+    : [];
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -195,7 +290,10 @@ export function MockForm({ initial, mode }: MockFormProps) {
       response: {
         code: statusCode,
         body: form.body === "" ? undefined : form.body,
-        headers: rowsToHeaders(form.headers),
+        headers: {
+          ...rowsToHeaders(lockedHeader),
+          ...rowsToHeaders(form.headers),
+        },
       },
     };
 
@@ -338,15 +436,35 @@ export function MockForm({ initial, mode }: MockFormProps) {
           <HeadersEditor
             headers={form.headers}
             onChange={(h) => set("headers", h)}
+            lockedHeaders={lockedHeader}
           />
         </div>
 
         <div className="flex w-full flex-col gap-1.5">
-          <Label htmlFor="mock-body">Response body</Label>
+          <div className="flex items-center justify-between">
+            <Label>Response body</Label>
+            <ToggleGroup
+              value={[form.contentType]}
+              onValueChange={(values) => {
+                if (values.length > 0) {
+                  set("contentType", values[0] as ContentType);
+                }
+              }}
+              variant="default"
+              size="sm"
+            >
+              {CONTENT_TYPES.map((ct) => (
+                <ToggleGroupItem key={ct.id} value={ct.id}>
+                  {ct.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
           <BodyEditor
             value={form.body}
             onChange={(v) => set("body", v)}
             readOnly={isReadOnly}
+            language={activeContentType.monacoLanguage}
           />
         </div>
       </fieldset>
