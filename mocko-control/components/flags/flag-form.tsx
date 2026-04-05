@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { PencilIcon, TrashIcon } from "lucide-react";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
 import { deleteFlag, putFlag, toApiError } from "@/lib/frontend/api";
+import { getFlagKeyValidationError } from "@/lib/validation/flag.schema";
 
 type FlagFormProps =
   | { mode: "create"; prefix?: string }
@@ -37,6 +38,7 @@ export function FlagForm(props: FlagFormProps) {
   const [keyInput, setKeyInput] = useState(
     isCreate ? (props.prefix ?? "") : "",
   );
+  const [keyError, setKeyError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const crumbs = isCreate
@@ -49,6 +51,12 @@ export function FlagForm(props: FlagFormProps) {
 
   const isReadOnly = !isCreate && !isEditing;
   const title = isCreate ? "New flag" : flagKey!.split(":").at(-1)!;
+
+  useEffect(() => {
+    if (!isCreate && !isEditing) {
+      setValue(initialValue);
+    }
+  }, [initialValue, isCreate, isEditing]);
 
   async function revalidateFlagCaches() {
     await mutate(
@@ -122,6 +130,14 @@ export function FlagForm(props: FlagFormProps) {
       }
       return;
     }
+    if (isCreate) {
+      const validationError = getFlagKeyValidationError(targetKey);
+      if (validationError) {
+        setKeyError(validationError);
+        return;
+      }
+      setKeyError(null);
+    }
 
     try {
       setIsSubmitting(true);
@@ -180,11 +196,17 @@ export function FlagForm(props: FlagFormProps) {
           <Input
             id="flag-key"
             value={keyInput}
-            onChange={(e) => setKeyInput(e.target.value)}
+            onChange={(e) => {
+              setKeyInput(e.target.value);
+              if (keyError) {
+                setKeyError(null);
+              }
+            }}
             placeholder="my-flag"
             className="font-mono text-sm"
             aria-required="true"
             disabled={isSubmitting}
+            aria-invalid={Boolean(keyError)}
           />
         ) : (
           <div
@@ -193,6 +215,9 @@ export function FlagForm(props: FlagFormProps) {
           >
             {flagKey}
           </div>
+        )}
+        {isCreate && keyError && (
+          <p className="text-xs text-destructive">{keyError}</p>
         )}
       </div>
 

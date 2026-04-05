@@ -27,6 +27,7 @@ export class FlagController {
     async putFlag(request: Hapi.Request): Promise<FlagDto> {
         this.deployService.authorize(request.headers.authorization);
         const key = decodeURIComponent(String(request.params['key'] || ''));
+        this.assertValidKey(key);
         const { value } = this.parseSetPayload(request.payload);
         await this.flagService.setFlag(key, this.parseApiValue(value));
         return FlagDto.of(value);
@@ -69,6 +70,17 @@ export class FlagController {
         } catch {
             throw Boom.badRequest(
                 'Flag value must be valid JSON. If you want to save a string, wrap it in double quotes.',
+            );
+        }
+    }
+
+    private assertValidKey(key: string): void {
+        if(!key.trim()) {
+            throw Boom.badRequest('Flag key is required');
+        }
+        if(key.startsWith(':') || key.endsWith(':') || key.includes('::')) {
+            throw Boom.badRequest(
+                "Flag key cannot start or end with ':' or contain empty sections like '::'",
             );
         }
     }

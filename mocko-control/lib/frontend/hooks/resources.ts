@@ -23,7 +23,7 @@ export function useMocks(options?: SWRConfiguration<MockDto[], ApiError>) {
       }
     },
     {
-      refreshInterval: 5000,
+      refreshInterval: 10_000,
       revalidateOnFocus: true,
       ...options,
     },
@@ -85,7 +85,7 @@ export function useFlag(
       return getFlag(key);
     },
     {
-      refreshInterval: 0,
+      refreshInterval: 10_000,
       revalidateOnFocus: true,
       ...options,
     },
