@@ -99,6 +99,26 @@ export function errorResponse(error: unknown): NextResponse {
     (error as { body: unknown }).body !== null
   ) {
     const { status, body } = error as { status: number; body: unknown };
+    const message =
+      typeof body === "object" &&
+      body !== null &&
+      "message" in body &&
+      typeof (body as { message: unknown }).message === "string"
+        ? (body as { message: string }).message
+        : null;
+    const hasCode =
+      typeof body === "object" &&
+      body !== null &&
+      "code" in body &&
+      typeof (body as { code: unknown }).code === "string";
+
+    if (status === 400 && message && !hasCode) {
+      return NextResponse.json(ErrorDto.ofBadRequest(message), {
+        status,
+        headers: NO_STORE_HEADERS,
+      });
+    }
+
     return NextResponse.json(body, {
       status,
       headers: NO_STORE_HEADERS,

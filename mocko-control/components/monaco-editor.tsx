@@ -123,12 +123,6 @@ export function FlagEditor({
         theme="vs-dark"
         value={value}
         onChange={(v) => onChange(v ?? "")}
-        beforeMount={(monaco) => {
-          monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-            validate: false,
-            schemaValidation: "ignore",
-          });
-        }}
         options={{ ...EDITOR_OPTIONS, readOnly }}
       />
     </div>

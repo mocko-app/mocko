@@ -32,7 +32,7 @@ describe('control flags crud', () => {
       `/api/flags/${encodeURIComponent(flagKey)}`,
     );
     expect(getRes.status).toBe(200);
-    expect(getRes.data.value).toBe('"\\"pending\\""');
+    expect(getRes.data.value).toBe('"pending"');
 
     const patchRes = await control.put(
       `/api/flags/${encodeURIComponent(flagKey)}`,

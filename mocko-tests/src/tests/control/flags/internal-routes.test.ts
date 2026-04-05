@@ -45,7 +45,7 @@ describe('proxy __mocko__ flags routes', () => {
       '/__mocko__/flags/internal%3Atest%3Aflag',
     );
     expect(getRes.status).toBe(200);
-    expect(getRes.data.value).toBe('"\\"one\\""');
+    expect(getRes.data.value).toBe('"one"');
 
     const patchRes = await subject.client.put(
       '/__mocko__/flags/internal%3Atest%3Aflag',

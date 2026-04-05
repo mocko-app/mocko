@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
-import { deleteFlag, putFlag } from "@/lib/frontend/api";
+import { deleteFlag, putFlag, toApiError } from "@/lib/frontend/api";
 
 type FlagFormProps =
   | { mode: "create"; prefix?: string }
@@ -58,6 +58,11 @@ export function FlagForm(props: FlagFormProps) {
     );
   }
 
+  function getErrorMessage(error: unknown, fallback: string): string {
+    const apiError = toApiError(error);
+    return apiError.message || fallback;
+  }
+
   async function handleDelete() {
     if (!flagKey) {
       return;
@@ -71,7 +76,7 @@ export function FlagForm(props: FlagFormProps) {
         router.push(parentHref);
       } catch (error) {
         console.error("Failed to delete flag", error);
-        toast.error("Failed to delete flag");
+        toast.error(getErrorMessage(error, "Failed to delete flag"));
       } finally {
         setIsSubmitting(false);
       }
@@ -94,7 +99,7 @@ export function FlagForm(props: FlagFormProps) {
       router.push(parentHref);
     } catch (error) {
       console.error("Failed to delete flag", error);
-      toast.error("Failed to delete flag");
+      toast.error(getErrorMessage(error, "Failed to delete flag"));
     } finally {
       setIsSubmitting(false);
     }
@@ -129,7 +134,7 @@ export function FlagForm(props: FlagFormProps) {
       }
     } catch (error) {
       console.error("Failed to save flag", error);
-      toast.error("Failed to save flag");
+      toast.error(getErrorMessage(error, "Failed to save flag"));
     } finally {
       setIsSubmitting(false);
     }
@@ -193,6 +198,9 @@ export function FlagForm(props: FlagFormProps) {
 
       <div className="flex flex-col gap-1.5">
         <Label>Value</Label>
+        <p className="text-xs text-muted-foreground">
+          Value must be valid JSON. To store a string, wrap it in double quotes.
+        </p>
         <FlagEditor value={value} onChange={setValue} readOnly={isReadOnly} />
       </div>
 
