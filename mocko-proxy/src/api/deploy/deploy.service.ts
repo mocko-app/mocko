@@ -4,6 +4,7 @@ import { configProvider } from "../../config/config.service";
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import { MockoDefinition } from "../../definitions/data/mocko-definition";
 import { RemapEventBus } from "../../utils/remap-event-bus";
+import { firstString } from "../../utils/utils";
 
 const DEPLOY_ENDPOINT_ENABLED = configProvider.getOptionalBoolean('DEPLOY_ENDPOINT_ENABLED');
 const DEPLOY_AUTH_ENABLED = configProvider.getOptionalBoolean('DEPLOY_AUTH_ENABLED') !== false;
@@ -28,12 +29,12 @@ export class DeployService {
         return DEPLOY_ENDPOINT_ENABLED === true;
     }
 
-    authorize(authorization?: string): void {
+    authorize(authorization?: string | string[]): void {
         if(!DEPLOY_AUTH_ENABLED) {
             return;
         }
 
-        const token = authorization?.trim();
+        const token = firstString(authorization).trim();
 
         if(!token || token !== `Bearer ${DEPLOY_SECRET}`) {
             throw Boom.unauthorized('Invalid deploy token');

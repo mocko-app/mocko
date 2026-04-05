@@ -14,8 +14,8 @@ const debug = require('debug')('mocko:proxy:mock:handler');
 export type BigodonContext = {
     request: {
         params: Record<string, string>,
-        headers: Record<string, string>,
-        query: Record<string, string>,
+        headers: Record<string, string | string[] | undefined>,
+        query: Record<string, string | string[] | undefined>,
         body: unknown,
     },
     data: Record<string, any>,
