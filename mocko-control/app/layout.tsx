@@ -4,8 +4,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mocko",
-  description: "Mocking made easy",
+  title: "Mocko – Mocking made easy",
+  description:
+    "Mocking made easy, proxy your API and choose which endpoints to mock",
+  themeColor: "#25d278",
+  icons: {
+    icon: "https://cdn.codetunnel.net/mocko/icon.png",
+    shortcut: "https://cdn.codetunnel.net/mocko/icon.png",
+    apple: "https://cdn.codetunnel.net/mocko/logo.png",
+  },
 };
 
 export default function RootLayout({
