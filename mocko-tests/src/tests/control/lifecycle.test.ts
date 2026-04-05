@@ -1,3 +1,5 @@
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import { createSubject, MockoInstance, randomPath } from '../../harness';
 
 describe('control integration', () => {
@@ -105,6 +107,29 @@ describe('control integration', () => {
 
     const deleteRes = await control.delete(`/api/mocks/${fileMock.id}`);
     expect(deleteRes.status).toBe(204);
+  });
+
+  it('lists nested file mocks as read-only with path-based default names', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+    const route = randomPath();
+    const nestedDir = path.join(subject.dir, 'a', 'b', 'c');
+
+    await fs.mkdir(nestedDir, { recursive: true });
+    const revision = await subject.getRevision();
+    await fs.writeFile(
+      path.join(nestedDir, 'deep.hcl'),
+      `mock "GET ${route}" { body = "from nested file" }`,
+    );
+    await subject.waitForRemap(revision);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+
+    const fileMock = listRes.data.find((mock: any) => mock.path === route);
+    expect(fileMock).toBeTruthy();
+    expect(fileMock.annotations).toContain('READ_ONLY');
+    expect(fileMock.name).toBe('a/b/c/deep.hcl');
   });
 
   it('validates reserved control path on create', async () => {
