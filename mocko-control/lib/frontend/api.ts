@@ -4,6 +4,12 @@ import type {
   ParsingError,
   ValidationErrors,
 } from "@/lib/types/error-dtos";
+import type {
+  CreateFlagDto,
+  FlagDto,
+  FlagListDto,
+  PatchFlagDto,
+} from "@/lib/types/flag-dtos";
 import type { CreateMockDto, PatchMockDto } from "@/lib/types/mock-dtos";
 
 export type ApiErrorDto = ErrorDto;
@@ -68,6 +74,62 @@ export async function patchMock(id: string, payload: PatchMockDto) {
 export async function deleteMock(id: string): Promise<void> {
   try {
     await api.delete(`/api/mocks/${id}`);
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function getFlags(prefix?: string): Promise<FlagListDto> {
+  try {
+    const url = prefix
+      ? `/api/flags?prefix=${encodeURIComponent(prefix)}`
+      : "/api/flags";
+    const response = await api.get<FlagListDto>(url);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function getFlag(key: string): Promise<FlagDto> {
+  try {
+    const encodedKey = encodeURIComponent(key);
+    const response = await api.get<FlagDto>(`/api/flags/${encodedKey}`);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function createFlag(payload: CreateFlagDto): Promise<FlagDto> {
+  try {
+    const response = await api.post<FlagDto>("/api/flags", payload);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function patchFlag(
+  key: string,
+  payload: PatchFlagDto,
+): Promise<FlagDto> {
+  try {
+    const encodedKey = encodeURIComponent(key);
+    const response = await api.patch<FlagDto>(
+      `/api/flags/${encodedKey}`,
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function deleteFlag(key: string): Promise<void> {
+  try {
+    const encodedKey = encodeURIComponent(key);
+    await api.delete(`/api/flags/${encodedKey}`);
   } catch (error) {
     throw toApiError(error);
   }

@@ -51,6 +51,10 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(404, ErrorDto.ofMockNotFound(id));
   }
 
+  static flagNotFound(key: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofFlagNotFound(key));
+  }
+
   static templateParseError(parsingError: ParsingError): HttpResponseError {
     return new HttpResponseError(
       400,

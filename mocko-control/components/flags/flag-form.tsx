@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { PencilIcon, TrashIcon } from "lucide-react";
+import { toast } from "sonner";
 import { FlagBreadcrumb } from "@/components/flags/flag-breadcrumb";
 import {
   getParentHref,
@@ -10,22 +12,23 @@ import {
   parsePrefixCrumbs,
 } from "@/components/flags/crumbs";
 import { FlagDeleteDialog } from "@/components/flags/flag-delete-dialog";
-import { HARDCODED_FLAG_VALUES } from "@/components/flags/static-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
+import { createFlag, deleteFlag, patchFlag } from "@/lib/frontend/api";
 
 type FlagFormProps =
   | { mode: "create"; prefix?: string }
-  | { mode: "view"; flagKey: string };
+  | { mode: "view"; flagKey: string; initialValue: string };
 
 export function FlagForm(props: FlagFormProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
 
   const isCreate = props.mode === "create";
   const flagKey = isCreate ? undefined : props.flagKey;
-  const initialValue = flagKey ? (HARDCODED_FLAG_VALUES[flagKey] ?? "") : "";
+  const initialValue = isCreate ? "" : props.initialValue;
 
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -34,6 +37,7 @@ export function FlagForm(props: FlagFormProps) {
   const [keyInput, setKeyInput] = useState(
     isCreate ? (props.prefix ?? "") : "",
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const crumbs = isCreate
     ? [...parsePrefixCrumbs(props.prefix ?? ""), { label: "New flag" }]
@@ -46,22 +50,102 @@ export function FlagForm(props: FlagFormProps) {
   const isReadOnly = !isCreate && !isEditing;
   const title = isCreate ? "New flag" : flagKey!.split(":").at(-1)!;
 
-  function handleDelete() {
-    if (skipDeleteConfirm) {
-      router.push(parentHref);
+  async function revalidateFlagCaches() {
+    await mutate(
+      (key) => typeof key === "string" && key.startsWith("/api/flags"),
+      undefined,
+      { revalidate: true },
+    );
+  }
+
+  async function handleDelete() {
+    if (!flagKey) {
       return;
     }
+
+    if (skipDeleteConfirm) {
+      try {
+        setIsSubmitting(true);
+        await deleteFlag(flagKey);
+        await revalidateFlagCaches();
+        router.push(parentHref);
+      } catch (error) {
+        console.error("Failed to delete flag", error);
+        toast.error("Failed to delete flag");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     setShowDeleteDialog(true);
   }
 
-  function handleDeleteConfirm() {
-    setShowDeleteDialog(false);
-    router.push(parentHref);
+  async function handleDeleteConfirm() {
+    if (!flagKey) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setShowDeleteDialog(false);
+      await deleteFlag(flagKey);
+      await revalidateFlagCaches();
+      router.push(parentHref);
+    } catch (error) {
+      console.error("Failed to delete flag", error);
+      toast.error("Failed to delete flag");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleCancelEdit() {
     setIsEditing(false);
     setValue(initialValue);
+  }
+
+  async function handleSubmit() {
+    if (isSubmitting) {
+      return;
+    }
+
+    if (isCreate) {
+      const key = keyInput.trim();
+      if (!key) {
+        toast.error("Flag key is required");
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        await createFlag({ key, value });
+        await revalidateFlagCaches();
+        router.push(`/flags/${encodeURIComponent(key)}`);
+      } catch (error) {
+        console.error("Failed to create flag", error);
+        toast.error("Failed to create flag");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!flagKey) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await patchFlag(flagKey, { value });
+      await revalidateFlagCaches();
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update flag", error);
+      toast.error("Failed to save flag");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -88,6 +172,7 @@ export function FlagForm(props: FlagFormProps) {
               size="sm"
               className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/60"
               onClick={handleDelete}
+              disabled={isSubmitting}
               aria-label={`Delete flag ${flagKey}`}
             >
               <TrashIcon aria-hidden="true" />
@@ -107,6 +192,7 @@ export function FlagForm(props: FlagFormProps) {
             placeholder="my-flag"
             className="font-mono text-sm"
             aria-required="true"
+            disabled={isSubmitting}
           />
         ) : (
           <div
@@ -130,10 +216,13 @@ export function FlagForm(props: FlagFormProps) {
             onClick={
               isCreate ? () => router.push(parentHref) : handleCancelEdit
             }
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button type="button">{isCreate ? "Create" : "Save changes"}</Button>
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+            {isCreate ? "Create" : "Save changes"}
+          </Button>
         </div>
       )}
 
