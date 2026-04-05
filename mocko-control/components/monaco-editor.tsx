@@ -91,7 +91,7 @@ export function BodyEditor({
   }, [parsingError, value]);
 
   return (
-    <div className="h-48 w-full min-w-0 overflow-hidden rounded-lg border border-border">
+    <div className="h-96 w-full min-w-0 overflow-visible rounded-lg border border-border">
       <MonacoEditor
         height="100%"
         width="100%"
@@ -115,7 +115,7 @@ export function FlagEditor({
   readOnly = false,
 }: FlagEditorProps) {
   return (
-    <div className="h-96 w-full min-w-0 overflow-hidden rounded-lg border border-border">
+    <div className="h-96 w-full min-w-0 overflow-visible rounded-lg border border-border">
       <MonacoEditor
         height="100%"
         width="100%"
