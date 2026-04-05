@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -151,6 +151,33 @@ function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
   return "Edit mock";
 }
 
+function getInitialFormState(initial?: MockDetailsDto): FormState {
+  if (!initial) {
+    return {
+      name: "",
+      method: "GET",
+      path: "",
+      statusCode: "200",
+      headers: [],
+      body: "",
+      contentType: "json",
+    };
+  }
+
+  const { contentType, filteredHeaders } = deriveInitialContentType(
+    initial.response.headers,
+  );
+  return {
+    name: initial.name,
+    method: initial.method,
+    path: initial.path,
+    statusCode: String(initial.response.code),
+    headers: filteredHeaders,
+    body: initial.response.body ?? "",
+    contentType,
+  };
+}
+
 function getFormErrors(form: FormState): FormErrors {
   const errors: FormErrors = {};
   const name = form.name.trim();
@@ -221,37 +248,16 @@ const MockFormHeader: React.FC<{
 export function MockForm({ initial, mode }: MockFormProps) {
   const router = useRouter();
   const { mutate } = useMocks();
-  const [form, setForm] = useState<FormState>(() => {
-    if (!initial) {
-      return {
-        name: "",
-        method: "GET",
-        path: "",
-        statusCode: "200",
-        headers: [],
-        body: "",
-        contentType: "json",
-      };
-    }
-    const { contentType, filteredHeaders } = deriveInitialContentType(
-      initial.response.headers,
-    );
-    return {
-      name: initial.name,
-      method: initial.method,
-      path: initial.path,
-      statusCode: String(initial.response.code),
-      headers: filteredHeaders,
-      body: initial.response.body ?? "",
-      contentType,
-    };
-  });
+  const [form, setForm] = useState<FormState>(() =>
+    getInitialFormState(initial),
+  );
   const [hideErrors, setHideErrors] = useState(true);
   const [serverErrors, setServerErrors] = useState<FormErrors>({});
   const [templateError, setTemplateError] = useState<ParsingError | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const isTemporary = initial?.annotations.includes("TEMPORARY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
   const submitLabel = mode === "create" ? "Create" : "Save changes";
   const hasNestPathParams = /\/:[A-Za-z0-9_-]+/.test(form.path);
@@ -346,6 +352,15 @@ export function MockForm({ initial, mode }: MockFormProps) {
 
   const bodyError = templateError;
 
+  useEffect(() => {
+    if (initial && isReadOnly) {
+      setForm(getInitialFormState(initial));
+      setHideErrors(true);
+      setServerErrors({});
+      setTemplateError(null);
+    }
+  }, [initial, isReadOnly]);
+
   return (
     <form
       className="flex flex-col gap-6"
@@ -353,6 +368,20 @@ export function MockForm({ initial, mode }: MockFormProps) {
       aria-label={title}
     >
       <MockFormHeader isReadOnly={isReadOnly} title={title} />
+      {isReadOnly && (
+        <Callout
+          variant="info"
+          title="Read-only mock"
+          message="This mock was loaded from a file. To edit it, update the mock file and let Mocko reload it."
+        />
+      )}
+      {isTemporary && (
+        <Callout
+          variant="info"
+          title="Temporary mock"
+          message="This mock was created through the UI without a persistent store. It will be lost when Mocko restarts."
+        />
+      )}
       {showErrors && errors.form && (
         <div
           className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2"
