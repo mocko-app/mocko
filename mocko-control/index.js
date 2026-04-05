@@ -17,6 +17,7 @@ function start({ port, coreUrl, deploySecret }) {
     "mocko-control",
   );
   const serverPath = path.join(standaloneDir, "server.js");
+  const shouldLogControlOutput = process.env.MOCKO_CONTROL_LOGS === "true";
   child = spawn(process.execPath, [serverPath], {
     cwd: standaloneDir,
     env: {
@@ -27,7 +28,7 @@ function start({ port, coreUrl, deploySecret }) {
       MOCKO_CORE_URL: coreUrl,
       MOCKO_DEPLOY_SECRET: deploySecret,
     },
-    stdio: "ignore",
+    stdio: shouldLogControlOutput ? ["ignore", "inherit", "inherit"] : "ignore",
   });
 
   if (!cleanupRegistered) {
