@@ -1,6 +1,7 @@
 import * as Boom from "@hapi/boom";
 import * as Hapi from '@hapi/hapi';
 import { Provider } from "../../utils/decorators/provider";
+import { firstString } from "../../utils/utils";
 import { CoreMockDto, CoreMockDetailsDto } from "./data/core-mock.dto";
 import { MockService } from "./mock.service";
 import { DeployService } from "../deploy/deploy.service";
@@ -19,7 +20,7 @@ export class MockController {
 
     async getMockById(request: Hapi.Request): Promise<CoreMockDetailsDto> {
         this.deployService.authorize(request.headers.authorization);
-        const id = String(request.params['id'] || '');
+        const id = firstString(request.params['id']);
         const mock = await this.service.getMockById(id);
 
         if(!mock) {

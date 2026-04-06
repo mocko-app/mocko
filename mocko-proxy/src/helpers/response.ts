@@ -1,6 +1,7 @@
 import { MockoExecution } from "../api/mock/mock.handler";
 import { Host } from "../definitions/data/host";
 import { DefinitionProvider } from "src/definitions/definition.provider";
+import { firstString } from "../utils/utils";
 
 export function setStatus(this: MockoExecution, status: unknown): void {
     let statusCode: number;
@@ -51,7 +52,7 @@ function getHost(hosts: Host[], proxyUri: string, header: string): [string, stri
 
 export const proxy = (definitionProvider: DefinitionProvider) => async function (this: MockoExecution, proxyUri?: string): Promise<void> {
     const hosts = (await definitionProvider.getDefinitions()).hosts;
-    const [url, label] = getHost(hosts, proxyUri, this.contexts[0].request.headers.host);
+    const [url, label] = getHost(hosts, proxyUri, firstString(this.contexts[0].request.headers.host));
 
     this.data.proxyTo = url;
     this.data.proxyLabel = label;

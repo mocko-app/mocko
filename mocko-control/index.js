@@ -1,21 +1,58 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { spawn } = require("node:child_process");
+const fs = require("node:fs");
 const path = require("node:path");
 
 let child = null;
 let cleanupRegistered = false;
+
+function findStandaloneDir() {
+  const packagedStandaloneDir = path.join(
+    __dirname,
+    ".next",
+    "standalone",
+    "mocko-control",
+  );
+
+  if (fs.existsSync(path.join(packagedStandaloneDir, "server.js"))) {
+    return packagedStandaloneDir;
+  }
+
+  const searchRoots = [process.cwd(), __dirname];
+  for (const root of searchRoots) {
+    let current = root;
+
+    while (true) {
+      const candidate = path.join(
+        current,
+        "mocko-control",
+        ".next",
+        "standalone",
+        "mocko-control",
+      );
+
+      if (fs.existsSync(path.join(candidate, "server.js"))) {
+        return candidate;
+      }
+
+      const parent = path.dirname(current);
+      if (parent === current) {
+        break;
+      }
+
+      current = parent;
+    }
+  }
+
+  return packagedStandaloneDir;
+}
 
 function start({ port, coreUrl, deploySecret }) {
   if (child) {
     return Promise.resolve();
   }
 
-  const standaloneDir = path.join(
-    __dirname,
-    ".next",
-    "standalone",
-    "mocko-control",
-  );
+  const standaloneDir = findStandaloneDir();
   const serverPath = path.join(standaloneDir, "server.js");
   const shouldLogControlOutput = process.env.MOCKO_CONTROL_LOGS === "true";
   child = spawn(process.execPath, [serverPath], {

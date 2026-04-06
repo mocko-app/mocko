@@ -10,6 +10,10 @@ export function mergeRecords(array: Record<string, any[]>[]): Record<string, any
     return output;
 }
 
+export function firstString(value: string | string[] | undefined): string {
+    return Array.isArray(value) ? (value[0] || '') : (value || '');
+}
+
 export type TryCatchResult<T, E = Error> =
     | [result: T, error: null]
     | [result: null, error: E];

@@ -2,6 +2,7 @@ import * as Boom from "@hapi/boom";
 import * as Hapi from "@hapi/hapi";
 import * as Joi from "joi";
 import { Provider } from "../../utils/decorators/provider";
+import { firstString } from "../../utils/utils";
 import { DeployService } from "../deploy/deploy.service";
 import { FlagService } from "./flag.service";
 import { FlagDto, FlagListDto } from "./data/flag.dto";
@@ -19,14 +20,14 @@ export class FlagController {
 
     async listFlags(request: Hapi.Request): Promise<FlagListDto> {
         this.deployService.authorize(request.headers.authorization);
-        const prefix = String(request.query['prefix'] || '');
+        const prefix = firstString(request.query['prefix']);
 
         return await this.flagService.listFlags(prefix);
     }
 
     async putFlag(request: Hapi.Request): Promise<FlagDto> {
         this.deployService.authorize(request.headers.authorization);
-        const key = decodeURIComponent(String(request.params['key'] || ''));
+        const key = decodeURIComponent(firstString(request.params['key']));
         this.assertValidKey(key);
         const { value } = this.parseSetPayload(request.payload);
         await this.flagService.setFlag(key, this.parseApiValue(value));
@@ -35,7 +36,7 @@ export class FlagController {
 
     async getFlag(request: Hapi.Request): Promise<FlagDto> {
         this.deployService.authorize(request.headers.authorization);
-        const key = decodeURIComponent(String(request.params['key'] || ''));
+        const key = decodeURIComponent(firstString(request.params['key']));
         const exists = await this.flagService.hasFlag(key);
         if(!exists) {
             throw Boom.notFound(`Flag "${key}" was not found`);
@@ -47,7 +48,7 @@ export class FlagController {
 
     async deleteFlag(request: Hapi.Request, h: Hapi.ResponseToolkit) {
         this.deployService.authorize(request.headers.authorization);
-        const key = decodeURIComponent(String(request.params['key'] || ''));
+        const key = decodeURIComponent(firstString(request.params['key']));
         await this.flagService.delFlag(key);
         return h.response().code(204);
     }
