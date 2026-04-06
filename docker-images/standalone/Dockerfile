@@ -10,6 +10,7 @@ RUN npm i -g @mocko/cli@2.0.0-alpha.5 && \
 USER mocko
 WORKDIR /var/mocks
 EXPOSE 8080
+EXPOSE 6625
 VOLUME ["/var/mocks"]
 
-ENTRYPOINT ["sh", "-c", "mocko --port 8080 --watch --url \"$MOCKO_URL\" --timeout $MOCKO_TIMEOUT /var/mocks"]
+ENTRYPOINT ["sh", "-c", "mocko --ui --watch --port 8080 --url \"$MOCKO_URL\" --timeout $MOCKO_TIMEOUT /var/mocks"]
