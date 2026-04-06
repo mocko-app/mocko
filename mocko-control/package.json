@@ -3,6 +3,10 @@
   "version": "2.0.0-alpha.4",
   "description": "Mocko control service, the UI used to manage your mocks, part of @mocko/cli.",
   "main": "index.js",
+  "files": [
+    "index.js",
+    ".next/standalone/**/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run lint",
