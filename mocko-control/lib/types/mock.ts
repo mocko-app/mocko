@@ -15,6 +15,7 @@ export type Mock = {
   name: string;
   method: HttpMethod;
   path: string;
+  filePath?: string;
   response: MockResponse;
   isEnabled: boolean;
   annotations: MockAnnotation[];

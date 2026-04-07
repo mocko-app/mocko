@@ -6,6 +6,7 @@ export type CoreMockDto = {
   name: string;
   method: string;
   path: string;
+  filePath?: string;
   isEnabled: boolean;
   source: CoreMockSource;
 };

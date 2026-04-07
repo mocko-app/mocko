@@ -15,6 +15,8 @@ export type Mock = {
     id?: string,
     name?: string,
     source?: MockSource,
+    filePath?: string,
+    isEnabled: boolean,
     method: MockHttpMethod,
     path: string,
     parse: boolean,
@@ -26,6 +28,8 @@ const mockSchema = Joi.object({
     id: Joi.string().optional(),
     name: Joi.string().optional(),
     source: Joi.string().valid('FILE', 'DEPLOYED').optional(),
+    filePath: Joi.string().optional(),
+    isEnabled: Joi.boolean().default(true),
     method: Joi.string().valid(...MOCK_METHODS),
     path: Joi.string(),
     parse: Joi.boolean().default(true),
@@ -55,9 +59,11 @@ export function mockFromConfig(req: string, res: any): Mock {
     const code = res?.status || (method === 'POST' ? 201 : 200);
     const host = res?.host;
     const parse = res?.parse;
+    const name = res?.name?.trim() || undefined;
+    const isEnabled = res?.enabled;
 
     const definition = {
-        method, path, host, parse,
+        name, method, path, host, parse, isEnabled,
         response: {
             code,
             delay: res?.delay,

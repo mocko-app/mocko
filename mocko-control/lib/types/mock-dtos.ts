@@ -45,6 +45,7 @@ export class MockDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
     public readonly annotations: MockAnnotation[],
   ) {}
@@ -55,6 +56,7 @@ export class MockDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.filePath,
       mock.isEnabled,
       [...mock.annotations],
     );
@@ -67,6 +69,7 @@ export class MockDetailsDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
     public readonly annotations: MockAnnotation[],
     public readonly response: MockResponseDto,
@@ -82,6 +85,7 @@ export class MockDetailsDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.filePath,
       mock.isEnabled,
       [...mock.annotations],
       MockResponseDto.ofResponse(mock.response),

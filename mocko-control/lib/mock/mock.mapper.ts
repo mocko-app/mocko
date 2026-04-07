@@ -31,6 +31,7 @@ export function toReadOnlyMock(coreMock: CoreMockDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
     response: {
       code: 200,
@@ -46,6 +47,7 @@ export function toReadOnlyDetailsMock(coreMock: CoreMockDetailsDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
     response: {
       code: coreMock.response.code,

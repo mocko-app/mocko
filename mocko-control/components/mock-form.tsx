@@ -411,6 +411,13 @@ export function MockForm({ initial, mode }: MockFormProps) {
           )}
         </div>
 
+        {initial?.filePath && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="mock-source-file">Source file</Label>
+            <Input id="mock-source-file" value={initial.filePath} readOnly />
+          </div>
+        )}
+
         <div className="flex w-full gap-3">
           <div className="flex w-28 shrink-0 flex-col gap-1.5">
             <Label htmlFor="mock-method">Method</Label>
