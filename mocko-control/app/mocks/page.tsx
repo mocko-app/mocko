@@ -6,13 +6,18 @@ import { useRouter } from "next/navigation";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { DeleteDialog } from "@/components/delete-dialog";
+import { LabelFilterBar } from "@/components/label-filter-bar";
 import { MockCard } from "@/components/mock-card";
-import { MocksListSkeleton } from "@/components/mocks-list-skeleton";
+import {
+  LabelBarSkeleton,
+  MocksListSkeleton,
+} from "@/components/mocks-list-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
 import type { MockDto } from "@/lib/types/mock-dtos";
+import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
 const EMPTY_MOCKS: MockDto[] = [];
 
@@ -42,9 +47,8 @@ const MocksPageHeader: React.FC<{
 };
 
 const EmptySearchResult: React.FC<{
-  search: string;
   onClear: () => void;
-}> = ({ search, onClear }) => {
+}> = ({ onClear }) => {
   return (
     <div
       className="flex flex-col items-center justify-center gap-2 py-16 text-center"
@@ -52,10 +56,10 @@ const EmptySearchResult: React.FC<{
       aria-live="polite"
     >
       <p className="text-muted-foreground text-sm">
-        No mocks match &ldquo;{search}&rdquo;
+        No mocks match the current filters.
       </p>
       <Button variant="ghost" size="sm" onClick={onClear}>
-        Clear search
+        Clear filters
       </Button>
     </div>
   );
@@ -99,7 +103,7 @@ const FilteredOutNotice: React.FC<{
         {count} more {count === 1 ? "mock was" : "mocks were"} filtered out.
       </p>
       <Button variant="ghost" size="sm" onClick={onClear}>
-        Clear search
+        Clear filters
       </Button>
     </div>
   );
@@ -122,25 +126,54 @@ const PollErrorBanner: React.FC = () => {
 const MocksPage: React.FC = () => {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<MockDto>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
 
   const { data, error, isLoading, mutate } = useMocks();
 
   const mocks = data ?? EMPTY_MOCKS;
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return mocks.filter((m) => {
-      return (
-        m.name.toLowerCase().includes(q) ||
-        m.path.toLowerCase().includes(q) ||
-        m.method.toLowerCase().includes(q)
-      );
-    });
-  }, [mocks, search]);
+  const anyMockHasLabels = mocks.some((m) => m.labels.length > 0);
 
+  const filtered = useMemo(() => {
+    let result = mocks;
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          m.path.toLowerCase().includes(q) ||
+          m.method.toLowerCase().includes(q),
+      );
+    }
+
+    if (selectedLabels.includes(UNLABELED_KEY)) {
+      result = result.filter((m) => m.labels.length === 0);
+    } else if (selectedLabels.length > 0) {
+      result = result.filter((m) => {
+        const normalized = m.labels.map((l) => l.toLowerCase());
+        return selectedLabels.every((sel) =>
+          normalized.includes(sel.toLowerCase()),
+        );
+      });
+    }
+
+    return result;
+  }, [mocks, search, selectedLabels]);
+
+  const visibleLabels = useMemo(() => getAvailableLabels(filtered), [filtered]);
+  const showUnlabeled =
+    anyMockHasLabels && filtered.some((m) => m.labels.length === 0);
+
+  const isFiltered = search.length > 0 || selectedLabels.length > 0;
   const filteredOutCount = mocks.length - filtered.length;
   const activeCount = mocks.filter((m) => m.isEnabled).length;
+
+  function clearFilters() {
+    setSearch("");
+    setSelectedLabels([]);
+  }
 
   function handleEdit(id: string) {
     router.push(`/mocks/${id}`);
@@ -197,27 +230,39 @@ const MocksPage: React.FC = () => {
 
       {Boolean(error) && <PollErrorBanner />}
 
-      <div className="relative mb-6">
-        <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#444] pointer-events-none"
-          aria-hidden="true"
-        />
-        <Input
-          className="max-w-sm pl-9 bg-muted border-input placeholder:text-[#3a3a3a] focus-visible:ring-1 focus-visible:ring-[#444] focus-visible:border-[#444]"
-          placeholder="Search mocks…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search mocks"
-        />
+      <div className="flex flex-col gap-3 mb-6">
+        <div className="relative">
+          <SearchIcon
+            className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#444] pointer-events-none"
+            aria-hidden="true"
+          />
+          <Input
+            className="max-w-sm pl-9 bg-muted border-input placeholder:text-[#3a3a3a] focus-visible:ring-1 focus-visible:ring-[#444] focus-visible:border-[#444]"
+            placeholder="Search mocks…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search mocks"
+          />
+        </div>
+        {isLoading ? (
+          <LabelBarSkeleton />
+        ) : (
+          <LabelFilterBar
+            visibleLabels={visibleLabels}
+            hasUnlabeled={showUnlabeled}
+            selectedLabels={selectedLabels}
+            onChange={setSelectedLabels}
+          />
+        )}
       </div>
 
       {isLoading && <MocksListSkeleton />}
 
-      {!isLoading && filtered.length === 0 && search && (
-        <EmptySearchResult search={search} onClear={() => setSearch("")} />
+      {!isLoading && filtered.length === 0 && isFiltered && (
+        <EmptySearchResult onClear={clearFilters} />
       )}
 
-      {!isLoading && filtered.length === 0 && !search && <EmptyMocks />}
+      {!isLoading && filtered.length === 0 && !isFiltered && <EmptyMocks />}
 
       {!isLoading && filtered.length > 0 && (
         <>
@@ -236,10 +281,10 @@ const MocksPage: React.FC = () => {
               />
             ))}
           </div>
-          {search && filteredOutCount > 0 && (
+          {isFiltered && filteredOutCount > 0 && (
             <FilteredOutNotice
               count={filteredOutCount}
-              onClear={() => setSearch("")}
+              onClear={clearFilters}
             />
           )}
         </>

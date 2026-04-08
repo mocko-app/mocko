@@ -9,6 +9,7 @@ export type CoreMockDto = {
   filePath?: string;
   isEnabled: boolean;
   source: CoreMockSource;
+  labels: string[];
 };
 
 export type CoreMockDetailsDto = CoreMockDto & {
@@ -29,6 +30,7 @@ export type CoreDeployDefinition = {
     method: string;
     path: string;
     parse: boolean;
+    labels: string[];
     response: {
       code: number;
       body: string;

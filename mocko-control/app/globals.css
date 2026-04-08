@@ -56,3 +56,10 @@ body {
     -apple-system,
     sans-serif;
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

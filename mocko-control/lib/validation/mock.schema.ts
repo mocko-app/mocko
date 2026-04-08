@@ -66,6 +66,7 @@ export const createMockSchema = z.object({
     .max(255, "Name must be at most 255 characters"),
   method: z.enum(HTTP_METHODS),
   path: pathSchema,
+  labels: z.array(z.string()).optional().default([]),
   response: responseSchema,
 });
 
@@ -79,6 +80,7 @@ export const patchMockSchema = z
       .optional(),
     method: z.enum(HTTP_METHODS).optional(),
     path: pathSchema.optional(),
+    labels: z.array(z.string()).optional(),
     response: responsePatchSchema.optional(),
     isEnabled: z.boolean().optional(),
   })
@@ -87,6 +89,7 @@ export const patchMockSchema = z
       value.name !== undefined ||
       value.method !== undefined ||
       value.path !== undefined ||
+      value.labels !== undefined ||
       value.response !== undefined ||
       value.isEnabled !== undefined,
     {

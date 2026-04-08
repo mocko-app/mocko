@@ -18,5 +18,6 @@ export type Mock = {
   filePath?: string;
   response: MockResponse;
   isEnabled: boolean;
+  labels: string[];
   annotations: MockAnnotation[];
 };
