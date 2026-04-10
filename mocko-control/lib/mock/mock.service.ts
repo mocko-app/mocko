@@ -54,6 +54,7 @@ export class MockService {
       path: data.path,
       response: data.response,
       isEnabled: true,
+      labels: data.labels ?? [],
       annotations: ["TEMPORARY"],
     };
 
@@ -74,6 +75,7 @@ export class MockService {
       method: data.method ?? currentMock.method,
       path: data.path ?? currentMock.path,
       isEnabled: data.isEnabled ?? currentMock.isEnabled,
+      labels: data.labels ?? currentMock.labels,
       response: data.response
         ? this.mergeResponse(currentMock.response, data.response)
         : currentMock.response,

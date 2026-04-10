@@ -14,6 +14,7 @@ export type CreateMockDto = {
   name: string;
   method: HttpMethod;
   path: string;
+  labels?: string[];
   response: MockResponse;
 };
 
@@ -21,6 +22,7 @@ export type PatchMockDto = {
   name?: string;
   method?: HttpMethod;
   path?: string;
+  labels?: string[];
   response?: Partial<MockResponse>;
   isEnabled?: boolean;
 };
@@ -45,7 +47,9 @@ export class MockDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
+    public readonly labels: string[],
     public readonly annotations: MockAnnotation[],
   ) {}
 
@@ -55,7 +59,9 @@ export class MockDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.filePath,
       mock.isEnabled,
+      [...mock.labels],
       [...mock.annotations],
     );
   }
@@ -67,7 +73,9 @@ export class MockDetailsDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
+    public readonly labels: string[],
     public readonly annotations: MockAnnotation[],
     public readonly response: MockResponseDto,
     public readonly failure: MockFailure | null,
@@ -82,7 +90,9 @@ export class MockDetailsDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.filePath,
       mock.isEnabled,
+      [...mock.labels],
       [...mock.annotations],
       MockResponseDto.ofResponse(mock.response),
       failure,

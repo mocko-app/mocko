@@ -9,8 +9,10 @@ export class CoreMockDto {
         public readonly name: string,
         public readonly method: string,
         public readonly path: string,
+        public readonly filePath: string | undefined,
         public readonly isEnabled: boolean,
         public readonly source: CoreMockSource,
+        public readonly labels: string[],
     ) { }
 
     static ofMock(mock: Mock): CoreMockDto {
@@ -19,8 +21,10 @@ export class CoreMockDto {
             mock.name || `${mock.method} ${mock.path}`,
             mock.method,
             mock.path,
-            true,
+            mock.filePath,
+            mock.isEnabled,
             mock.source === 'FILE' ? 'FILE' : 'DEPLOYED',
+            mock.labels,
         );
     }
 }
@@ -31,8 +35,10 @@ export class CoreMockDetailsDto {
         public readonly name: string,
         public readonly method: string,
         public readonly path: string,
+        public readonly filePath: string | undefined,
         public readonly isEnabled: boolean,
         public readonly source: CoreMockSource,
+        public readonly labels: string[],
         public readonly response: {
             code: number,
             body?: string,
@@ -52,8 +58,10 @@ export class CoreMockDetailsDto {
             base.name,
             base.method,
             base.path,
+            base.filePath,
             base.isEnabled,
             base.source,
+            base.labels,
             {
                 code: mock.response.code,
                 body: mock.response.body,

@@ -2,6 +2,10 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { createSubject, MockoInstance, randomPath } from '../../harness';
 
+function normalizeMockFilePath(subject: MockoInstance, filePath: string) {
+  return path.relative(subject.dir, filePath).replace(/\\/g, '/');
+}
+
 describe('control integration', () => {
   let subject: MockoInstance;
 
@@ -32,6 +36,15 @@ describe('control integration', () => {
     expect(createRes.status).toBe(201);
     const createdMock = createRes.data;
     expect(createdMock.annotations).toContain('TEMPORARY');
+    expect(createdMock).not.toHaveProperty('filePath');
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+    const listedCreatedMock = listRes.data.find(
+      (mock: any) => mock.id === createdMock.id,
+    );
+    expect(listedCreatedMock).toBeTruthy();
+    expect(listedCreatedMock).not.toHaveProperty('filePath');
 
     const initialProxyResponse = await subject.client.get(route);
     expect(initialProxyResponse.status).toBe(200);
@@ -54,6 +67,7 @@ describe('control integration', () => {
     expect(detailsRes.status).toBe(200);
     expect(detailsRes.data.response.code).toBe(202);
     expect(detailsRes.data.failure).toBeNull();
+    expect(detailsRes.data).not.toHaveProperty('filePath');
 
     const disableRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       isEnabled: false,
@@ -80,11 +94,12 @@ describe('control integration', () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
-    await subject.createMock(`
+    const filePath = await subject.createMock(`
       mock "GET ${route}" {
         body = "from file"
       }
     `);
+    const normalizedFilePath = normalizeMockFilePath(subject, filePath);
 
     const listRes = await control.get('/api/mocks');
     expect(listRes.status).toBe(200);
@@ -93,9 +108,15 @@ describe('control integration', () => {
     expect(fileMock).toBeTruthy();
     expect(fileMock.annotations).toContain('READ_ONLY');
     expect(fileMock.annotations).not.toContain('TEMPORARY');
+    expect(fileMock.name).toBe(normalizedFilePath);
+    expect(fileMock.filePath).toBe(normalizedFilePath);
+    expect(fileMock.isEnabled).toBe(true);
 
     const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
     expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.name).toBe(normalizedFilePath);
+    expect(detailsRes.data.filePath).toBe(normalizedFilePath);
+    expect(detailsRes.data.isEnabled).toBe(true);
     expect(detailsRes.data.response.code).toBe(200);
     expect(detailsRes.data.failure).toBeNull();
 
@@ -130,6 +151,115 @@ describe('control integration', () => {
     expect(fileMock).toBeTruthy();
     expect(fileMock.annotations).toContain('READ_ONLY');
     expect(fileMock.name).toBe('a/b/c/deep.hcl');
+  });
+
+  it('lists file mocks with hcl names', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const filePath = await subject.createMock(`
+      mock "GET ${route}" {
+        name = "Friendly name"
+        body = "from named file"
+      }
+    `);
+    const normalizedFilePath = normalizeMockFilePath(subject, filePath);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+
+    const fileMock = listRes.data.find((mock: any) => mock.path === route);
+    expect(fileMock).toBeTruthy();
+    expect(fileMock.name).toBe('Friendly name');
+    expect(fileMock.filePath).toBe(normalizedFilePath);
+
+    const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.name).toBe('Friendly name');
+    expect(detailsRes.data.filePath).toBe(normalizedFilePath);
+  });
+
+  it('falls back to file path for empty hcl names', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const filePath = await subject.createMock(`
+      mock "GET ${route}" {
+        name = ""
+        body = "from unnamed file"
+      }
+    `);
+    const normalizedFilePath = normalizeMockFilePath(subject, filePath);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+
+    const fileMock = listRes.data.find((mock: any) => mock.path === route);
+    expect(fileMock).toBeTruthy();
+    expect(fileMock.name).toBe(normalizedFilePath);
+    expect(fileMock.filePath).toBe(normalizedFilePath);
+
+    const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.name).toBe(normalizedFilePath);
+    expect(detailsRes.data.filePath).toBe(normalizedFilePath);
+  });
+
+  it('lists explicitly enabled file mocks and serves their routes', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await subject.createMock(`
+      mock "GET ${route}" {
+        enabled = true
+        body = "enabled"
+      }
+    `);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+
+    const fileMock = listRes.data.find((mock: any) => mock.path === route);
+    expect(fileMock).toBeTruthy();
+    expect(fileMock.isEnabled).toBe(true);
+
+    const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.isEnabled).toBe(true);
+
+    const routeRes = await subject.client.get(route);
+    expect(routeRes.status).toBe(200);
+    expect(routeRes.data).toBe('enabled');
+  });
+
+  it('lists disabled file mocks without serving their routes', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await subject.createMock(`
+      mock "GET ${route}" {
+        enabled = false
+        body = "disabled"
+      }
+    `);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+
+    const fileMock = listRes.data.find((mock: any) => mock.path === route);
+    expect(fileMock).toBeTruthy();
+    expect(fileMock.isEnabled).toBe(false);
+
+    const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.isEnabled).toBe(false);
+
+    const routeRes = await subject.client.get(route);
+    expect(routeRes.status).toBe(404);
   });
 
   it('validates reserved control path on create', async () => {

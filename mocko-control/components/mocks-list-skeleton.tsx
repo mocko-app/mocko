@@ -20,6 +20,20 @@ const SkeletonRow: React.FC = () => {
   );
 };
 
+export const LabelBarSkeleton: React.FC = () => {
+  return (
+    <div className="flex items-center gap-2">
+      {[16, 20, 14, 18, 12].map((w) => (
+        <div
+          key={w}
+          style={{ width: `${w * 4}px` }}
+          className="h-7 rounded-full bg-muted animate-pulse shrink-0"
+        />
+      ))}
+    </div>
+  );
+};
+
 export const MocksListSkeleton: React.FC = () => {
   return (
     <div

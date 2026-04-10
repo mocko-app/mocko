@@ -32,6 +32,7 @@ export class MockService {
         this.registerHelpers();
 
         return options.mocks
+            .filter((mock) => mock.isEnabled)
             .filter((mock) => !this.isReservedPath(mock.path))
             .map((mock) => this.mockToRoute(mock, options.data));
     }

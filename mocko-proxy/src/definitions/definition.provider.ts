@@ -197,7 +197,8 @@ export class DefinitionProvider {
         return {
             ...mock,
             id: mock.id || uuidv5(idSeed, FILE_ID_NAMESPACE),
-            name: mock.name || normalizedFilePath,
+            name: mock.name?.trim() || normalizedFilePath,
+            filePath: normalizedFilePath,
             source: 'FILE',
         };
     }

@@ -27,6 +27,8 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import { getAvailableLabels } from "@/lib/utils/labels";
+import { LabelPicker } from "@/components/label-picker";
 import type { ParsingError } from "@/lib/types/error-dtos";
 import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
 import { HTTP_METHODS } from "@/lib/types/mock";
@@ -80,6 +82,7 @@ type FormState = {
   headers: { key: string; value: string }[];
   body: string;
   contentType: ContentType;
+  labels: string[];
 };
 
 type FormErrors = {
@@ -161,6 +164,7 @@ function getInitialFormState(initial?: MockDetailsDto): FormState {
       headers: [],
       body: "",
       contentType: "json",
+      labels: [],
     };
   }
 
@@ -175,6 +179,7 @@ function getInitialFormState(initial?: MockDetailsDto): FormState {
     headers: filteredHeaders,
     body: initial.response.body ?? "",
     contentType,
+    labels: initial.labels ?? [],
   };
 }
 
@@ -247,7 +252,8 @@ const MockFormHeader: React.FC<{
 
 export function MockForm({ initial, mode }: MockFormProps) {
   const router = useRouter();
-  const { mutate } = useMocks();
+  const { data: mocksData, mutate } = useMocks();
+  const availableLabels = getAvailableLabels(mocksData ?? []);
   const [form, setForm] = useState<FormState>(() =>
     getInitialFormState(initial),
   );
@@ -297,6 +303,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
       name: form.name.trim(),
       method: form.method,
       path: form.path.trim(),
+      labels: form.labels,
       response: {
         code: statusCode,
         body: form.body === "" ? undefined : form.body,
@@ -410,6 +417,23 @@ export function MockForm({ initial, mode }: MockFormProps) {
             <p className="text-xs text-destructive">{errors.name}</p>
           )}
         </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>Labels</Label>
+          <LabelPicker
+            value={form.labels}
+            onChange={(labels) => set("labels", labels)}
+            availableLabels={availableLabels}
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        {initial?.filePath && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="mock-source-file">Source file</Label>
+            <Input id="mock-source-file" value={initial.filePath} readOnly />
+          </div>
+        )}
 
         <div className="flex w-full gap-3">
           <div className="flex w-28 shrink-0 flex-col gap-1.5">

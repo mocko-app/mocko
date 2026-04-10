@@ -14,6 +14,7 @@ export function toDeployDefinition(mocks: Mock[]): CoreDeployDefinition {
         method: mock.method,
         path: mock.path,
         parse: true,
+        labels: mock.labels,
         response: {
           code: mock.response.code,
           body: mock.response.body ?? "",
@@ -31,7 +32,9 @@ export function toReadOnlyMock(coreMock: CoreMockDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
+    labels: coreMock.labels ?? [],
     response: {
       code: 200,
       headers: {},
@@ -46,7 +49,9 @@ export function toReadOnlyDetailsMock(coreMock: CoreMockDetailsDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
+    labels: coreMock.labels ?? [],
     response: {
       code: coreMock.response.code,
       body: coreMock.response.body,

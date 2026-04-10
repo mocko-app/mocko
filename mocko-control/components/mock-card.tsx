@@ -20,6 +20,7 @@ import {
 import type { MockDto } from "@/lib/types/mock-dtos";
 import type { HttpMethod } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
+import { labelStyle } from "@/lib/utils/labels";
 
 const METHOD_COLORS: Record<HttpMethod, string> = {
   GET: "text-sky-400",
@@ -51,7 +52,7 @@ export const MockCard: React.FC<{
       />
       <div className="relative z-10 flex items-center gap-4 px-4 py-3.5 pointer-events-none">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5 mb-1.5">
+          <div className="flex items-center gap-2.5">
             <span className="text-sm font-medium text-white truncate">
               {mock.name}
             </span>
@@ -62,7 +63,25 @@ export const MockCard: React.FC<{
               <Badge variant="annotationReadOnly">Read Only</Badge>
             )}
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs">
+          {mock.filePath && (
+            <p className="truncate text-xs text-muted-foreground">
+              {mock.filePath}
+            </p>
+          )}
+          {mock.labels.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {mock.labels.map((label) => (
+                <span
+                  key={label}
+                  style={labelStyle(label)}
+                  className="inline-flex items-center rounded-full border px-2 py-px text-[10px] font-medium leading-tight"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2 font-mono text-xs mt-1.5">
             <span
               className={cn(
                 METHOD_COLORS[mock.method],

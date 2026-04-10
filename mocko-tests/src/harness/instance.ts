@@ -123,13 +123,14 @@ export class MockoInstance {
     return this.control;
   }
 
-  async createMock(hcl: string): Promise<void> {
+  async createMock(hcl: string): Promise<string> {
     const revision = await this.getRevision();
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
     await fs.writeFile(filename, hcl);
     if (this.watchEnabled) {
       await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
     }
+    return filename;
   }
 
   async getRevision(): Promise<number> {
