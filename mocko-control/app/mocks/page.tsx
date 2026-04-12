@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import { matchesMockSearch } from "@/lib/mock/search";
 import type { MockDto } from "@/lib/types/mock-dtos";
 import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
@@ -139,13 +140,7 @@ const MocksPage: React.FC = () => {
     let result = mocks;
 
     if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.path.toLowerCase().includes(q) ||
-          m.method.toLowerCase().includes(q),
-      );
+      result = result.filter((mock) => matchesMockSearch(mock, search));
     }
 
     if (selectedLabels.includes(UNLABELED_KEY)) {
