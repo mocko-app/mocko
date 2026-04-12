@@ -1,12 +1,6 @@
-import { HttpResponseError, tryCatch } from "@/lib/http";
+import { HttpResponseError } from "@/lib/http";
 import { $template } from "bigodon/dist/parser";
 import { State } from "pierrejs";
-import { coreClient } from "@/lib/core/client";
-import {
-  toDeployDefinition,
-  toReadOnlyDetailsMock,
-  toReadOnlyMock,
-} from "@/lib/mock/mock.mapper";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
 import type { MockFailure } from "@/lib/types/mock-dtos";
@@ -20,14 +14,7 @@ export class MockService {
   constructor(private readonly store: Store) {}
 
   async listMocks(): Promise<Mock[]> {
-    const storeMocks = await this.store.listMocks();
-    const storeIds = new Set(storeMocks.map((mock) => mock.id));
-    const fileMocks = await this.listReadOnlyMocks();
-
-    return [
-      ...storeMocks,
-      ...fileMocks.filter((mock) => !storeIds.has(mock.id)),
-    ];
+    return await this.store.listMocks();
   }
 
   async getMock(id: string): Promise<Mock> {
@@ -36,30 +23,14 @@ export class MockService {
       return mock;
     }
 
-    const readOnlyMock = await this.getReadOnlyMock(id);
-    if (readOnlyMock) {
-      return readOnlyMock;
-    }
-
     throw HttpResponseError.mockNotFound(id);
   }
 
   async createMock(data: CreateMockInput): Promise<Mock> {
     this.assertTemplateIsValid(data.response.body);
 
-    const mock: Mock = {
-      id: crypto.randomUUID(),
-      name: data.name,
-      method: data.method,
-      path: data.path,
-      response: data.response,
-      isEnabled: true,
-      labels: data.labels ?? [],
-      annotations: ["TEMPORARY"],
-    };
-
-    await this.store.saveMock(mock.id, mock);
-    await this.deploy();
+    const mock = await this.store.createMock(data);
+    await this.store.deploy();
     return mock;
   }
 
@@ -68,8 +39,11 @@ export class MockService {
     if (!currentMock) {
       throw HttpResponseError.mockNotFound(id);
     }
+    if (currentMock.annotations.includes("READ_ONLY")) {
+      throw HttpResponseError.mockReadOnly(id);
+    }
 
-    const mock: Mock = {
+    const mock = {
       ...currentMock,
       name: data.name ?? currentMock.name,
       method: data.method ?? currentMock.method,
@@ -84,14 +58,18 @@ export class MockService {
 
     this.assertTemplateIsValid(mock.response.body);
 
-    await this.store.saveMock(id, mock);
-    await this.deploy();
-    return mock;
+    const updatedMock = await this.store.updateMock(id, data);
+    if (!updatedMock) {
+      throw HttpResponseError.mockNotFound(id);
+    }
+
+    await this.store.deploy();
+    return updatedMock;
   }
 
   async deleteMock(id: string): Promise<void> {
     await this.store.deleteMock(id);
-    await this.deploy();
+    await this.store.deploy();
   }
 
   async health(): Promise<void> {
@@ -99,8 +77,7 @@ export class MockService {
   }
 
   async getFailure(id: string): Promise<MockFailure | null> {
-    const [coreMock] = await tryCatch(() => coreClient.getCoreMock(id));
-    return coreMock?.failure ?? null;
+    return this.store.getFailure(id);
   }
 
   private mergeResponse(
@@ -118,37 +95,6 @@ export class MockService {
           ? { ...currentResponse.headers }
           : { ...patchResponse.headers },
     };
-  }
-
-  private async deploy(): Promise<void> {
-    const mocks = await this.store.listMocks();
-    const deployDefinition = toDeployDefinition(mocks);
-
-    try {
-      await coreClient.deploy(deployDefinition);
-    } catch (error) {
-      console.error("Failed to deploy mocks to mocko-core:", error);
-    }
-  }
-
-  private async listReadOnlyMocks(): Promise<Mock[]> {
-    try {
-      const coreMocks = await coreClient.listCoreMocks();
-      return coreMocks
-        .filter((mock) => mock.source === "FILE")
-        .map(toReadOnlyMock);
-    } catch {
-      return [];
-    }
-  }
-
-  private async getReadOnlyMock(id: string): Promise<Mock | null> {
-    const [coreMock] = await tryCatch(() => coreClient.getCoreMock(id));
-    if (!coreMock || coreMock.source !== "FILE") {
-      return null;
-    }
-
-    return toReadOnlyDetailsMock(coreMock);
   }
 
   private assertTemplateIsValid(body?: string): void {

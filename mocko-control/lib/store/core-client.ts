@@ -9,9 +9,6 @@ import type {
   CorePutFlagDto,
 } from "@/lib/core/data/core.dto";
 
-const MOCKO_CORE_URL = process.env["MOCKO_CORE_URL"]?.replace(/\/+$/, "");
-const MOCKO_DEPLOY_SECRET = process.env["MOCKO_DEPLOY_SECRET"];
-
 export class CoreClientHttpError extends Error {
   constructor(
     public readonly status: number,
@@ -27,18 +24,22 @@ export class CoreClientHttpError extends Error {
 }
 
 export class CoreClient {
-  private http = axios.create({
-    baseURL: MOCKO_CORE_URL,
-    headers: {
-      Authorization: `Bearer ${MOCKO_DEPLOY_SECRET ?? ""}`,
-    },
-  });
+  private readonly http;
+
+  constructor(
+    private readonly coreUrl: string,
+    private readonly deploySecret: string,
+  ) {
+    this.http = axios.create({
+      baseURL: coreUrl,
+      headers: {
+        Authorization: `Bearer ${deploySecret}`,
+      },
+    });
+  }
 
   async deploy(definition: CoreDeployDefinition): Promise<void> {
-    if (!MOCKO_CORE_URL || !MOCKO_DEPLOY_SECRET) {
-      throw new Error("Missing MOCKO_CORE_URL or MOCKO_DEPLOY_SECRET");
-    }
-
+    this.assertConfigured();
     await this.http.post<unknown>("/__mocko__/deploy", definition);
   }
 
@@ -115,6 +116,12 @@ export class CoreClient {
     }
   }
 
+  private assertConfigured(): void {
+    if (!this.coreUrl || !this.deploySecret) {
+      throw new Error("Missing MOCKO_CORE_URL or MOCKO_DEPLOY_SECRET");
+    }
+  }
+
   private mapError(error: unknown): Error {
     if (error instanceof AxiosError && error.response) {
       const body = error.response.data;
@@ -133,5 +140,3 @@ export class CoreClient {
       : new Error("Unknown core client error");
   }
 }
-
-export const coreClient = new CoreClient();
