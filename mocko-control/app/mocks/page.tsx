@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
-import { matchesMockSearch } from "@/lib/mock/search";
+import { matchesMockSearch } from "@/lib/mock/filter";
 import type { MockDto } from "@/lib/types/mock-dtos";
 import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
