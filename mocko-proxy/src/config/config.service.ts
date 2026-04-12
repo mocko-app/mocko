@@ -50,13 +50,22 @@ export class ConfigProvider {
         return this.get(key).toLowerCase() === 'true';
     }
 
+    getRedisUrl(): string | undefined {
+        return this.getOptional('REDIS_URL');
+    }
+
+    getRedisPrefix(): string {
+        const prefix = this.getOptional('REDIS_PREFIX') || 'mocko:';
+        return `${prefix.endsWith(':') ? prefix : `${prefix}:`}v2:`;
+    }
+
     getRedisConfig(): RedisOptions {
         return {
             port: this.getNumber('REDIS_PORT'),
             host: this.get('REDIS_HOST'),
             password: this.get('REDIS_PASSWORD'),
             db: this.getNumber('REDIS_DATABASE'),
-            keyPrefix: this.get('REDIS_PREFIX'),
+            keyPrefix: this.getRedisPrefix(),
         };
     }
 

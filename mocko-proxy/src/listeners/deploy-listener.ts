@@ -4,7 +4,7 @@ import {RemapEventBus} from "../utils/remap-event-bus";
 
 @Provider()
 export class DeployListener implements IListener {
-    readonly channel = 'deploy';
+    readonly channel = 'mocko:deploy';
 
     constructor(
         private readonly remapEventBus: RemapEventBus,
