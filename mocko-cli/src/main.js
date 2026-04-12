@@ -40,7 +40,7 @@ async function run() {
     validateArgs(args);
 
     const path = args._[0];
-    const { port, url, timeout } = args;
+    const { port, url, timeout, redis } = args;
     const uiEnabled = Boolean(args.ui || args.P);
     const uiPort = args.P ?? DEFAULT_UI_PORT;
     let deploySecret = '';
@@ -49,6 +49,11 @@ async function run() {
     process.env['PROXY_BASE-URI'] = url;
     process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
     process.env['MOCKS_FOLDER'] = path;
+
+    if(redis) {
+        process.env['REDIS_ENABLED'] = 'true';
+        process.env['REDIS_URL'] = redis;
+    }
 
     if(uiEnabled) {
         deploySecret = generateDeploySecret();

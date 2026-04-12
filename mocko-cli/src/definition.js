@@ -37,6 +37,11 @@ module.exports.definition = {
         type: 'boolean',
         default: false,
     },
+    r: {
+        description: 'Enables Redis mode using the provided Redis URL',
+        alias: 'redis',
+        type: 'string',
+    },
     P: {
         description: 'Enables UI mode on the given UI port',
         alias: 'ui-port',
