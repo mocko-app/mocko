@@ -2,7 +2,7 @@ import { toReadOnlyDetailsMock, toReadOnlyMock } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import type { FlagKey } from "@/lib/types/flag";
 import type { MockFailure } from "@/lib/types/mock-dtos";
-import type { Mock, MockResponse } from "@/lib/types/mock";
+import type { Mock, MockAnnotation, MockResponse } from "@/lib/types/mock";
 import type {
   CreateMockInput,
   PatchMockInput,
@@ -50,7 +50,7 @@ export abstract class Store {
       },
       isEnabled: true,
       labels: [...(data.labels ?? [])],
-      annotations: ["TEMPORARY"],
+      annotations: this.getCreatedAnnotations(),
     };
 
     await this.saveCreatedMock(mock);
@@ -93,6 +93,7 @@ export abstract class Store {
   protected abstract getOwnMock(id: string): Promise<Mock | null>;
   protected abstract saveCreatedMock(mock: Mock): Promise<void>;
   protected abstract saveUpdatedMock(id: string, mock: Mock): Promise<void>;
+  protected abstract getCreatedAnnotations(): MockAnnotation[];
 
   protected async listReadOnlyMocks(): Promise<Mock[]> {
     try {

@@ -10,6 +10,7 @@ import { waitForHealth, waitForStatus, HealthResponse } from './health';
 const CLI_BIN = require.resolve('@mocko/cli/bin/main.js');
 const WATCHER_BOOTSTRAP_DELAY_MS = 100;
 const REMAP_TIMEOUT_MS = 10000;
+const CONTROL_START_TIMEOUT_MS = 15000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const WATCHER_READY_RETRY_DELAY_MS = 100;
 
@@ -73,7 +74,7 @@ export class MockoInstance {
 
   async start(): Promise<void> {
     const args = buildArgs(this.flags);
-    this.proc = spawn('node', [CLI_BIN, ...args, this.tempDir], {
+    this.proc = spawn(process.execPath, [CLI_BIN, ...args, this.tempDir], {
       env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
       stdio: 'ignore',
     });
@@ -86,7 +87,12 @@ export class MockoInstance {
     }
 
     if (this.control) {
-      await waitForStatus(this.control, '/api/health', 200);
+      await waitForStatus(
+        this.control,
+        '/api/health',
+        200,
+        CONTROL_START_TIMEOUT_MS,
+      );
     }
 
     await waitForHealth(this.client);

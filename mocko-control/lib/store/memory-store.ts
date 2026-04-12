@@ -28,6 +28,10 @@ export class MemoryStore extends Store {
     this.mocks.set(id, mock);
   }
 
+  protected getCreatedAnnotations(): ["TEMPORARY"] {
+    return ["TEMPORARY"];
+  }
+
   async deleteMock(id: string): Promise<boolean> {
     return this.mocks.delete(id);
   }

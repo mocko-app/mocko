@@ -19,6 +19,20 @@ npm test
 
 `pretest` automatically builds `mocko-proxy` before running.
 
+Redis-specific suites are included in the Jest tree but skip by default unless
+`REDIS_TESTS_ENABLED=true`.
+
+To run only the Redis suites:
+
+```sh
+cd mocko-tests
+npm run test:redis
+```
+
+`test:redis` is strict: it assumes a Redis server is available and fails if it
+cannot connect. By default the Redis harness uses `127.0.0.1:6379`, database
+`15`, and flushes that database before and after each Redis suite.
+
 ## Writing tests
 
 Import the harness from `src/harness`:

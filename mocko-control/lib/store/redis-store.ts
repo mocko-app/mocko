@@ -45,6 +45,10 @@ export class RedisStore extends Store {
     await this.writeOwnMocks(mocks);
   }
 
+  protected getCreatedAnnotations(): [] {
+    return [];
+  }
+
   async deleteMock(id: string): Promise<boolean> {
     const mocks = await this.readOwnMocks();
     const nextMocks = mocks.filter((mock) => mock.id !== id);
