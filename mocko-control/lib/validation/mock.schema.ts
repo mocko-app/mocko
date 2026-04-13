@@ -22,6 +22,13 @@ const pathSchema = z
   });
 
 const headersSchema = z.record(z.string(), z.string());
+const hostSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^[a-zA-Z0-9_-]{1,12}$/,
+    "Host must use letters, numbers, hyphens, or underscores, up to 12 characters",
+  );
 
 const responseSchema = z.object({
   code: z
@@ -66,6 +73,7 @@ export const createMockSchema = z.object({
     .max(255, "Name must be at most 255 characters"),
   method: z.enum(HTTP_METHODS),
   path: pathSchema,
+  host: hostSchema.nullable().optional(),
   labels: z.array(z.string()).optional().default([]),
   response: responseSchema,
 });
@@ -80,6 +88,7 @@ export const patchMockSchema = z
       .optional(),
     method: z.enum(HTTP_METHODS).optional(),
     path: pathSchema.optional(),
+    host: hostSchema.nullable().optional(),
     labels: z.array(z.string()).optional(),
     response: responsePatchSchema.optional(),
     isEnabled: z.boolean().optional(),
@@ -89,6 +98,7 @@ export const patchMockSchema = z
       value.name !== undefined ||
       value.method !== undefined ||
       value.path !== undefined ||
+      value.host !== undefined ||
       value.labels !== undefined ||
       value.response !== undefined ||
       value.isEnabled !== undefined,

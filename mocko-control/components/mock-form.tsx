@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
-import { HeadersEditor } from "@/components/headers-editor";
+import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
 import { BodyEditor } from "@/components/monaco-editor";
 import {
   ApiError,
@@ -83,6 +83,7 @@ type FormState = {
   body: string;
   contentType: ContentType;
   labels: string[];
+  hostSlug: string;
 };
 
 type FormErrors = {
@@ -165,6 +166,7 @@ function getInitialFormState(initial?: MockDetailsDto): FormState {
       body: "",
       contentType: "json",
       labels: [],
+      hostSlug: "",
     };
   }
 
@@ -180,6 +182,7 @@ function getInitialFormState(initial?: MockDetailsDto): FormState {
     body: initial.response.body ?? "",
     contentType,
     labels: initial.labels ?? [],
+    hostSlug: initial.host ?? "",
   };
 }
 
@@ -303,6 +306,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
       name: form.name.trim(),
       method: form.method,
       path: form.path.trim(),
+      host: form.hostSlug || null,
       labels: form.labels,
       response: {
         code: statusCode,
@@ -350,6 +354,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
       } else {
         setTemplateError(null);
         setHideErrors(false);
+        setServerErrors({});
         toast.error("Failed to save mock.");
       }
     } finally {
@@ -506,14 +511,13 @@ export function MockForm({ initial, mode }: MockFormProps) {
           )}
         </div>
 
-        <div className="flex w-full flex-col gap-1.5">
-          <Label>Response headers</Label>
-          <HeadersEditor
-            headers={form.headers}
-            onChange={(h) => set("headers", h)}
-            lockedHeaders={lockedHeader}
-          />
-        </div>
+        <MockFormAdvancedOptions
+          headers={form.headers}
+          hostSlug={form.hostSlug}
+          lockedHeaders={lockedHeader}
+          onHeadersChange={(headers) => set("headers", headers)}
+          onHostSlugChange={(hostSlug) => set("hostSlug", hostSlug)}
+        />
 
         <div className="flex w-full flex-col gap-1.5">
           <div className="flex items-center justify-between">

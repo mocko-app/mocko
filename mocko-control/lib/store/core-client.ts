@@ -4,6 +4,7 @@ import type {
   CoreDeployDefinition,
   CoreFlagDto,
   CoreFlagListDto,
+  CoreHostDto,
   CoreMockDetailsDto,
   CoreMockDto,
   CorePutFlagDto,
@@ -60,6 +61,11 @@ export class CoreClient {
       throw error;
     }
 
+    return response.data;
+  }
+
+  async listCoreHosts(): Promise<CoreHostDto[]> {
+    const response = await this.http.get<CoreHostDto[]>("/__mocko__/hosts");
     return response.data;
   }
 

@@ -2,11 +2,13 @@ import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
 import type { FlagKey, FlagType } from "@/lib/types/flag";
+import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
 
 export class MemoryStore extends Store {
   private readonly mocks = new Map<string, Mock>();
+  private readonly hosts = new Map<string, Host>();
 
   constructor(coreClient: CoreClient) {
     super(coreClient);
@@ -34,6 +36,26 @@ export class MemoryStore extends Store {
 
   async deleteMock(id: string): Promise<boolean> {
     return this.mocks.delete(id);
+  }
+
+  protected async listOwnHosts(): Promise<Host[]> {
+    return Array.from(this.hosts.values());
+  }
+
+  protected async getOwnHost(slug: string): Promise<Host | null> {
+    return this.hosts.get(slug) ?? null;
+  }
+
+  protected async saveCreatedHost(host: Host): Promise<void> {
+    this.hosts.set(host.slug, host);
+  }
+
+  protected async saveUpdatedHost(slug: string, host: Host): Promise<void> {
+    this.hosts.set(slug, host);
+  }
+
+  async deleteHost(slug: string): Promise<boolean> {
+    return this.hosts.delete(slug);
   }
 
   async listFlags(prefix: string): Promise<FlagListResult> {
@@ -67,7 +89,10 @@ export class MemoryStore extends Store {
   async deploy(): Promise<void> {
     try {
       await this.coreClient.deploy(
-        toDeployDefinition(Array.from(this.mocks.values())),
+        toDeployDefinition(
+          Array.from(this.mocks.values()),
+          Array.from(this.hosts.values()),
+        ),
       );
     } catch (error) {
       console.error("Failed to deploy mocks to mocko-core:", error);

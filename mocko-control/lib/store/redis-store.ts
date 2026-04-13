@@ -3,10 +3,12 @@ import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
 import type { FlagKey } from "@/lib/types/flag";
+import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
 
 const WORKSPACE_MOCKS_KEY = "workspace_mocks";
+const HOSTS_KEY = "hosts";
 const DEPLOYMENT_KEY = "mocks_deployment";
 const FLAG_PREFIX = "flags:";
 const FAILURE_PREFIX = "mock_failure:";
@@ -57,6 +59,39 @@ export class RedisStore extends Store {
     }
 
     await this.writeOwnMocks(nextMocks);
+    return true;
+  }
+
+  protected async listOwnHosts(): Promise<Host[]> {
+    return this.readOwnHosts();
+  }
+
+  protected async getOwnHost(slug: string): Promise<Host | null> {
+    const hosts = await this.readOwnHosts();
+    return hosts.find((host) => host.slug === slug) ?? null;
+  }
+
+  protected async saveCreatedHost(host: Host): Promise<void> {
+    const hosts = await this.readOwnHosts();
+    hosts.push(host);
+    await this.writeOwnHosts(hosts);
+  }
+
+  protected async saveUpdatedHost(slug: string, host: Host): Promise<void> {
+    const hosts = await this.readOwnHosts();
+    const index = hosts.findIndex((host) => host.slug === slug);
+    hosts[index] = host;
+    await this.writeOwnHosts(hosts);
+  }
+
+  async deleteHost(slug: string): Promise<boolean> {
+    const hosts = await this.readOwnHosts();
+    const nextHosts = hosts.filter((host) => host.slug !== slug);
+    if (nextHosts.length === hosts.length) {
+      return false;
+    }
+
+    await this.writeOwnHosts(nextHosts);
     return true;
   }
 
@@ -136,7 +171,10 @@ export class RedisStore extends Store {
 
   async deploy(): Promise<void> {
     try {
-      const deployDefinition = toDeployDefinition(await this.readOwnMocks());
+      const deployDefinition = toDeployDefinition(
+        await this.readOwnMocks(),
+        await this.readOwnHosts(),
+      );
       await this.redis.set(DEPLOYMENT_KEY, JSON.stringify(deployDefinition));
       await this.redis.publish(`${this.redisPrefix}${RELOAD_CHANNEL}`, "");
     } catch (error) {
@@ -168,6 +206,19 @@ export class RedisStore extends Store {
 
   private async writeOwnMocks(mocks: Mock[]): Promise<void> {
     await this.redis.set(WORKSPACE_MOCKS_KEY, JSON.stringify(mocks));
+  }
+
+  private async readOwnHosts(): Promise<Host[]> {
+    const payload = await this.redis.get(HOSTS_KEY);
+    if (!payload) {
+      return [];
+    }
+
+    return JSON.parse(payload) as Host[];
+  }
+
+  private async writeOwnHosts(hosts: Host[]): Promise<void> {
+    await this.redis.set(HOSTS_KEY, JSON.stringify(hosts));
   }
 
   private normalizePrefix(prefix: string): string {

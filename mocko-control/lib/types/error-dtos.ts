@@ -46,6 +46,14 @@ export class ErrorDto {
     return new ErrorDto("FLAG_NOT_FOUND", `Flag "${key}" was not found`);
   }
 
+  static ofHostNotFound(slug: string): ErrorDto {
+    return new ErrorDto("HOST_NOT_FOUND", `Host "${slug}" was not found`);
+  }
+
+  static ofHostSlugConflict(slug: string): ErrorDto {
+    return new ErrorDto("HOST_SLUG_CONFLICT", `Host "${slug}" already exists`);
+  }
+
   static ofTemplateParseError(parsingError: ParsingError): ErrorDto {
     return new ErrorDto(
       "TEMPLATE_PARSE_ERROR",

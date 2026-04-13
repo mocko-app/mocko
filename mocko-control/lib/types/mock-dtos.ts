@@ -14,6 +14,7 @@ export type CreateMockDto = {
   name: string;
   method: HttpMethod;
   path: string;
+  host?: string | null;
   labels?: string[];
   response: MockResponse;
 };
@@ -22,6 +23,7 @@ export type PatchMockDto = {
   name?: string;
   method?: HttpMethod;
   path?: string;
+  host?: string | null;
   labels?: string[];
   response?: Partial<MockResponse>;
   isEnabled?: boolean;
@@ -47,6 +49,7 @@ export class MockDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly host: string | undefined,
     public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
     public readonly labels: string[],
@@ -59,6 +62,7 @@ export class MockDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.host,
       mock.filePath,
       mock.isEnabled,
       [...mock.labels],
@@ -73,6 +77,7 @@ export class MockDetailsDto {
     public readonly name: string,
     public readonly method: Mock["method"],
     public readonly path: string,
+    public readonly host: string | undefined,
     public readonly filePath: string | undefined,
     public readonly isEnabled: boolean,
     public readonly labels: string[],
@@ -90,6 +95,7 @@ export class MockDetailsDto {
       mock.name,
       mock.method,
       mock.path,
+      mock.host,
       mock.filePath,
       mock.isEnabled,
       [...mock.labels],

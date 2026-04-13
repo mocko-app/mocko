@@ -48,6 +48,7 @@ export class MockService {
       name: data.name ?? currentMock.name,
       method: data.method ?? currentMock.method,
       path: data.path ?? currentMock.path,
+      host: data.host || currentMock.host,
       isEnabled: data.isEnabled ?? currentMock.isEnabled,
       labels: data.labels ?? currentMock.labels,
       response: data.response

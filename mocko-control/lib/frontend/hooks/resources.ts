@@ -3,12 +3,15 @@
 import useSWR, { type SWRConfiguration } from "swr";
 import {
   api,
+  getHost,
+  getHosts,
   getFlag,
   getFlags,
   toApiError,
   type ApiError,
 } from "@/lib/frontend/api";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
+import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 
 export function useMocks(options?: SWRConfiguration<MockDto[], ApiError>) {
@@ -66,6 +69,35 @@ export function useFlags(
     {
       refreshInterval: 0,
       revalidateOnFocus: true,
+      ...options,
+    },
+  );
+}
+
+export function useHosts(options?: SWRConfiguration<HostDto[], ApiError>) {
+  return useSWR<HostDto[], ApiError>("/api/hosts", async () => getHosts(), {
+    refreshInterval: 5000,
+    revalidateOnFocus: true,
+    ...options,
+  });
+}
+
+export function useHost(
+  slug: string | undefined,
+  options?: SWRConfiguration<HostDto, ApiError>,
+) {
+  return useSWR<HostDto, ApiError>(
+    slug ? `/api/hosts/${slug}` : null,
+    async () => {
+      if (!slug) {
+        throw new Error("Host slug is required");
+      }
+
+      return getHost(slug);
+    },
+    {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
       ...options,
     },
   );
