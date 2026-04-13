@@ -63,7 +63,7 @@ export class ConfigProvider {
         return {
             port: this.getNumber('REDIS_PORT'),
             host: this.get('REDIS_HOST'),
-            password: this.get('REDIS_PASSWORD'),
+            password: this.getOptional('REDIS_PASSWORD'),
             db: this.getNumber('REDIS_DATABASE'),
             keyPrefix: this.getRedisPrefix(),
         };
