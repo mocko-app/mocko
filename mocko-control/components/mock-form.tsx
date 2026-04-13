@@ -262,6 +262,12 @@ export function MockForm({ initial, mode }: MockFormProps) {
               message={bodyError.message}
             />
           )}
+          {initial?.failure && (
+            <Callout
+              title="Last runtime failure"
+              message={initial.failure.message}
+            />
+          )}
           <BodyEditor
             value={form.body}
             onChange={(v) => set("body", v)}

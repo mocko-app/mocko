@@ -34,6 +34,10 @@ export class MemoryStore extends Store {
     return this.mocks.delete(id);
   }
 
+  async clearFailure(mockId: string): Promise<void> {
+    void mockId;
+  }
+
   protected async listOwnHosts(): Promise<Host[]> {
     return Array.from(this.hosts.values());
   }

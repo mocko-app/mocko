@@ -83,12 +83,14 @@ export class MockService {
     await this.store.saveMock(mock);
 
     await this.store.deploy();
+    await this.store.clearFailure(mock.id);
     return mock;
   }
 
   async deleteMock(id: string): Promise<void> {
     await this.store.deleteMock(id);
     await this.store.deploy();
+    await this.store.clearFailure(id);
   }
 
   async health(): Promise<void> {

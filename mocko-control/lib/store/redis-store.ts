@@ -60,6 +60,10 @@ export class RedisStore extends Store {
     return true;
   }
 
+  async clearFailure(mockId: string): Promise<void> {
+    await this.redis.del(`${FAILURE_PREFIX}${mockId}`);
+  }
+
   protected async listOwnHosts(): Promise<Host[]> {
     return this.readOwnHosts();
   }
@@ -167,10 +171,9 @@ export class RedisStore extends Store {
 
   async deploy(): Promise<void> {
     try {
-      const deployDefinition = toDeployDefinition(
-        await this.readOwnMocks(),
-        await this.readOwnHosts(),
-      );
+      const mocks = await this.readOwnMocks();
+      const hosts = await this.readOwnHosts();
+      const deployDefinition = toDeployDefinition(mocks, hosts);
       await this.redis.set(DEPLOYMENT_KEY, JSON.stringify(deployDefinition));
       await this.redis.publish(`${this.redisPrefix}${RELOAD_CHANNEL}`, "");
     } catch (error) {
