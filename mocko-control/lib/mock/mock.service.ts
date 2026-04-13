@@ -43,12 +43,17 @@ export class MockService {
       throw HttpResponseError.mockReadOnly(id);
     }
 
+    let nextHost = currentMock.host;
+    if (data.host !== undefined) {
+      nextHost = data.host ?? undefined;
+    }
+
     const mock = {
       ...currentMock,
       name: data.name ?? currentMock.name,
       method: data.method ?? currentMock.method,
       path: data.path ?? currentMock.path,
-      host: data.host || currentMock.host,
+      host: nextHost,
       isEnabled: data.isEnabled ?? currentMock.isEnabled,
       labels: data.labels ?? currentMock.labels,
       response: data.response

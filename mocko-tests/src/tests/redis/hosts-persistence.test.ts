@@ -5,6 +5,7 @@ import {
   flushRedis,
   CONTENT_PORT,
   MockoInstance,
+  randomPath,
   RedisTestConfig,
 } from '../../harness';
 
@@ -131,6 +132,14 @@ describeRedis('redis hosts persistence', () => {
       redis,
     }));
 
+    await subject.createMock(`
+      host "file-host" {
+        name        = "File host"
+        source      = "file.local"
+        destination = "http://localhost:${CONTENT_PORT}"
+      }
+    `);
+
     expect(
       (await subject.ensureControl().get('/api/hosts/redis-host')).status,
     ).toBe(404);
@@ -161,5 +170,68 @@ describeRedis('redis hosts persistence', () => {
     });
     expect(createRes.status).toBe(409);
     expect(createRes.data.code).toBe('HOST_SLUG_CONFLICT');
+  });
+
+  it('updates control-created mock host scoping in redis mode', async () => {
+    const route = randomPath();
+
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true },
+      mode: 'url',
+    }));
+
+    const control = subject.ensureControl();
+
+    let revision = await subject.getRevision();
+    const createHostRes = await control.post('/api/hosts', {
+      slug: 'redis-hosted',
+      source: 'redis-hosted.local',
+      destination: `http://localhost:${CONTENT_PORT}`,
+    });
+    expect(createHostRes.status).toBe(201);
+    await subject.waitForRemap(revision);
+
+    revision = await subject.getRevision();
+    const createMockRes = await control.post('/api/mocks', {
+      name: 'host-scoped mock',
+      method: 'GET',
+      path: route,
+      host: 'redis-hosted',
+      response: {
+        code: 200,
+        body: 'host scoped',
+        headers: {},
+      },
+    });
+    expect(createMockRes.status).toBe(201);
+    await subject.waitForRemap(revision);
+
+    expect((await subject.client.get(route)).status).toBe(404);
+
+    const hostedRes = await subject.client.get(route, {
+      headers: { Host: 'redis-hosted.local' },
+    });
+    expect(hostedRes.status).toBe(200);
+    expect(hostedRes.data).toBe('host scoped');
+
+    revision = await subject.getRevision();
+    const updateMockRes = await control.patch(
+      `/api/mocks/${createMockRes.data.id}`,
+      {
+        host: null,
+      },
+    );
+    expect(updateMockRes.status).toBe(200);
+    await subject.waitForRemap(revision);
+
+    const withoutHostRes = await subject.client.get(route);
+    expect(withoutHostRes.status).toBe(200);
+    expect(withoutHostRes.data).toBe('host scoped');
+
+    const withHostRes = await subject.client.get(route, {
+      headers: { Host: 'redis-hosted.local' },
+    });
+    expect(withHostRes.status).toBe(200);
+    expect(withHostRes.data).toBe('host scoped');
   });
 });

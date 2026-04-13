@@ -58,12 +58,17 @@ export abstract class Store {
       return null;
     }
 
+    let nextHost = current.host;
+    if (data.host !== undefined) {
+      nextHost = data.host ?? undefined;
+    }
+
     const next: Mock = {
       ...current,
       name: data.name ?? current.name,
       method: data.method ?? current.method,
       path: data.path ?? current.path,
-      host: data.host ? data.host : current.host,
+      host: nextHost,
       isEnabled: data.isEnabled ?? current.isEnabled,
       labels: data.labels ?? current.labels,
       response: data.response

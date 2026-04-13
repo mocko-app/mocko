@@ -4,6 +4,7 @@ import {
   createSubject,
   CONTENT_PORT,
   MockoInstance,
+  randomPath,
 } from '../../harness';
 
 function normalizeHostFilePath(subject: MockoInstance, filePath: string) {
@@ -169,6 +170,58 @@ describe('control hosts integration', () => {
         })
       ).status,
     ).toBe(404);
+  });
+
+  it('updates a control-created host-scoped mock back to no host in storeless mode', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createHostRes = await control.post('/api/hosts', {
+      slug: 'storeless',
+      source: 'storeless.local',
+      destination: `http://localhost:${CONTENT_PORT}`,
+    });
+    expect(createHostRes.status).toBe(201);
+
+    const createMockRes = await control.post('/api/mocks', {
+      name: 'storeless scoped mock',
+      method: 'GET',
+      path: route,
+      host: 'storeless',
+      response: {
+        code: 200,
+        body: 'storeless scoped response',
+        headers: {},
+      },
+    });
+    expect(createMockRes.status).toBe(201);
+
+    expect((await subject.client.get(route)).status).toBe(404);
+
+    const hostedRes = await subject.client.get(route, {
+      headers: { Host: 'storeless.local' },
+    });
+    expect(hostedRes.status).toBe(200);
+    expect(hostedRes.data).toBe('storeless scoped response');
+
+    const updateRes = await control.patch(
+      `/api/mocks/${createMockRes.data.id}`,
+      {
+        host: null,
+      },
+    );
+    expect(updateRes.status).toBe(200);
+
+    const withoutHostRes = await subject.client.get(route);
+    expect(withoutHostRes.status).toBe(200);
+    expect(withoutHostRes.data).toBe('storeless scoped response');
+
+    const withHostRes = await subject.client.get(route, {
+      headers: { Host: 'storeless.local' },
+    });
+    expect(withHostRes.status).toBe(200);
+    expect(withHostRes.data).toBe('storeless scoped response');
   });
 
   it('merges file and ui hosts in storeless mode and rejects duplicate slugs', async () => {
