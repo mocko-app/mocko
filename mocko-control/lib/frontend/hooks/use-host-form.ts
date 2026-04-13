@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import {
   ApiError,
   createHost,
@@ -128,6 +129,7 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
         toast.success("Host updated.");
       }
 
+      await mutate("/api/hosts");
       router.push("/hosts");
     } catch (error) {
       if (error instanceof ApiError && error.code === "HOST_SLUG_CONFLICT") {
