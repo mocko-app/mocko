@@ -22,15 +22,11 @@ export class MemoryStore extends Store {
     return this.mocks.get(id) ?? null;
   }
 
-  protected async saveCreatedMock(mock: Mock): Promise<void> {
+  async saveMock(mock: Mock): Promise<void> {
     this.mocks.set(mock.id, mock);
   }
 
-  protected async saveUpdatedMock(id: string, mock: Mock): Promise<void> {
-    this.mocks.set(id, mock);
-  }
-
-  protected getCreatedAnnotations(): ["TEMPORARY"] {
+  getCreatedAnnotations(): ["TEMPORARY"] {
     return ["TEMPORARY"];
   }
 
@@ -46,12 +42,8 @@ export class MemoryStore extends Store {
     return this.hosts.get(slug) ?? null;
   }
 
-  protected async saveCreatedHost(host: Host): Promise<void> {
+  async saveHost(host: Host): Promise<void> {
     this.hosts.set(host.slug, host);
-  }
-
-  protected async saveUpdatedHost(slug: string, host: Host): Promise<void> {
-    this.hosts.set(slug, host);
   }
 
   async deleteHost(slug: string): Promise<boolean> {

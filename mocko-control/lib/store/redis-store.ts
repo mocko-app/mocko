@@ -34,20 +34,18 @@ export class RedisStore extends Store {
     return mocks.find((mock) => mock.id === id) ?? null;
   }
 
-  protected async saveCreatedMock(mock: Mock): Promise<void> {
+  async saveMock(mock: Mock): Promise<void> {
     const mocks = await this.readOwnMocks();
-    mocks.push(mock);
+    const index = mocks.findIndex((item) => item.id === mock.id);
+    if (index === -1) {
+      mocks.push(mock);
+    } else {
+      mocks[index] = mock;
+    }
     await this.writeOwnMocks(mocks);
   }
 
-  protected async saveUpdatedMock(id: string, mock: Mock): Promise<void> {
-    const mocks = await this.readOwnMocks();
-    const index = mocks.findIndex((item) => item.id === id);
-    mocks[index] = mock;
-    await this.writeOwnMocks(mocks);
-  }
-
-  protected getCreatedAnnotations(): [] {
+  getCreatedAnnotations(): [] {
     return [];
   }
 
@@ -71,16 +69,14 @@ export class RedisStore extends Store {
     return hosts.find((host) => host.slug === slug) ?? null;
   }
 
-  protected async saveCreatedHost(host: Host): Promise<void> {
+  async saveHost(host: Host): Promise<void> {
     const hosts = await this.readOwnHosts();
-    hosts.push(host);
-    await this.writeOwnHosts(hosts);
-  }
-
-  protected async saveUpdatedHost(slug: string, host: Host): Promise<void> {
-    const hosts = await this.readOwnHosts();
-    const index = hosts.findIndex((host) => host.slug === slug);
-    hosts[index] = host;
+    const index = hosts.findIndex((item) => item.slug === host.slug);
+    if (index === -1) {
+      hosts.push(host);
+    } else {
+      hosts[index] = host;
+    }
     await this.writeOwnHosts(hosts);
   }
 

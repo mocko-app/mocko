@@ -29,7 +29,15 @@ export class HostService {
       throw HttpResponseError.hostSlugConflict(data.slug);
     }
 
-    const host = await this.store.createHost(data);
+    const host: Host = {
+      slug: data.slug,
+      name: data.name,
+      source: data.source,
+      destination: data.destination,
+      annotations: this.store.getCreatedAnnotations(),
+    };
+
+    await this.store.saveHost(host);
     await this.store.deploy();
     return host;
   }
@@ -40,10 +48,15 @@ export class HostService {
       throw HttpResponseError.hostNotFound(slug);
     }
 
-    const updatedHost = await this.store.updateHost(slug, data);
-    if (!updatedHost) {
-      throw HttpResponseError.hostNotFound(slug);
-    }
+    const updatedHost: Host = {
+      ...host,
+      name: data.name ?? host.name,
+      source: data.source ?? host.source,
+      destination: data.destination ?? host.destination,
+      annotations: [...host.annotations],
+    };
+
+    await this.store.saveHost(updatedHost);
 
     await this.store.deploy();
     return updatedHost;

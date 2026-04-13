@@ -29,7 +29,23 @@ export class MockService {
   async createMock(data: CreateMockInput): Promise<Mock> {
     this.assertTemplateIsValid(data.response.body);
 
-    const mock = await this.store.createMock(data);
+    const mock: Mock = {
+      id: crypto.randomUUID(),
+      name: data.name,
+      method: data.method,
+      path: data.path,
+      host: data.host || undefined,
+      response: {
+        code: data.response.code,
+        body: data.response.body,
+        headers: { ...data.response.headers },
+      },
+      isEnabled: true,
+      labels: [...(data.labels ?? [])],
+      annotations: this.store.getCreatedAnnotations(),
+    };
+
+    await this.store.saveMock(mock);
     await this.store.deploy();
     return mock;
   }
@@ -64,13 +80,10 @@ export class MockService {
 
     this.assertTemplateIsValid(mock.response.body);
 
-    const updatedMock = await this.store.updateMock(id, data);
-    if (!updatedMock) {
-      throw HttpResponseError.mockNotFound(id);
-    }
+    await this.store.saveMock(mock);
 
     await this.store.deploy();
-    return updatedMock;
+    return mock;
   }
 
   async deleteMock(id: string): Promise<void> {
