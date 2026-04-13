@@ -5,8 +5,9 @@
   "scripts": {
     "pretest": "npm run lint && npm run build --prefix ../mocko-proxy && npm run build --prefix ../mocko-control",
     "test": "jest --runInBand",
-    "pretest:redis": "npm run lint && npm run build --prefix ../mocko-proxy && npm run build --prefix ../mocko-control",
-    "test:redis": "REDIS_TESTS_ENABLED=true jest --runInBand src/tests/redis",
+    "pretest:full": "npm run lint && npm run build --prefix ../mocko-proxy && npm run build --prefix ../mocko-control",
+    "test:full": "REDIS_TESTS_ENABLED=true jest --runInBand",
+    "test:full:fast": "REDIS_TESTS_ENABLED=true jest --runInBand",
     "test:fast": "jest --runInBand",
     "pretest:core": "npm run build --prefix ../mocko-proxy",
     "test:core": "jest --runInBand",
