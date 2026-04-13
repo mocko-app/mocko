@@ -171,4 +171,52 @@ describe('proxy', () => {
     });
     expect(v2.data).toBe('v2');
   });
+
+  it('allows hcl mocks to scope by host slug', async () => {
+    await subject.createMock(`
+      host "slug-host" {
+        source      = "slug-host.local"
+        destination = "http://localhost:${CONTENT_PORT}"
+      }
+      mock "GET /host-slug-scoped" {
+        host = "slug-host"
+        body = "slug scoped"
+      }
+    `);
+
+    const matchingRes = await subject.client.get('/host-slug-scoped', {
+      headers: { Host: 'slug-host.local' },
+    });
+    expect(matchingRes.status).toBe(200);
+    expect(matchingRes.data).toBe('slug scoped');
+
+    const nonMatchingRes = await subject.client.get('/host-slug-scoped', {
+      headers: { Host: 'other.local' },
+    });
+    expect(nonMatchingRes.status).toBe(404);
+  });
+
+  it('allows hcl mocks to scope by host header value', async () => {
+    await subject.createMock(`
+      host "legacy-host" {
+        source      = "legacy-host.local"
+        destination = "http://localhost:${CONTENT_PORT}"
+      }
+      mock "GET /host-header-scoped" {
+        host = "legacy-host.local"
+        body = "header scoped"
+      }
+    `);
+
+    const matchingRes = await subject.client.get('/host-header-scoped', {
+      headers: { Host: 'legacy-host.local' },
+    });
+    expect(matchingRes.status).toBe(200);
+    expect(matchingRes.data).toBe('header scoped');
+
+    const nonMatchingRes = await subject.client.get('/host-header-scoped', {
+      headers: { Host: 'other.local' },
+    });
+    expect(nonMatchingRes.status).toBe(404);
+  });
 });
