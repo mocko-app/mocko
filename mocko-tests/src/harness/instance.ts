@@ -148,7 +148,12 @@ export class MockoInstance {
       return;
     }
 
-    await this.waitForRevisionAfterWrite(filename, content, revision, retryCount);
+    await this.waitForRevisionAfterWrite(
+      filename,
+      content,
+      revision,
+      retryCount,
+    );
   }
 
   async getRevision(): Promise<number> {
