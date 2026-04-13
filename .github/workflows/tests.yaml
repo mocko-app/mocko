@@ -12,8 +12,13 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Preparing tests
-      run: npm install
-    - name: Testing
-      run: npm test
+      - uses: actions/checkout@v4
+      - name: Preparing tests
+        run: npm install
+      - name: Start Redis
+        run: docker compose -f mocko-tests/docker-compose.yaml up -d
+      - name: Testing
+        run: npm run test:full
+      - name: Stop Redis
+        if: always()
+        run: docker compose -f mocko-tests/docker-compose.yaml down -v
