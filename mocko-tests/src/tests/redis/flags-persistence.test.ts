@@ -11,7 +11,7 @@ import {
 
 jest.setTimeout(30000);
 
-describeRedis.skip('redis flags persistence', () => {
+describeRedis('redis flags persistence', () => {
   let subject: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
 

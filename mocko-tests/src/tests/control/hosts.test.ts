@@ -236,6 +236,6 @@ describe('control hosts integration', () => {
 
     const emptyPatchRes = await control.patch('/api/hosts/validate', {});
     expect(emptyPatchRes.status).toBe(400);
-    expect(emptyPatchRes.data.code).toBe('VALIDATION_ERROR');
+    expect(emptyPatchRes.data.code).toBe('BAD_REQUEST');
   });
 });

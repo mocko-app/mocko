@@ -7,7 +7,7 @@ import {
   RedisTestConfig,
 } from '../../harness';
 
-describeRedis.skip('cli redis wiring', () => {
+describeRedis('cli redis wiring', () => {
   let subject: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
 

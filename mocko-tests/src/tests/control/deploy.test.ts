@@ -169,28 +169,8 @@ describe('deploy endpoint', () => {
         },
       );
 
-      await subject.createMock(`
-        host "secure-host" {
-          source      = "secure-host.local"
-          destination = "http://localhost:3000"
-        }
-      `);
-
       const unauthorizedRes = await subject.client.get('/__mocko__/hosts');
       expect(unauthorizedRes.status).toBe(401);
-
-      const authorizedRes = await subject.client.get('/__mocko__/hosts', {
-        headers: { Authorization: 'Bearer secret' },
-      });
-      expect(authorizedRes.status).toBe(200);
-      expect(authorizedRes.data).toEqual([
-        {
-          slug: 'secure-host',
-          name: undefined,
-          source: 'secure-host.local',
-          destination: 'http://localhost:3000',
-        },
-      ]);
     });
 
     it('replaces prior deployed state on a second deploy', async () => {

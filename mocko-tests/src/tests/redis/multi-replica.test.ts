@@ -27,7 +27,7 @@ async function waitForBody(
   throw new Error(`Timed out waiting for ${path} to return "${expected}"`);
 }
 
-describeRedis.skip('redis multi replica reload', () => {
+describeRedis('redis multi replica reload', () => {
   let instances: MockoInstance[] = [];
   let redis: RedisTestConfig | null = null;
 

@@ -113,13 +113,10 @@ describe('definition structure', () => {
     beforeAll(async () => {
       subject = await createSubject();
       const deepDir = path.join(subject.dir, 'a', 'b', 'c');
+      const deepFile = path.join(deepDir, 'deep.hcl');
+      const deepMock = `mock "GET /deep-nested" { body = "deep" }`;
       await fs.mkdir(deepDir, { recursive: true });
-      const rev = await subject.getRevision();
-      await fs.writeFile(
-        path.join(deepDir, 'deep.hcl'),
-        `mock "GET /deep-nested" { body = "deep" }`,
-      );
-      await subject.waitForRemap(rev);
+      await subject.writeFileAndWaitForRemap(deepFile, deepMock);
     });
 
     afterAll(() => subject.stop());

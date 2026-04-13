@@ -9,7 +9,7 @@ import {
   RedisTestConfig,
 } from '../../harness';
 
-describeRedis.skip('redis mock failures', () => {
+describeRedis('redis mock failures', () => {
   let subject: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
 

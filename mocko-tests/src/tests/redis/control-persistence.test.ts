@@ -7,7 +7,7 @@ import {
   RedisTestConfig,
 } from '../../harness';
 
-describeRedis.skip('redis control persistence', () => {
+describeRedis('redis control persistence', () => {
   let subject: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
 

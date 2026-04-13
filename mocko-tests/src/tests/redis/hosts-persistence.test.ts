@@ -14,7 +14,7 @@ function findHost(list: any[], slug: string) {
   return host;
 }
 
-describeRedis.skip('redis hosts persistence', () => {
+describeRedis('redis hosts persistence', () => {
   let subject: MockoInstance | null = null;
   let content: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;

@@ -132,13 +132,23 @@ export class MockoInstance {
   }
 
   async createMock(hcl: string): Promise<string> {
-    const revision = await this.getRevision();
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
-    await fs.writeFile(filename, hcl);
-    if (this.watchEnabled) {
-      await this.waitForRevisionAfterWrite(filename, hcl, revision);
-    }
+    await this.writeFileAndWaitForRemap(filename, hcl);
     return filename;
+  }
+
+  async writeFileAndWaitForRemap(
+    filename: string,
+    content: string,
+    retryCount = CREATE_MOCK_RETRY_COUNT,
+  ): Promise<void> {
+    const revision = await this.getRevision();
+    await fs.writeFile(filename, content);
+    if (!this.watchEnabled) {
+      return;
+    }
+
+    await this.waitForRevisionAfterWrite(filename, content, revision, retryCount);
   }
 
   async getRevision(): Promise<number> {
@@ -172,19 +182,20 @@ export class MockoInstance {
 
   private async waitForRevisionAfterWrite(
     filename: string,
-    hcl: string,
+    content: string,
     revision: number,
+    retryCount: number,
   ): Promise<void> {
-    for (let attempt = 1; attempt <= CREATE_MOCK_RETRY_COUNT; attempt++) {
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
         await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
         return;
       } catch (error) {
-        if (attempt === CREATE_MOCK_RETRY_COUNT) {
+        if (attempt === retryCount) {
           throw error;
         }
 
-        await fs.writeFile(filename, hcl);
+        await fs.writeFile(filename, content);
         await sleep(WATCHER_BOOTSTRAP_DELAY_MS);
       }
     }
