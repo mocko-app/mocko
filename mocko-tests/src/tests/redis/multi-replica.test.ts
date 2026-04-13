@@ -1,4 +1,3 @@
-import { AxiosInstance } from 'axios';
 import {
   createRedisReplicaSet,
   describeRedis,
@@ -7,25 +6,6 @@ import {
   randomPath,
   RedisTestConfig,
 } from '../../harness';
-
-async function waitForBody(
-  client: AxiosInstance,
-  path: string,
-  expected: string,
-  timeout = 5000,
-): Promise<void> {
-  const deadline = Date.now() + timeout;
-
-  while (Date.now() < deadline) {
-    const res = await client.get(path);
-    if (res.status === 200 && res.data === expected) {
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-
-  throw new Error(`Timed out waiting for ${path} to return "${expected}"`);
-}
 
 describeRedis('redis multi replica reload', () => {
   let instances: MockoInstance[] = [];
@@ -63,8 +43,8 @@ describeRedis('redis multi replica reload', () => {
     expect(createRes.status).toBe(201);
     const createdMock = createRes.data;
 
-    await waitForBody(instances[0].client, route, 'replica-v1');
-    await waitForBody(instances[1].client, route, 'replica-v1');
+    expect((await instances[0].client.get(route)).data).toBe('replica-v1');
+    expect((await instances[1].client.get(route)).data).toBe('replica-v1');
 
     const patchRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
@@ -74,7 +54,7 @@ describeRedis('redis multi replica reload', () => {
     });
     expect(patchRes.status).toBe(200);
 
-    await waitForBody(instances[0].client, route, 'replica-v2');
-    await waitForBody(instances[1].client, route, 'replica-v2');
+    expect((await instances[0].client.get(route)).data).toBe('replica-v2');
+    expect((await instances[1].client.get(route)).data).toBe('replica-v2');
   });
 });
