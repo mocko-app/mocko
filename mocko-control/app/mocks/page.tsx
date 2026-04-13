@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
-import { useMocks } from "@/lib/frontend/hooks/resources";
+import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { matchesMockSearch } from "@/lib/mock/filter";
 import type { MockDto } from "@/lib/types/mock-dtos";
 import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
@@ -61,9 +61,11 @@ const MocksPage: React.FC = () => {
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
 
   const { data, error, isLoading, mutate } = useMocks();
+  const { data: hosts = [] } = useHosts();
 
   const mocks = data ?? EMPTY_MOCKS;
   const anyMockHasLabels = mocks.some((m) => m.labels.length > 0);
+  const hostSlugs = useMemo(() => hosts.map((host) => host.slug), [hosts]);
 
   const filtered = useMemo(() => {
     let result = mocks;
@@ -199,6 +201,7 @@ const MocksPage: React.FC = () => {
               <MockCard
                 key={mock.id}
                 mock={mock}
+                hostSlugs={hostSlugs}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleEnabled={handleToggleEnabled}

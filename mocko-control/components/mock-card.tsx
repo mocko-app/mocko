@@ -30,14 +30,28 @@ const METHOD_COLORS: Record<HttpMethod, string> = {
   DELETE: "text-red-400",
 };
 
+function getHostLabel(host: string | undefined, hostSlugs: readonly string[]) {
+  if (!host) {
+    return null;
+  }
+
+  if (hostSlugs.includes(host)) {
+    return `(@${host})`;
+  }
+
+  return `(${host})`;
+}
+
 export const MockCard: React.FC<{
   mock: MockDto;
+  hostSlugs: readonly string[];
   onEdit: (id: string) => void;
   onDelete: (mock: MockDto) => void;
   onToggleEnabled: (id: string, enabled: boolean) => void;
-}> = ({ mock, onEdit, onDelete, onToggleEnabled }) => {
+}> = ({ mock, hostSlugs, onEdit, onDelete, onToggleEnabled }) => {
   const isReadOnly = mock.annotations.includes("READ_ONLY");
   const href = `/mocks/${mock.id}`;
+  const hostLabel = getHostLabel(mock.host, hostSlugs);
 
   return (
     <div
@@ -53,9 +67,16 @@ export const MockCard: React.FC<{
       <div className="relative z-10 flex items-center gap-4 px-4 py-3.5 pointer-events-none">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-medium text-white truncate">
-              {mock.name}
-            </span>
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-sm font-medium text-white truncate">
+                {mock.name}
+              </span>
+              {hostLabel && (
+                <span className="font-mono text-xs text-muted-foreground shrink-0">
+                  {hostLabel}
+                </span>
+              )}
+            </div>
             {mock.annotations.includes("TEMPORARY") && (
               <Badge variant="annotationTemporary">Temporary</Badge>
             )}
