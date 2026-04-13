@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CircleHelpIcon, XIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,32 +12,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Callout } from "@/components/callout";
-import {
-  ApiError,
-  createHost,
-  patchHost,
-  toFormValidationErrors,
-} from "@/lib/frontend/api";
+import { useHostForm } from "@/lib/frontend/hooks/use-host-form";
 import type { HostDto } from "@/lib/types/host-dtos";
 import { cn } from "@/lib/utils";
 
 type HostFormProps = {
   initial?: HostDto;
   mode: "create" | "edit";
-};
-
-type FormState = {
-  slug: string;
-  name: string;
-  source: string;
-  destination: string;
-};
-
-type FormErrors = {
-  form?: string;
-  slug?: string;
-  source?: string;
-  destination?: string;
 };
 
 function getFormTitle(mode: HostFormProps["mode"], isReadOnly: boolean) {
@@ -53,128 +31,16 @@ function getFormTitle(mode: HostFormProps["mode"], isReadOnly: boolean) {
   return "Edit host";
 }
 
-function getInitialFormState(initial?: HostDto): FormState {
-  return {
-    slug: initial?.slug ?? "",
-    name: initial?.name ?? "",
-    source: initial?.source ?? "",
-    destination: initial?.destination ?? "",
-  };
-}
-
-function getFormErrors(
-  form: FormState,
-  mode: HostFormProps["mode"],
-): FormErrors {
-  const errors: FormErrors = {};
-
-  if (mode === "create") {
-    const slug = form.slug.trim();
-    if (!slug) {
-      errors.slug = "Slug is required.";
-    } else if (!/^[a-zA-Z0-9_-]{1,12}$/.test(slug)) {
-      errors.slug = "Invalid format.";
-    }
-  }
-
-  if (!form.source.trim()) {
-    errors.source = "Source is required.";
-  }
-  if (!form.destination.trim()) {
-    errors.destination = "Destination is required.";
-  }
-
-  return errors;
-}
-
 export function HostForm({ initial, mode }: HostFormProps) {
-  const router = useRouter();
-  const [form, setForm] = useState<FormState>(() =>
-    getInitialFormState(initial),
-  );
-  const [showErrors, setShowErrors] = useState(false);
-  const [serverErrors, setServerErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    setForm(getInitialFormState(initial));
-    setShowErrors(false);
-    setServerErrors({});
-  }, [initial]);
-
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
-  const localErrors = getFormErrors(form, mode);
-  const errors = {
-    form: serverErrors.form,
-    slug: localErrors.slug ?? serverErrors.slug,
-    source: localErrors.source ?? serverErrors.source,
-    destination: localErrors.destination ?? serverErrors.destination,
-  };
-  const hasErrors = Boolean(errors.slug || errors.source || errors.destination);
-
-  function set<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setShowErrors(false);
-    setServerErrors({});
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (isReadOnly) {
-      return;
-    }
-
-    if (hasErrors) {
-      setShowErrors(true);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      if (mode === "create") {
-        await createHost({
-          slug: form.slug.trim(),
-          name: form.name,
-          source: form.source.trim(),
-          destination: form.destination.trim(),
-        });
-        toast.success("Host created.");
-      } else {
-        if (!initial) {
-          throw new Error("Host slug is required for edit mode");
-        }
-
-        await patchHost(initial.slug, {
-          name: form.name,
-          source: form.source.trim(),
-          destination: form.destination.trim(),
-        });
-        toast.success("Host updated.");
-      }
-
-      router.push("/hosts");
-    } catch (error) {
-      if (error instanceof ApiError && error.code === "HOST_SLUG_CONFLICT") {
-        setServerErrors({ slug: "A host with this slug already exists" });
-        setShowErrors(true);
-      } else if (error instanceof ApiError && error.code === "BAD_REQUEST") {
-        setServerErrors(toFormValidationErrors(error.validation));
-        setShowErrors(true);
-      } else {
-        toast.error(
-          `Failed to ${mode === "create" ? "create" : "update"} host.`,
-        );
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const { errors, form, isSubmitting, set, showErrors, handleSubmit } =
+    useHostForm(initial, mode);
 
   return (
     <form
       className="flex flex-col gap-6"
-      onSubmit={handleSubmit}
+      onSubmit={(event) => handleSubmit(event, isReadOnly)}
       aria-label={title}
     >
       <div className="flex items-center justify-between">
