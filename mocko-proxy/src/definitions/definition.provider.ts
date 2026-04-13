@@ -11,6 +11,7 @@ import * as Hoek from '@hapi/hoek';
 import { Synchronize } from '@mocko/sync';
 import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
+import { Host } from "./data/host";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -45,6 +46,11 @@ export class DefinitionProvider {
         }
 
         return this.definitions;
+    }
+
+    async getFileHosts(): Promise<Host[]> {
+        const fileDefinitions = await this.getFileDefinitions();
+        return fileDefinitions.hosts;
     }
 
     clearDefinitions(): void {
