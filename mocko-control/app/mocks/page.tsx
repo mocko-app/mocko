@@ -9,6 +9,12 @@ import { DeleteDialog } from "@/components/delete-dialog";
 import { LabelFilterBar } from "@/components/label-filter-bar";
 import { MockCard } from "@/components/mock-card";
 import {
+  EmptyMocks,
+  EmptySearchResult,
+  FilteredOutNotice,
+  PollErrorBanner,
+} from "@/components/mocks-empty-states";
+import {
   LabelBarSkeleton,
   MocksListSkeleton,
 } from "@/components/mocks-list-skeleton";
@@ -16,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import { matchesMockSearch } from "@/lib/mock/filter";
 import type { MockDto } from "@/lib/types/mock-dtos";
 import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
@@ -46,83 +53,6 @@ const MocksPageHeader: React.FC<{
   );
 };
 
-const EmptySearchResult: React.FC<{
-  onClear: () => void;
-}> = ({ onClear }) => {
-  return (
-    <div
-      className="flex flex-col items-center justify-center gap-2 py-16 text-center"
-      role="status"
-      aria-live="polite"
-    >
-      <p className="text-muted-foreground text-sm">
-        No mocks match the current filters.
-      </p>
-      <Button variant="ghost" size="sm" onClick={onClear}>
-        Clear filters
-      </Button>
-    </div>
-  );
-};
-
-const EmptyMocks: React.FC = () => {
-  return (
-    <div className="px-6 py-12 text-center" role="status">
-      <h2 className="text-lg font-medium text-foreground mb-2">No mocks yet</h2>
-      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-        No mocks yet. Create one with the button below, or add an HCL file and
-        it will appear here automatically. See{" "}
-        <a
-          href="https://mocko.dev/docs/"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2 hover:text-foreground"
-        >
-          docs
-        </a>
-        .
-      </p>
-      <Button
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/mocks/new" />}
-      >
-        Create your first mock
-      </Button>
-    </div>
-  );
-};
-
-const FilteredOutNotice: React.FC<{
-  count: number;
-  onClear: () => void;
-}> = ({ count, onClear }) => {
-  return (
-    <div className="mt-3 flex items-center justify-between rounded-lg border border-border/70 bg-card/40 px-3 py-2">
-      <p className="text-xs text-muted-foreground">
-        {count} more {count === 1 ? "mock was" : "mocks were"} filtered out.
-      </p>
-      <Button variant="ghost" size="sm" onClick={onClear}>
-        Clear filters
-      </Button>
-    </div>
-  );
-};
-
-const PollErrorBanner: React.FC = () => {
-  return (
-    <div
-      className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2"
-      role="status"
-      aria-live="polite"
-    >
-      <p className="text-xs text-amber-400">
-        Could not fetch mocks, refresh the page or restart Mocko
-      </p>
-    </div>
-  );
-};
-
 const MocksPage: React.FC = () => {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -139,13 +69,7 @@ const MocksPage: React.FC = () => {
     let result = mocks;
 
     if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.path.toLowerCase().includes(q) ||
-          m.method.toLowerCase().includes(q),
-      );
+      result = result.filter((mock) => matchesMockSearch(mock, search));
     }
 
     if (selectedLabels.includes(UNLABELED_KEY)) {

@@ -1,6 +1,6 @@
 import { inject } from "inversify";
 import { Provider } from "../utils/decorators/provider";
-import { definitionFromConfig, MockoDefinition } from "./data/mocko-definition";
+import { definitionFromConfig, MockoDefinition, validateDefinition } from "./data/mocko-definition";
 import { ILogger, Logger } from "../utils/logger";
 import { RedisProvider } from "../redis/redis.provider";
 import { REDIS_OPTIONS_DEPLOYMENT } from "./definition.constants";
@@ -11,6 +11,7 @@ import * as Hoek from '@hapi/hoek';
 import { Synchronize } from '@mocko/sync';
 import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
+import { Host } from "./data/host";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -45,6 +46,11 @@ export class DefinitionProvider {
         }
 
         return this.definitions;
+    }
+
+    async getFileHosts(): Promise<Host[]> {
+        const fileDefinitions = await this.getFileDefinitions();
+        return fileDefinitions.hosts;
     }
 
     clearDefinitions(): void {
@@ -86,11 +92,11 @@ export class DefinitionProvider {
             return { mocks: [], hosts: [] };
         }
 
-        const normalizedDefinitions = {
+        const normalizedDefinitions = validateDefinition({
             mocks: definitions.mocks || [],
             hosts: definitions.hosts || [],
             data: definitions.data,
-        };
+        });
 
         debug(`found ${normalizedDefinitions.mocks.length} mocks`);
         return normalizedDefinitions;

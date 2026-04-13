@@ -123,8 +123,8 @@ describe('control integration', () => {
     const patchRes = await control.patch(`/api/mocks/${fileMock.id}`, {
       name: 'changed',
     });
-    expect(patchRes.status).toBe(404);
-    expect(patchRes.data.code).toBe('MOCK_NOT_FOUND');
+    expect(patchRes.status).toBe(409);
+    expect(patchRes.data.code).toBe('MOCK_READ_ONLY');
 
     const deleteRes = await control.delete(`/api/mocks/${fileMock.id}`);
     expect(deleteRes.status).toBe(204);

@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,131 +15,23 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
-import { HeadersEditor } from "@/components/headers-editor";
+import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
 import { BodyEditor } from "@/components/monaco-editor";
 import {
-  ApiError,
-  createMock,
-  patchMock,
-  toFormValidationErrors,
-} from "@/lib/frontend/api";
-import { useMocks } from "@/lib/frontend/hooks/resources";
+  CONTENT_TYPES,
+  type ContentType,
+  useMockForm,
+} from "@/lib/frontend/hooks/use-mock-form";
 import { getAvailableLabels } from "@/lib/utils/labels";
 import { LabelPicker } from "@/components/label-picker";
-import type { ParsingError } from "@/lib/types/error-dtos";
 import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
-
-const CONTENT_TYPES = [
-  {
-    id: "json",
-    label: "JSON",
-    contentTypeHeader: "application/json",
-    monacoLanguage: "json",
-  },
-  {
-    id: "xml",
-    label: "XML",
-    contentTypeHeader: "application/xml",
-    monacoLanguage: "xml",
-  },
-  {
-    id: "html",
-    label: "HTML",
-    contentTypeHeader: "text/html",
-    monacoLanguage: "html",
-  },
-  {
-    id: "plaintext",
-    label: "Plain Text",
-    contentTypeHeader: "text/plain",
-    monacoLanguage: "plaintext",
-  },
-  {
-    id: "other",
-    label: "Other",
-    contentTypeHeader: null,
-    monacoLanguage: "plaintext",
-  },
-] as const;
-
-type ContentType = (typeof CONTENT_TYPES)[number]["id"];
 
 type MockFormProps = {
   initial?: MockDetailsDto;
   mode: "create" | "edit";
 };
-
-type FormState = {
-  name: string;
-  method: CreateMockDto["method"];
-  path: string;
-  statusCode: string;
-  headers: { key: string; value: string }[];
-  body: string;
-  contentType: ContentType;
-  labels: string[];
-};
-
-type FormErrors = {
-  form?: string;
-  name?: string;
-  path?: string;
-  statusCode?: string;
-};
-
-const RESERVED_PREFIX = "/__mocko__";
-
-function headersToRows(headers: Record<string, string>) {
-  return Object.entries(headers).map(([key, value]) => ({ key, value }));
-}
-
-function rowsToHeaders(rows: Array<{ key: string; value: string }>) {
-  const headers: Record<string, string> = {};
-  for (const row of rows) {
-    const key = row.key.trim();
-    if (!key) {
-      continue;
-    }
-    headers[key] = row.value;
-  }
-  return headers;
-}
-
-function deriveInitialContentType(headers: Record<string, string>): {
-  contentType: ContentType;
-  filteredHeaders: { key: string; value: string }[];
-} {
-  const entry = Object.entries(headers).find(
-    ([k]) => k.toLowerCase() === "content-type",
-  );
-  const filteredHeaders = headersToRows(
-    Object.fromEntries(
-      Object.entries(headers).filter(
-        ([k]) => k.toLowerCase() !== "content-type",
-      ),
-    ),
-  );
-
-  if (!entry) {
-    return { contentType: "other", filteredHeaders };
-  }
-
-  const match = CONTENT_TYPES.find(
-    (c) =>
-      c.contentTypeHeader &&
-      entry[1].toLowerCase() === c.contentTypeHeader.toLowerCase(),
-  );
-  if (match) {
-    return { contentType: match.id, filteredHeaders };
-  }
-
-  return {
-    contentType: "other",
-    filteredHeaders: [{ key: entry[0], value: entry[1] }, ...filteredHeaders],
-  };
-}
 
 function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
   if (isReadOnly) {
@@ -152,76 +41,6 @@ function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
     return "Create mock";
   }
   return "Edit mock";
-}
-
-function getInitialFormState(initial?: MockDetailsDto): FormState {
-  if (!initial) {
-    return {
-      name: "",
-      method: "GET",
-      path: "",
-      statusCode: "200",
-      headers: [],
-      body: "",
-      contentType: "json",
-      labels: [],
-    };
-  }
-
-  const { contentType, filteredHeaders } = deriveInitialContentType(
-    initial.response.headers,
-  );
-  return {
-    name: initial.name,
-    method: initial.method,
-    path: initial.path,
-    statusCode: String(initial.response.code),
-    headers: filteredHeaders,
-    body: initial.response.body ?? "",
-    contentType,
-    labels: initial.labels ?? [],
-  };
-}
-
-function getFormErrors(form: FormState): FormErrors {
-  const errors: FormErrors = {};
-  const name = form.name.trim();
-  if (!name) {
-    errors.name = "Name is required.";
-  } else if (name.length > 255) {
-    errors.name = "Name must be at most 255 characters.";
-  }
-
-  const path = form.path.trim();
-  if (!path) {
-    errors.path = "Path is required.";
-  } else {
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    if (
-      normalizedPath === RESERVED_PREFIX ||
-      normalizedPath.startsWith(`${RESERVED_PREFIX}/`)
-    ) {
-      errors.path = 'Path cannot start with "/__mocko__/".';
-    }
-  }
-
-  const statusCode = form.statusCode.trim();
-  if (!statusCode) {
-    errors.statusCode = "Status code is required.";
-  } else {
-    const parsed = Number(statusCode);
-    if (Number.isNaN(parsed)) {
-      errors.statusCode = "Response code must be a number.";
-    } else if (!Number.isInteger(parsed)) {
-      errors.statusCode = "Response code must be an integer.";
-    } else if (parsed < 200) {
-      errors.statusCode = "Response code must be at least 200.";
-    } else if (parsed > 599) {
-      errors.statusCode = "Response code must be at most 599.";
-    }
-  }
-
-  return errors;
 }
 
 const MockFormHeader: React.FC<{
@@ -251,122 +70,25 @@ const MockFormHeader: React.FC<{
 };
 
 export function MockForm({ initial, mode }: MockFormProps) {
-  const router = useRouter();
-  const { data: mocksData, mutate } = useMocks();
-  const availableLabels = getAvailableLabels(mocksData ?? []);
-  const [form, setForm] = useState<FormState>(() =>
-    getInitialFormState(initial),
-  );
-  const [hideErrors, setHideErrors] = useState(true);
-  const [serverErrors, setServerErrors] = useState<FormErrors>({});
-  const [templateError, setTemplateError] = useState<ParsingError | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const isTemporary = initial?.annotations.includes("TEMPORARY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
   const submitLabel = mode === "create" ? "Create" : "Save changes";
+  const {
+    activeContentType,
+    errors,
+    form,
+    handleSubmit,
+    isSubmitting,
+    lockedHeader,
+    mocksData,
+    set,
+    showErrors,
+    templateError,
+  } = useMockForm(initial, mode);
+  const availableLabels = getAvailableLabels(mocksData ?? []);
   const hasNestPathParams = /\/:[A-Za-z0-9_-]+/.test(form.path);
-  const localErrors = getFormErrors(form);
-  const errors: FormErrors = {
-    form: serverErrors.form,
-    name: localErrors.name ?? serverErrors.name,
-    path: localErrors.path ?? serverErrors.path,
-    statusCode: localErrors.statusCode ?? serverErrors.statusCode,
-  };
-  const hasErrors = Boolean(errors.name || errors.path || errors.statusCode);
-  const showErrors = !hideErrors;
-
-  const activeContentType = CONTENT_TYPES.find(
-    (c) => c.id === form.contentType,
-  )!;
-  const lockedHeader = activeContentType.contentTypeHeader
-    ? [{ key: "Content-Type", value: activeContentType.contentTypeHeader }]
-    : [];
-
-  function set<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setHideErrors(true);
-    setServerErrors({});
-    setTemplateError(null);
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (hasErrors) {
-      setHideErrors(false);
-      return;
-    }
-
-    const statusCode = Number(form.statusCode.trim());
-    const payload = {
-      name: form.name.trim(),
-      method: form.method,
-      path: form.path.trim(),
-      labels: form.labels,
-      response: {
-        code: statusCode,
-        body: form.body === "" ? undefined : form.body,
-        headers: {
-          ...rowsToHeaders(lockedHeader),
-          ...rowsToHeaders(form.headers),
-        },
-      },
-    };
-
-    setIsSubmitting(true);
-    try {
-      if (mode === "create") {
-        await createMock(payload);
-        toast.success("Mock created.");
-      } else {
-        if (!initial) {
-          throw new Error("Mock ID is required for edit mode");
-        }
-        await patchMock(initial.id, payload);
-        toast.success("Mock updated.");
-      }
-
-      await mutate();
-      router.push("/mocks");
-    } catch (error) {
-      if (error instanceof ApiError && error.code === "BAD_REQUEST") {
-        setServerErrors(toFormValidationErrors(error.validation));
-        setTemplateError(null);
-        setHideErrors(false);
-      } else if (
-        error instanceof ApiError &&
-        error.code === "TEMPLATE_PARSE_ERROR"
-      ) {
-        setTemplateError(
-          error.parsingError ?? {
-            message: error.message,
-            line: null,
-            column: null,
-          },
-        );
-        setHideErrors(false);
-        setServerErrors({});
-      } else {
-        setTemplateError(null);
-        setHideErrors(false);
-        toast.error("Failed to save mock.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   const bodyError = templateError;
-
-  useEffect(() => {
-    if (initial && isReadOnly) {
-      setForm(getInitialFormState(initial));
-      setHideErrors(true);
-      setServerErrors({});
-      setTemplateError(null);
-    }
-  }, [initial, isReadOnly]);
 
   return (
     <form
@@ -506,14 +228,13 @@ export function MockForm({ initial, mode }: MockFormProps) {
           )}
         </div>
 
-        <div className="flex w-full flex-col gap-1.5">
-          <Label>Response headers</Label>
-          <HeadersEditor
-            headers={form.headers}
-            onChange={(h) => set("headers", h)}
-            lockedHeaders={lockedHeader}
-          />
-        </div>
+        <MockFormAdvancedOptions
+          headers={form.headers}
+          hostSlug={form.hostSlug}
+          lockedHeaders={lockedHeader}
+          onHeadersChange={(headers) => set("headers", headers)}
+          onHostSlugChange={(hostSlug) => set("hostSlug", hostSlug)}
+        />
 
         <div className="flex w-full flex-col gap-1.5">
           <div className="flex items-center justify-between">

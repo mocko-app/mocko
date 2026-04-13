@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutGridIcon,
   FlagIcon,
+  ServerIcon,
   BookOpenIcon,
   SquareCodeIcon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
   { label: "Flags", href: "/flags", icon: FlagIcon },
+  { label: "Hosts", href: "/hosts", icon: ServerIcon },
 ];
 
 export function Sidebar() {

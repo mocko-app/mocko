@@ -16,9 +16,10 @@ describe('watch mode', () => {
 
     it('hot-reloads when a new file is added', async () => {
       const filePath = path.join(subject.dir, 'watch-add.hcl');
-      const rev = await subject.getRevision();
-      await fs.writeFile(filePath, `mock "GET /watch-add" { body = "added" }`);
-      await subject.waitForRemap(rev);
+      await subject.writeFileAndWaitForRemap(
+        filePath,
+        `mock "GET /watch-add" { body = "added" }`,
+      );
 
       const res = await subject.client.get('/watch-add');
       expect(res.data).toBe('added');
@@ -27,20 +28,16 @@ describe('watch mode', () => {
     it('hot-reloads when a file is edited', async () => {
       const filePath = path.join(subject.dir, 'watch-edit.hcl');
 
-      let rev = await subject.getRevision();
-      await fs.writeFile(
+      await subject.writeFileAndWaitForRemap(
         filePath,
         `mock "GET /watch-edit" { body = "original" }`,
       );
-      await subject.waitForRemap(rev);
       expect((await subject.client.get('/watch-edit')).data).toBe('original');
 
-      rev = await subject.getRevision();
-      await fs.writeFile(
+      await subject.writeFileAndWaitForRemap(
         filePath,
         `mock "GET /watch-edit" { body = "updated" }`,
       );
-      await subject.waitForRemap(rev);
       expect((await subject.client.get('/watch-edit')).data).toBe('updated');
     });
 

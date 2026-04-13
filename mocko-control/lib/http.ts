@@ -51,8 +51,20 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(404, ErrorDto.ofMockNotFound(id));
   }
 
+  static mockReadOnly(id: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofMockReadOnly(id));
+  }
+
   static flagNotFound(key: string): HttpResponseError {
     return new HttpResponseError(404, ErrorDto.ofFlagNotFound(key));
+  }
+
+  static hostNotFound(slug: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofHostNotFound(slug));
+  }
+
+  static hostSlugConflict(slug: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofHostSlugConflict(slug));
   }
 
   static templateParseError(parsingError: ParsingError): HttpResponseError {

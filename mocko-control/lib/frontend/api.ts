@@ -5,6 +5,11 @@ import type {
   ValidationErrors,
 } from "@/lib/types/error-dtos";
 import type { FlagDto, FlagListDto, PutFlagDto } from "@/lib/types/flag-dtos";
+import type {
+  CreateHostDto,
+  HostDto,
+  PatchHostDto,
+} from "@/lib/types/host-dtos";
 import type { CreateMockDto, PatchMockDto } from "@/lib/types/mock-dtos";
 
 export type ApiErrorDto = ErrorDto;
@@ -74,6 +79,53 @@ export async function deleteMock(id: string): Promise<void> {
   }
 }
 
+export async function getHosts(): Promise<HostDto[]> {
+  try {
+    const response = await api.get<HostDto[]>("/api/hosts");
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function getHost(slug: string): Promise<HostDto> {
+  try {
+    const response = await api.get<HostDto>(`/api/hosts/${slug}`);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function createHost(payload: CreateHostDto): Promise<HostDto> {
+  try {
+    const response = await api.post<HostDto>("/api/hosts", payload);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function patchHost(
+  slug: string,
+  payload: PatchHostDto,
+): Promise<HostDto> {
+  try {
+    const response = await api.patch<HostDto>(`/api/hosts/${slug}`, payload);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function deleteHost(slug: string): Promise<void> {
+  try {
+    await api.delete(`/api/hosts/${slug}`);
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
 export async function getFlags(prefix?: string): Promise<FlagListDto> {
   try {
     const url = prefix
@@ -132,6 +184,9 @@ export type FormValidationErrors = {
   form?: string;
   name?: string;
   path?: string;
+  slug?: string;
+  source?: string;
+  destination?: string;
   statusCode?: string;
 };
 
@@ -144,6 +199,9 @@ export function toFormValidationErrors(
 
   const name = firstError(validation.fieldErrors, "name");
   const path = firstError(validation.fieldErrors, "path");
+  const slug = firstError(validation.fieldErrors, "slug");
+  const source = firstError(validation.fieldErrors, "source");
+  const destination = firstError(validation.fieldErrors, "destination");
   const statusCode =
     firstError(validation.fieldErrors, "response.code") ??
     firstError(validation.fieldErrors, "response");
@@ -152,6 +210,9 @@ export function toFormValidationErrors(
     form: validation.formErrors[0],
     name,
     path,
+    slug,
+    source,
+    destination,
     statusCode,
   };
 }

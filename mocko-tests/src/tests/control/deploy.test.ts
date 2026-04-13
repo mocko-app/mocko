@@ -121,6 +121,58 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(200);
     });
 
+    it('lists only file-defined hosts on host management route when auth is disabled', async () => {
+      subject = await createSubject(
+        { '--ui': true },
+        {
+          DEPLOY_ENDPOINT_ENABLED: 'true',
+          DEPLOY_AUTH_ENABLED: 'false',
+        },
+      );
+
+      await subject.createMock(`
+        host "file-host" {
+          name        = "File host"
+          source      = "file-host.local"
+          destination = "http://localhost:3000"
+        }
+      `);
+
+      const deployRes = await subject.client.post('/__mocko__/deploy', {
+        mocks: [],
+        hosts: [
+          {
+            slug: 'deployed-host',
+            name: 'Deployed host',
+            source: 'deployed-host.local',
+            destination: 'http://localhost:3001',
+          },
+        ],
+      });
+      expect(deployRes.status).toBe(204);
+
+      const listRes = await subject.client.get('/__mocko__/hosts');
+      expect(listRes.status).toBe(200);
+      expect(
+        listRes.data.map((host: any) => ({
+          slug: host.slug,
+          name: host.name,
+        })),
+      ).toEqual([{ slug: 'file-host', name: 'File host' }]);
+    });
+
+    it('requires auth for host management routes when auth is enabled', async () => {
+      subject = await createSubject(
+        { '--ui': true },
+        {
+          DEPLOY_SECRET: 'secret',
+        },
+      );
+
+      const unauthorizedRes = await subject.client.get('/__mocko__/hosts');
+      expect(unauthorizedRes.status).toBe(401);
+    });
+
     it('replaces prior deployed state on a second deploy', async () => {
       const firstRoute = randomPath();
       const secondRoute = randomPath();
@@ -209,7 +261,7 @@ describe('deploy endpoint', () => {
           mocks: [],
           hosts: [
             {
-              name: 'bad-host',
+              slug: 'bad-host',
               source: 'not a hostname',
               destination: 'http://localhost:3000',
             },

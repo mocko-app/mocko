@@ -1,13 +1,15 @@
 import * as Joi from 'joi';
 
 export type Host = {
-    name: string,
+    slug: string,
+    name?: string,
     source: string,
     destination: string,
 };
 
 const hostSchema = Joi.object({
-    name: Joi.string().required(),
+    slug: Joi.string().required(),
+    name: Joi.string().allow('').optional(),
     source: Joi.string().hostname().required(),
     destination: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
 });
@@ -21,9 +23,10 @@ export function validateHost(host: Host): Host {
     return validation.value;
 }
 
-export function hostFromConfig(name: string, data: any): Host {
+export function hostFromConfig(slug: string, data: any): Host {
     const host = {
-        name,
+        slug,
+        name: data?.[0]?.name,
         source: data?.[0]?.source,
         destination: data?.[0]?.destination,
     };
@@ -31,6 +34,6 @@ export function hostFromConfig(name: string, data: any): Host {
     try {
         return validateHost(host);
     } catch(error) {
-        throw new Error(`On host '${name}', ${error.message}`);
+        throw new Error(`On host '${slug}', ${error.message}`);
     }
 };

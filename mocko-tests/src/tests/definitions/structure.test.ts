@@ -56,6 +56,31 @@ describe('definition structure', () => {
       const res = await subject.client.get('/hosts-loaded');
       expect(res.status).toBe(200);
     });
+
+    it('supports host names, omitted names, and empty names without crashing', async () => {
+      await subject.createMock(`
+        host "named-host" {
+          name        = "Named host"
+          source      = "named-host.local"
+          destination = "http://localhost:9998/named"
+        }
+        host "empty-host-name" {
+          name        = ""
+          source      = "empty-host-name.local"
+          destination = "http://localhost:9998/empty"
+        }
+        host "unnamed-host" {
+          source      = "unnamed-host.local"
+          destination = "http://localhost:9998/unnamed"
+        }
+        mock "GET /host-name-loading" {
+          body = "ok"
+        }
+      `);
+
+      const res = await subject.client.get('/host-name-loading');
+      expect(res.status).toBe(200);
+    });
   });
 
   describe('mixed mock and host blocks in one file', () => {
@@ -88,13 +113,10 @@ describe('definition structure', () => {
     beforeAll(async () => {
       subject = await createSubject();
       const deepDir = path.join(subject.dir, 'a', 'b', 'c');
+      const deepFile = path.join(deepDir, 'deep.hcl');
+      const deepMock = `mock "GET /deep-nested" { body = "deep" }`;
       await fs.mkdir(deepDir, { recursive: true });
-      const rev = await subject.getRevision();
-      await fs.writeFile(
-        path.join(deepDir, 'deep.hcl'),
-        `mock "GET /deep-nested" { body = "deep" }`,
-      );
-      await subject.waitForRemap(rev);
+      await subject.writeFileAndWaitForRemap(deepFile, deepMock);
     });
 
     afterAll(() => subject.stop());

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { BottomTabBar } from "@/components/bottom-tab-bar";
 import { Sidebar } from "@/components/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -10,12 +10,15 @@ export const metadata: Metadata = {
   title: "Mocko – Mocking made easy",
   description:
     "Mocking made easy, proxy your API and choose which endpoints to mock",
-  themeColor: "#25d278",
   icons: {
     icon: "https://cdn.codetunnel.net/mocko/icon.png",
     shortcut: "https://cdn.codetunnel.net/mocko/icon.png",
     apple: "https://cdn.codetunnel.net/mocko/logo.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#25d278",
 };
 
 export default function RootLayout({

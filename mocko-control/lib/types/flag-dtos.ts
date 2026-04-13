@@ -1,5 +1,4 @@
-export const FLAG_TYPES = ["PREFIX", "FLAG"] as const;
-export type FlagType = (typeof FLAG_TYPES)[number];
+import type { FlagKey, FlagType } from "@/lib/types/flag";
 
 export class FlagKeyDto {
   constructor(
@@ -10,7 +9,7 @@ export class FlagKeyDto {
 
 export class FlagListDto {
   constructor(
-    public readonly flagKeys: FlagKeyDto[],
+    public readonly flagKeys: FlagKey[],
     public readonly isTruncated: boolean,
   ) {}
 }

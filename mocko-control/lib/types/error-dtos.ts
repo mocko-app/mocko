@@ -35,8 +35,23 @@ export class ErrorDto {
     return new ErrorDto("MOCK_NOT_FOUND", `Mock "${id}" was not found`);
   }
 
+  static ofMockReadOnly(id: string): ErrorDto {
+    return new ErrorDto(
+      "MOCK_READ_ONLY",
+      `Mock "${id}" is read-only and cannot be edited`,
+    );
+  }
+
   static ofFlagNotFound(key: string): ErrorDto {
     return new ErrorDto("FLAG_NOT_FOUND", `Flag "${key}" was not found`);
+  }
+
+  static ofHostNotFound(slug: string): ErrorDto {
+    return new ErrorDto("HOST_NOT_FOUND", `Host "${slug}" was not found`);
+  }
+
+  static ofHostSlugConflict(slug: string): ErrorDto {
+    return new ErrorDto("HOST_SLUG_CONFLICT", `Host "${slug}" already exists`);
   }
 
   static ofTemplateParseError(parsingError: ParsingError): ErrorDto {

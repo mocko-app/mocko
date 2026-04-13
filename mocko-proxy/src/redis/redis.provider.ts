@@ -18,11 +18,23 @@ export class RedisProvider {
         private readonly config: ConfigProvider,
     ) {
         this.REDIS_ENABLED = config.getBoolean('REDIS_ENABLED');
+        this.REDIS_PREFIX = config.getRedisPrefix();
 
         if(this.REDIS_ENABLED) {
-            this.REDIS_PREFIX = config.get('REDIS_PREFIX');
-            this.connector = new Redis(this.config.getRedisConfig());
-            this.listener = new Redis(this.config.getRedisConfig());
+            const redisUrl = this.config.getRedisUrl();
+            if(redisUrl) {
+                this.connector = new Redis(redisUrl, {
+                    keyPrefix: this.REDIS_PREFIX,
+                });
+                this.listener = new Redis(redisUrl, {
+                    keyPrefix: this.REDIS_PREFIX,
+                });
+                return;
+            }
+
+            const redisConfig = this.config.getRedisConfig();
+            this.connector = new Redis(redisConfig);
+            this.listener = new Redis(redisConfig);
         }
     }
 
@@ -30,8 +42,12 @@ export class RedisProvider {
         return this.REDIS_ENABLED;
     }
 
-    async get<T>(key: string): Promise<T> {
+    async get<T>(key: string): Promise<T | null> {
         const str = await this.connector.get(key);
+        if(str === null) {
+            return null;
+        }
+
         return JSON.parse(str) as T;
     }
 
@@ -47,6 +63,14 @@ export class RedisProvider {
         } else {
             await this.connector.set(key, str);
         }
+    }
+
+    async publish(channel: string, message: string): Promise<void> {
+        if(!this.isEnabled) {
+            return;
+        }
+
+        await this.connector.publish(this.REDIS_PREFIX + channel, message);
     }
 
     async registerListener(listener: IListener): Promise<void> {

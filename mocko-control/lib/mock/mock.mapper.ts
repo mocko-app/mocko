@@ -3,9 +3,13 @@ import type {
   CoreMockDetailsDto,
   CoreMockDto,
 } from "@/lib/core/data/core.dto";
+import type { Host } from "@/lib/types/host";
 import type { Mock } from "@/lib/types/mock";
 
-export function toDeployDefinition(mocks: Mock[]): CoreDeployDefinition {
+export function toDeployDefinition(
+  mocks: Mock[],
+  hosts: Host[] = [],
+): CoreDeployDefinition {
   return {
     mocks: mocks
       .filter((mock) => mock.isEnabled)
@@ -14,6 +18,7 @@ export function toDeployDefinition(mocks: Mock[]): CoreDeployDefinition {
         method: mock.method,
         path: mock.path,
         parse: true,
+        host: mock.host,
         labels: mock.labels,
         response: {
           code: mock.response.code,
@@ -21,7 +26,12 @@ export function toDeployDefinition(mocks: Mock[]): CoreDeployDefinition {
           headers: { ...mock.response.headers },
         },
       })),
-    hosts: [],
+    hosts: hosts.map((host) => ({
+      slug: host.slug,
+      name: host.name,
+      source: host.source,
+      destination: host.destination,
+    })),
     data: undefined,
   };
 }
@@ -32,6 +42,7 @@ export function toReadOnlyMock(coreMock: CoreMockDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    host: coreMock.host,
     filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
     labels: coreMock.labels ?? [],
@@ -49,6 +60,7 @@ export function toReadOnlyDetailsMock(coreMock: CoreMockDetailsDto): Mock {
     name: coreMock.name,
     method: coreMock.method as Mock["method"],
     path: coreMock.path,
+    host: coreMock.host,
     filePath: coreMock.filePath,
     isEnabled: coreMock.isEnabled,
     labels: coreMock.labels ?? [],

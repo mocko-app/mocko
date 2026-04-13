@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutGridIcon, FlagIcon, BookOpenIcon } from "lucide-react";
+import {
+  LayoutGridIcon,
+  FlagIcon,
+  ServerIcon,
+  BookOpenIcon,
+} from "lucide-react";
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon, external: false },
   { label: "Flags", href: "/flags", icon: FlagIcon, external: false },
+  { label: "Hosts", href: "/hosts", icon: ServerIcon, external: false },
   {
     label: "Docs",
     href: "https://mocko.dev/docs/",

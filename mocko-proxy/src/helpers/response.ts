@@ -34,9 +34,9 @@ export function setHeader(this: MockoExecution, key: unknown, value: unknown): v
 
 function getHost(hosts: Host[], proxyUri: string, header: string): [string, string | null] {
     if(typeof proxyUri === 'string') {
-        const hostByName = hosts.find(h => h.name.toLowerCase() === proxyUri.toLowerCase());
-        if(hostByName) {
-            return [hostByName.destination, '@' + hostByName.name];
+        const hostBySlug = hosts.find(h => h.slug.toLowerCase() === proxyUri.toLowerCase());
+        if(hostBySlug) {
+            return [hostBySlug.destination, '@' + hostBySlug.slug];
         }
 
         return [proxyUri, null];
@@ -44,7 +44,7 @@ function getHost(hosts: Host[], proxyUri: string, header: string): [string, stri
 
     const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
     if(hostByHeader) {
-        return [hostByHeader.destination, '@' + hostByHeader.name];
+        return [hostByHeader.destination, '@' + hostByHeader.slug];
     }
 
     return ['', null];

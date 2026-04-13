@@ -12,6 +12,7 @@ import * as FlagHelpers from "../../helpers/flag";
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import Bigodon from "bigodon";
 import { Mock } from "../../definitions/data/mock";
+import { Host } from "../../definitions/data/host";
 import { CoreMockDetailsDto, CoreMockDto } from "./data/core-mock.dto";
 
 @Service()
@@ -34,10 +35,10 @@ export class MockService {
         return options.mocks
             .filter((mock) => mock.isEnabled)
             .filter((mock) => !this.isReservedPath(mock.path))
-            .map((mock) => this.mockToRoute(mock, options.data));
+            .map((mock) => this.mockToRoute(mock, options.data, options.hosts));
     }
 
-    private mockToRoute(mock: Mock, data: Record<string, any>): ServerRoute {
+    private mockToRoute(mock: Mock, data: Record<string, any>, hosts: Host[]): ServerRoute {
         let config = {};
         const handler = new MockHandler(
             this.bigodon,
@@ -48,6 +49,7 @@ export class MockService {
             data,
             mock.id
         ).handle;
+        const vhost = this.resolveMockHost(mock.host, hosts);
 
         if (mock.parse === false) {
             config = {
@@ -61,7 +63,7 @@ export class MockService {
         return {
             method: mock.method,
             path: mock.path,
-            vhost: mock.host,
+            vhost,
             handler,
             // @ts-expect-error Extra config for @mocko/h2o2, not on official hapi types
             config,
@@ -71,6 +73,17 @@ export class MockService {
     async listMocks(): Promise<CoreMockDto[]> {
         const options = await this.definitionProvider.getDefinitions();
         return options.mocks.map((mock) => CoreMockDto.ofMock(mock));
+    }
+
+    private resolveMockHost(hostName: string | undefined, hosts: Host[]): string | undefined {
+        if(!hostName) {
+            return undefined;
+        }
+
+        const host = hosts.find((item) =>
+            item.slug === hostName || item.source === hostName
+        );
+        return host?.source || hostName;
     }
 
     async getMockById(id: string): Promise<CoreMockDetailsDto | null> {

@@ -8,10 +8,11 @@ import { nextPort } from './port';
 import { waitForHealth, waitForStatus, HealthResponse } from './health';
 
 const CLI_BIN = require.resolve('@mocko/cli/bin/main.js');
-const WATCHER_BOOTSTRAP_DELAY_MS = 100;
+const WATCHER_BOOTSTRAP_DELAY_MS = 500;
 const REMAP_TIMEOUT_MS = 10000;
+const CONTROL_START_TIMEOUT_MS = 15000;
+const CREATE_MOCK_RETRY_COUNT = 3;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const WATCHER_READY_RETRY_DELAY_MS = 100;
 
 export type InstanceOptions = Record<
   string,
@@ -55,13 +56,13 @@ export class MockoInstance {
     }
 
     this.client = axios.create({
-      baseURL: `http://localhost:${this.serverPort}`,
+      baseURL: `http://127.0.0.1:${this.serverPort}`,
       validateStatus: () => true,
     });
     this.control = null;
     if (this.uiPort !== null) {
       this.control = axios.create({
-        baseURL: `http://localhost:${this.uiPort}`,
+        baseURL: `http://127.0.0.1:${this.uiPort}`,
         validateStatus: () => true,
       });
     }
@@ -73,7 +74,7 @@ export class MockoInstance {
 
   async start(): Promise<void> {
     const args = buildArgs(this.flags);
-    this.proc = spawn('node', [CLI_BIN, ...args, this.tempDir], {
+    this.proc = spawn(process.execPath, [CLI_BIN, ...args, this.tempDir], {
       env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
       stdio: 'ignore',
     });
@@ -86,19 +87,26 @@ export class MockoInstance {
     }
 
     if (this.control) {
-      await waitForStatus(this.control, '/api/health', 200);
+      await waitForStatus(
+        this.control,
+        '/api/health',
+        200,
+        CONTROL_START_TIMEOUT_MS,
+      );
     }
 
     await waitForHealth(this.client);
-
-    if (this.watchEnabled) {
-      await this.ensureWatcherReady();
-    }
   }
 
   async init(): Promise<void> {
     await this.prepare();
-    await this.start();
+    try {
+      await this.start();
+    } catch (error) {
+      await this.stopProcess();
+      await fs.rm(this.tempDir, { recursive: true, force: true });
+      throw error;
+    }
   }
 
   hasCrashed(): boolean {
@@ -124,13 +132,28 @@ export class MockoInstance {
   }
 
   async createMock(hcl: string): Promise<string> {
-    const revision = await this.getRevision();
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
-    await fs.writeFile(filename, hcl);
-    if (this.watchEnabled) {
-      await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
-    }
+    await this.writeFileAndWaitForRemap(filename, hcl);
     return filename;
+  }
+
+  async writeFileAndWaitForRemap(
+    filename: string,
+    content: string,
+    retryCount = CREATE_MOCK_RETRY_COUNT,
+  ): Promise<void> {
+    const revision = await this.getRevision();
+    await fs.writeFile(filename, content);
+    if (!this.watchEnabled) {
+      return;
+    }
+
+    await this.waitForRevisionAfterWrite(
+      filename,
+      content,
+      revision,
+      retryCount,
+    );
   }
 
   async getRevision(): Promise<number> {
@@ -162,25 +185,25 @@ export class MockoInstance {
     await waitForHealth(this.client, revision + 1, timeout);
   }
 
-  private async ensureWatcherReady(): Promise<void> {
-    const markerPath = path.join(this.tempDir, '.watcher-ready.hcl');
-    const deadline = Date.now() + REMAP_TIMEOUT_MS;
-    let attempt = 0;
-
-    while (Date.now() < deadline) {
-      attempt++;
-      const revision = await this.getRevision();
-      await fs.writeFile(markerPath, `# watcher-ready ${attempt}\n`);
-
+  private async waitForRevisionAfterWrite(
+    filename: string,
+    content: string,
+    revision: number,
+    retryCount: number,
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
-        await this.waitForRevision(revision, 1000);
+        await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
         return;
-      } catch {
-        await sleep(WATCHER_READY_RETRY_DELAY_MS);
+      } catch (error) {
+        if (attempt === retryCount) {
+          throw error;
+        }
+
+        await fs.writeFile(filename, content);
+        await sleep(WATCHER_BOOTSTRAP_DELAY_MS);
       }
     }
-
-    throw new Error('Timed out waiting for filesystem watcher to become ready');
   }
 
   private async stopProcess(timeout = 5000): Promise<void> {
