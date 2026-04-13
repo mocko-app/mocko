@@ -9,6 +9,12 @@ import {
   RedisTestConfig,
 } from '../../harness';
 
+function findMock(list: any[], route: string) {
+  const mock = list.find((item) => item.path === route);
+  expect(mock).toBeTruthy();
+  return mock;
+}
+
 describeRedis('redis mock failures', () => {
   let subject: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
@@ -24,7 +30,7 @@ describeRedis('redis mock failures', () => {
     }
   });
 
-  it('surfaces redis-backed failure info and clears when the key is removed', async () => {
+  it('returns failures when fetching a control-created mock', async () => {
     const route = randomPath();
 
     ({ subject, redis } = await createRedisSubject({
@@ -63,5 +69,34 @@ describeRedis('redis mock failures', () => {
     const clearedDetailsRes = await control.get(`/api/mocks/${createdMock.id}`);
     expect(clearedDetailsRes.status).toBe(200);
     expect(clearedDetailsRes.data.failure).toBeNull();
+  });
+
+  it('returns failures when fetching a file-created mock in redis mode', async () => {
+    const route = randomPath();
+
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true },
+      mode: 'url',
+    }));
+
+    const control = subject.ensureControl();
+    await subject.createMock(`
+      mock "GET ${route}" {
+        body = "{{getFlag 'foo::bar'}}"
+      }
+    `);
+
+    const listRes = await control.get('/api/mocks');
+    expect(listRes.status).toBe(200);
+    const fileMock = findMock(listRes.data, route);
+
+    const proxyRes = await subject.client.get(route);
+    expect(proxyRes.status).toBe(500);
+
+    const detailsRes = await control.get(`/api/mocks/${fileMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.failure).toBeTruthy();
+    expect(detailsRes.data.failure.message).toContain('Error');
+    expect(fileMock.annotations).toContain('READ_ONLY');
   });
 });
