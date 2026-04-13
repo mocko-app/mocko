@@ -53,6 +53,7 @@ describeRedis('redis hosts persistence', () => {
     }));
 
     const control = subject.ensureControl();
+    let revision = await subject.getRevision();
     const createRes = await control.post('/api/hosts', {
       slug: 'redis-host',
       name: '',
@@ -63,18 +64,20 @@ describeRedis('redis hosts persistence', () => {
     expect(createRes.data.name).toBe('');
     expect(createRes.data.annotations).not.toContain('READ_ONLY');
     expect(createRes.data.annotations).not.toContain('TEMPORARY');
-
+    await subject.waitForRemap(revision);
     const proxyRes = await subject.client.get('/redis-host', {
       headers: { Host: 'redis.local' },
     });
     expect(proxyRes.status).toBe(200);
     expect(proxyRes.data).toBe('proxied from redis host');
 
+    revision = await subject.getRevision();
     const updateRes = await control.patch('/api/hosts/redis-host', {
       source: 'redis-updated.local',
     });
     expect(updateRes.status).toBe(200);
     expect(updateRes.data.source).toBe('redis-updated.local');
+    await subject.waitForRemap(revision);
 
     await subject.stop();
     subject = null;
@@ -92,7 +95,6 @@ describeRedis('redis hosts persistence', () => {
     expect(detailsRes.data.source).toBe('redis-updated.local');
     expect(detailsRes.data.annotations).not.toContain('READ_ONLY');
     expect(detailsRes.data.annotations).not.toContain('TEMPORARY');
-
     const restartedProxyRes = await subject.client.get('/redis-host', {
       headers: { Host: 'redis-updated.local' },
     });
@@ -132,12 +134,11 @@ describeRedis('redis hosts persistence', () => {
     expect(
       (await subject.ensureControl().get('/api/hosts/redis-host')).status,
     ).toBe(404);
-    expect(
-      findHost(
-        (await subject.ensureControl().get('/api/hosts')).data,
-        'file-host',
-      ).annotations,
-    ).toContain('READ_ONLY');
+    const finalListRes = await subject.ensureControl().get('/api/hosts');
+    expect(finalListRes.status).toBe(200);
+    expect(findHost(finalListRes.data, 'file-host').annotations).toContain(
+      'READ_ONLY',
+    );
   });
 
   it('rejects duplicate slugs against file-defined hosts in redis mode', async () => {

@@ -32,6 +32,7 @@ describeRedis('redis control persistence', () => {
     }));
 
     const control = subject.ensureControl();
+    let revision = await subject.getRevision();
     const createRes = await control.post('/api/mocks', {
       name: 'redis mock',
       method: 'GET',
@@ -43,8 +44,10 @@ describeRedis('redis control persistence', () => {
       },
     });
     expect(createRes.status).toBe(201);
+    await subject.waitForRemap(revision);
     const createdMock = createRes.data;
 
+    revision = await subject.getRevision();
     const updateRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
         code: 202,
@@ -52,17 +55,22 @@ describeRedis('redis control persistence', () => {
       },
     });
     expect(updateRes.status).toBe(200);
+    await subject.waitForRemap(revision);
 
+    revision = await subject.getRevision();
     const disableRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       isEnabled: false,
     });
     expect(disableRes.status).toBe(200);
+    await subject.waitForRemap(revision);
     expect((await subject.client.get(route)).status).toBe(404);
 
+    revision = await subject.getRevision();
     const enableRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       isEnabled: true,
     });
     expect(enableRes.status).toBe(200);
+    await subject.waitForRemap(revision);
     expect((await subject.client.get(route)).status).toBe(202);
 
     await subject.stop();
@@ -101,10 +109,12 @@ describeRedis('redis control persistence', () => {
       ),
     ).toBe(true);
 
+    revision = await subject.getRevision();
     const deleteRes = await restartedControl.delete(
       `/api/mocks/${createdMock.id}`,
     );
     expect(deleteRes.status).toBe(204);
+    await subject.waitForRemap(revision);
     expect((await subject.client.get(route)).status).toBe(404);
 
     await subject.stop();
