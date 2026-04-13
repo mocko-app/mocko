@@ -1,6 +1,6 @@
 import { inject } from "inversify";
 import { Provider } from "../utils/decorators/provider";
-import { definitionFromConfig, MockoDefinition } from "./data/mocko-definition";
+import { definitionFromConfig, MockoDefinition, validateDefinition } from "./data/mocko-definition";
 import { ILogger, Logger } from "../utils/logger";
 import { RedisProvider } from "../redis/redis.provider";
 import { REDIS_OPTIONS_DEPLOYMENT } from "./definition.constants";
@@ -92,11 +92,11 @@ export class DefinitionProvider {
             return { mocks: [], hosts: [] };
         }
 
-        const normalizedDefinitions = {
+        const normalizedDefinitions = validateDefinition({
             mocks: definitions.mocks || [],
             hosts: definitions.hosts || [],
             data: definitions.data,
-        };
+        });
 
         debug(`found ${normalizedDefinitions.mocks.length} mocks`);
         return normalizedDefinitions;
