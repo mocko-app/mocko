@@ -99,6 +99,50 @@ describe('control integration', () => {
     );
   });
 
+  it('clears delay when patching a mock without a delay field', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/mocks', {
+      name: 'with delay',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        delay: 300,
+        body: 'delayed',
+        headers: {},
+      },
+    });
+    expect(createRes.status).toBe(201);
+
+    const initialDetailsRes = await control.get(
+      `/api/mocks/${createRes.data.id}`,
+    );
+    expect(initialDetailsRes.data.response.delay).toBe(300);
+
+    const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
+      response: {
+        code: 200,
+        body: 'no delay',
+        headers: {},
+      },
+    });
+    expect(patchRes.status).toBe(200);
+
+    const detailsRes = await control.get(`/api/mocks/${createRes.data.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.response.delay).toBeUndefined();
+
+    const start = Date.now();
+    const proxyRes = await subject.client.get(route);
+    const elapsed = Date.now() - start;
+    expect(proxyRes.status).toBe(200);
+    expect(proxyRes.data).toBe('no delay');
+    expect(elapsed).toBeLessThan(100);
+  });
+
   it('merges file mocks as read-only and blocks mutations', async () => {
     const route = randomPath();
     subject = await createSubject({ '--ui': true });
@@ -330,7 +374,9 @@ describe('control integration', () => {
       `/api/mocks/${validCreateRes.data.id}`,
       {
         response: {
+          code: 200,
           delay: 1.5,
+          headers: {},
         },
       },
     );
@@ -345,7 +391,9 @@ describe('control integration', () => {
       `/api/mocks/${validCreateRes.data.id}`,
       {
         response: {
+          code: 200,
           delay: 300001,
+          headers: {},
         },
       },
     );
@@ -404,7 +452,9 @@ describe('control integration', () => {
 
     const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
       response: {
+        code: 200,
         body: '{{#if value}}x{{/each}}',
+        headers: {},
       },
     });
 

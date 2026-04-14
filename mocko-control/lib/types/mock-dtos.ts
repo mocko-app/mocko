@@ -25,7 +25,7 @@ export type PatchMockDto = {
   path?: string;
   host?: string | null;
   labels?: string[];
-  response?: Partial<MockResponse>;
+  response?: MockResponse;
   isEnabled?: boolean;
 };
 

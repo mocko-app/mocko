@@ -131,7 +131,9 @@ describeRedis('redis mock failures', () => {
 
     const patchRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
+        code: 200,
         body: 'ok',
+        headers: {},
       },
     });
     expect(patchRes.status).toBe(200);
