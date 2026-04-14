@@ -195,7 +195,12 @@ export function HostForm({ initial, mode }: HostFormProps) {
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor="host-destination">Destination</Label>
+            <Label htmlFor="host-destination">
+              Destination{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </Label>
             <Tooltip>
               <TooltipTrigger
                 render={<button type="button" />}
@@ -205,7 +210,9 @@ export function HostForm({ initial, mode }: HostFormProps) {
                 <CircleHelpIcon className="size-3.5" aria-hidden="true" />
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-56">
-                Upstream URL that matched requests are proxied to.
+                Leave blank to use this host only for Host header matching.
+                Unmatched requests will use the global proxy URL when
+                configured, or return 404 otherwise.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -214,7 +221,6 @@ export function HostForm({ initial, mode }: HostFormProps) {
             value={form.destination}
             onChange={(e) => set("destination", e.target.value)}
             placeholder="http://localhost:9001"
-            aria-required="true"
             className="font-mono text-sm"
             readOnly={isReadOnly}
           />

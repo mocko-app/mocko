@@ -55,8 +55,12 @@ function getFormErrors(
   if (!form.source.trim()) {
     errors.source = "Source is required.";
   }
-  if (!form.destination.trim()) {
-    errors.destination = "Destination is required.";
+  if (form.destination.trim()) {
+    try {
+      new URL(form.destination.trim());
+    } catch {
+      errors.destination = "Destination must be a valid URL.";
+    }
   }
 
   return errors;
@@ -107,14 +111,25 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
     }
 
     setIsSubmitting(true);
+    const trimmedSource = form.source.trim();
+    const trimmedDestination = form.destination.trim();
     try {
       if (mode === "create") {
-        await createHost({
+        const payload = {
           slug: form.slug.trim(),
           name: form.name,
-          source: form.source.trim(),
-          destination: form.destination.trim(),
-        });
+          source: trimmedSource,
+        };
+
+        if (trimmedDestination) {
+          await createHost({
+            ...payload,
+            destination: trimmedDestination,
+          });
+        } else {
+          await createHost(payload);
+        }
+
         toast.success("Host created.");
       } else {
         if (!initial) {
@@ -123,8 +138,8 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
 
         await patchHost(initial.slug, {
           name: form.name,
-          source: form.source.trim(),
-          destination: form.destination.trim(),
+          source: trimmedSource,
+          destination: trimmedDestination || null,
         });
         toast.success("Host updated.");
       }

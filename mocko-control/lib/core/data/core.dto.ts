@@ -19,7 +19,7 @@ export type CoreDeployHostDefinition = {
   slug: string;
   name?: string;
   source: string;
-  destination: string;
+  destination?: string;
 };
 
 export type CoreMockDto = {
@@ -56,7 +56,7 @@ export type CoreHostDto = {
   slug: string;
   name?: string;
   source: string;
-  destination: string;
+  destination?: string;
 };
 
 export type CoreFlagKeyDto = {

@@ -5,7 +5,7 @@ export class CoreHostDto {
         public readonly slug: string,
         public readonly name: string | undefined,
         public readonly source: string,
-        public readonly destination: string,
+        public readonly destination: string | undefined,
     ) { }
 
     static ofHost(host: Host): CoreHostDto {

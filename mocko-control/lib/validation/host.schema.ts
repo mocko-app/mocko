@@ -16,22 +16,40 @@ const hostNameSchema = z
   .max(255, "Name must be at most 255 characters")
   .optional();
 
+const optionalDestinationSchema = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+}, z.url("Destination must be a valid URL").optional());
+
+const patchDestinationSchema = z.preprocess((value) => {
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+}, z.url("Destination must be a valid URL").nullable().optional());
+
 export const createHostSchema = z.object({
   slug: hostSlugSchema,
   name: hostNameSchema,
   source: z.string().trim().min(1, "Source is required"),
-  destination: z.string().trim().url("Destination must be a valid URL"),
+  destination: optionalDestinationSchema,
 });
 
 export const patchHostSchema = z
   .object({
     name: hostNameSchema,
     source: z.string().trim().min(1, "Source is required").optional(),
-    destination: z
-      .string()
-      .trim()
-      .url("Destination must be a valid URL")
-      .optional(),
+    destination: patchDestinationSchema,
   })
   .refine(
     (value) =>

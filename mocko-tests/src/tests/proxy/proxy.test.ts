@@ -4,6 +4,7 @@ import {
   MockoInstance,
   CONTENT_PORT,
 } from '../../harness';
+import { nextPort } from '../../harness/port';
 
 describe('proxy', () => {
   let subject: MockoInstance;
@@ -218,5 +219,77 @@ describe('proxy', () => {
       headers: { Host: 'other.local' },
     });
     expect(nonMatchingRes.status).toBe(404);
+  });
+
+  it('allows file-defined hosts without destination to scope mocks by host slug', async () => {
+    await subject.createMock(`
+      host "header-only" {
+        source = "header-only.local"
+      }
+      mock "GET /header-only-scoped" {
+        host = "header-only"
+        body = "header only"
+      }
+    `);
+
+    const matchingRes = await subject.client.get('/header-only-scoped', {
+      headers: { Host: 'header-only.local' },
+    });
+    expect(matchingRes.status).toBe(200);
+    expect(matchingRes.data).toBe('header only');
+
+    const nonMatchingRes = await subject.client.get('/header-only-scoped', {
+      headers: { Host: 'other.local' },
+    });
+    expect(nonMatchingRes.status).toBe(404);
+  });
+
+  it('returns 404 for unmatched requests on hosts without destination when no global proxy is configured', async () => {
+    await subject.createMock(`
+      host "header-only-miss" {
+        source = "header-only-miss.local"
+      }
+    `);
+
+    const res = await subject.client.get('/header-only-miss', {
+      headers: { Host: 'header-only-miss.local' },
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it('proxies unmatched requests on hosts without destination to the global proxy url when configured', async () => {
+    const upstreamPort = nextPort();
+    const upstream = new MockoInstance({
+      '--watch': true,
+      '--port': upstreamPort,
+    });
+    await upstream.init();
+
+    try {
+      await upstream.createMock(`
+        mock "GET /header-only-upstream" {
+          body = "from global upstream"
+        }
+      `);
+
+      await subject.stop();
+      subject = await createSubject({
+        '-u': `http://localhost:${upstreamPort}`,
+      });
+
+      await subject.createMock(`
+        host "header-only-upstream" {
+          source = "header-only-upstream.local"
+        }
+      `);
+
+      const res = await subject.client.get('/header-only-upstream', {
+        headers: { Host: 'header-only-upstream.local' },
+      });
+      expect(res.status).toBe(200);
+      expect(res.data).toBe('from global upstream');
+    } finally {
+      await upstream.stop();
+    }
   });
 });

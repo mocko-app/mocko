@@ -4,13 +4,13 @@ export type CreateHostDto = {
   slug: string;
   name?: string;
   source: string;
-  destination: string;
+  destination?: string;
 };
 
 export type PatchHostDto = {
   name?: string;
   source?: string;
-  destination?: string;
+  destination?: string | null;
 };
 
 export class HostDto {
@@ -18,7 +18,7 @@ export class HostDto {
     public readonly slug: string,
     public readonly name: string | undefined,
     public readonly source: string,
-    public readonly destination: string,
+    public readonly destination: string | undefined,
     public readonly annotations: Host["annotations"],
   ) {}
 

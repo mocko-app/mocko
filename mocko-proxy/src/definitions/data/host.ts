@@ -4,14 +4,14 @@ export type Host = {
     slug: string,
     name?: string,
     source: string,
-    destination: string,
+    destination?: string,
 };
 
 const hostSchema = Joi.object({
     slug: Joi.string().required(),
     name: Joi.string().allow('').optional(),
     source: Joi.string().hostname().required(),
-    destination: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
+    destination: Joi.string().uri({ scheme: ['http', 'https'] }).optional(),
 });
 
 export function validateHost(host: Host): Host {

@@ -48,11 +48,16 @@ export class HostService {
       throw HttpResponseError.hostNotFound(slug);
     }
 
+    let destination = host.destination;
+    if (data.destination !== undefined) {
+      destination = data.destination ?? undefined;
+    }
+
     const updatedHost: Host = {
       ...host,
       name: data.name ?? host.name,
       source: data.source ?? host.source,
-      destination: data.destination ?? host.destination,
+      destination,
       annotations: [...host.annotations],
     };
 
