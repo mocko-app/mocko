@@ -38,6 +38,14 @@ const responseSchema = z.object({
     .int("Response code must be an integer")
     .min(200, "Response code must be at least 200")
     .max(599, "Response code must be at most 599"),
+  delay: z
+    .number({
+      error: "Response delay must be a number",
+    })
+    .int("Response delay must be an integer")
+    .min(0, "Response delay must be at least 0")
+    .max(300000, "Response delay must be at most 300000")
+    .optional(),
   body: z.string().optional(),
   headers: headersSchema.default({}),
 });
@@ -52,12 +60,21 @@ const responsePatchSchema = z
       .min(200, "Response code must be at least 200")
       .max(599, "Response code must be at most 599")
       .optional(),
+    delay: z
+      .number({
+        error: "Response delay must be a number",
+      })
+      .int("Response delay must be an integer")
+      .min(0, "Response delay must be at least 0")
+      .max(300000, "Response delay must be at most 300000")
+      .optional(),
     body: z.string().optional(),
     headers: headersSchema.optional(),
   })
   .refine(
     (value) =>
       value.code !== undefined ||
+      value.delay !== undefined ||
       value.body !== undefined ||
       value.headers !== undefined,
     {

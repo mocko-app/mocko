@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 import { HeadersEditor } from "@/components/headers-editor";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { HostDto } from "@/lib/types/host-dtos";
@@ -49,17 +50,25 @@ function getSelectedHostLabel(
 }
 
 type MockFormAdvancedOptionsProps = {
+  delay: string;
+  delayError?: string;
+  delayHasError?: boolean;
   headers: { key: string; value: string }[];
   hostSlug: string;
   lockedHeaders: { key: string; value: string }[];
+  onDelayChange: (delay: string) => void;
   onHeadersChange: (headers: { key: string; value: string }[]) => void;
   onHostSlugChange: (hostSlug: string) => void;
 };
 
 export function MockFormAdvancedOptions({
+  delay,
+  delayError,
+  delayHasError,
   headers,
   hostSlug,
   lockedHeaders,
+  onDelayChange,
   onHeadersChange,
   onHostSlugChange,
 }: MockFormAdvancedOptionsProps) {
@@ -67,6 +76,12 @@ export function MockFormAdvancedOptions({
     refreshInterval: 0,
   });
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const parsedDelay = delay.trim() === "" ? null : Number(delay);
+  const showDelayWarning =
+    !delayHasError &&
+    parsedDelay !== null &&
+    !Number.isNaN(parsedDelay) &&
+    parsedDelay < 50;
 
   return (
     <Collapsible
@@ -141,6 +156,27 @@ export function MockFormAdvancedOptions({
                 ))}
               </SelectContent>
             </Select>
+          )}
+        </div>
+        <div className="flex w-full max-w-48 flex-col gap-1.5">
+          <Label htmlFor="mock-delay">Delay (ms)</Label>
+          <Input
+            id="mock-delay"
+            type="number"
+            min={0}
+            max={300000}
+            value={delay}
+            onChange={(e) => onDelayChange(e.target.value)}
+            placeholder="Optional"
+            aria-invalid={Boolean(delayHasError)}
+          />
+          {delayError && (
+            <p className="text-xs text-destructive">{delayError}</p>
+          )}
+          {showDelayWarning && (
+            <p className="text-xs text-amber-400">
+              Delay is in milliseconds, not seconds.
+            </p>
           )}
         </div>
       </CollapsibleContent>

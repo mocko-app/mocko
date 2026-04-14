@@ -37,6 +37,7 @@ export class MockService {
       host: data.host || undefined,
       response: {
         code: data.response.code,
+        delay: data.response.delay,
         body: data.response.body,
         headers: { ...data.response.headers },
       },
@@ -107,6 +108,10 @@ export class MockService {
   ): MockResponse {
     return {
       code: patchResponse.code ?? currentResponse.code,
+      delay:
+        patchResponse.delay === undefined
+          ? currentResponse.delay
+          : patchResponse.delay,
       body:
         patchResponse.body === undefined
           ? currentResponse.body

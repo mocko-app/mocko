@@ -56,6 +56,7 @@ export type MockFormState = {
   method: CreateMockDto["method"];
   path: string;
   statusCode: string;
+  delay: string;
   headers: { key: string; value: string }[];
   body: string;
   contentType: ContentType;
@@ -68,6 +69,7 @@ export type MockFormErrors = {
   name?: string;
   path?: string;
   statusCode?: string;
+  delay?: string;
 };
 
 function headersToRows(headers: Record<string, string>) {
@@ -127,6 +129,7 @@ function getInitialFormState(initial?: MockDetailsDto): MockFormState {
       method: "GET",
       path: "",
       statusCode: "200",
+      delay: "",
       headers: [],
       body: "",
       contentType: "json",
@@ -143,6 +146,10 @@ function getInitialFormState(initial?: MockDetailsDto): MockFormState {
     method: initial.method,
     path: initial.path,
     statusCode: String(initial.response.code),
+    delay:
+      initial.response.delay === undefined
+        ? ""
+        : String(initial.response.delay),
     headers: filteredHeaders,
     body: initial.response.body ?? "",
     contentType,
@@ -189,6 +196,20 @@ function getFormErrors(form: MockFormState): MockFormErrors {
     }
   }
 
+  const delay = form.delay.trim();
+  if (delay) {
+    const parsed = Number(delay);
+    if (Number.isNaN(parsed)) {
+      errors.delay = "Response delay must be a number.";
+    } else if (!Number.isInteger(parsed)) {
+      errors.delay = "Response delay must be an integer.";
+    } else if (parsed < 0) {
+      errors.delay = "Response delay must be at least 0.";
+    } else if (parsed > 300000) {
+      errors.delay = "Response delay must be at most 300000.";
+    }
+  }
+
   return errors;
 }
 
@@ -212,8 +233,11 @@ export function useMockForm(
     name: localErrors.name ?? serverErrors.name,
     path: localErrors.path ?? serverErrors.path,
     statusCode: localErrors.statusCode ?? serverErrors.statusCode,
+    delay: localErrors.delay ?? serverErrors.delay,
   };
-  const hasErrors = Boolean(errors.name || errors.path || errors.statusCode);
+  const hasErrors = Boolean(
+    errors.name || errors.path || errors.statusCode || errors.delay,
+  );
   const showErrors = !hideErrors;
   const activeContentType = CONTENT_TYPES.find(
     (contentType) => contentType.id === form.contentType,
@@ -246,6 +270,7 @@ export function useMockForm(
     }
 
     const statusCode = Number(form.statusCode.trim());
+    const delay = form.delay.trim();
     const payload = {
       name: form.name.trim(),
       method: form.method,
@@ -254,6 +279,7 @@ export function useMockForm(
       labels: form.labels,
       response: {
         code: statusCode,
+        delay: delay === "" ? undefined : Number(delay),
         body: form.body === "" ? undefined : form.body,
         headers: {
           ...rowsToHeaders(lockedHeader),

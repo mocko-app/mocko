@@ -188,6 +188,7 @@ export type FormValidationErrors = {
   source?: string;
   destination?: string;
   statusCode?: string;
+  delay?: string;
 };
 
 export function toFormValidationErrors(
@@ -205,6 +206,9 @@ export function toFormValidationErrors(
   const statusCode =
     firstError(validation.fieldErrors, "response.code") ??
     firstError(validation.fieldErrors, "response");
+  const delay =
+    firstError(validation.fieldErrors, "response.delay") ??
+    firstError(validation.fieldErrors, "response");
 
   return {
     form: validation.formErrors[0],
@@ -214,5 +218,6 @@ export function toFormValidationErrors(
     source,
     destination,
     statusCode,
+    delay,
   };
 }

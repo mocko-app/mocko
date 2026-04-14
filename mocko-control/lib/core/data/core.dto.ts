@@ -10,6 +10,7 @@ export type CoreDeployMockDefinition = {
   labels: string[];
   response: {
     code: number;
+    delay?: number;
     body: string;
     headers: Record<string, string>;
   };
@@ -37,6 +38,7 @@ export type CoreMockDto = {
 export type CoreMockDetailsDto = CoreMockDto & {
   response: {
     code: number;
+    delay?: number;
     body?: string;
     headers: Record<string, string>;
   };

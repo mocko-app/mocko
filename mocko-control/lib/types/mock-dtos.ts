@@ -32,12 +32,13 @@ export type PatchMockDto = {
 export class MockResponseDto {
   private constructor(
     public readonly code: number,
+    public readonly delay: number | undefined,
     public readonly body: string | undefined,
     public readonly headers: Record<string, string>,
   ) {}
 
   static ofResponse(response: MockResponse): MockResponseDto {
-    return new MockResponseDto(response.code, response.body, {
+    return new MockResponseDto(response.code, response.delay, response.body, {
       ...response.headers,
     });
   }

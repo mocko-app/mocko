@@ -229,9 +229,13 @@ export function MockForm({ initial, mode }: MockFormProps) {
         </div>
 
         <MockFormAdvancedOptions
+          delay={form.delay}
+          delayError={showErrors ? errors.delay : undefined}
+          delayHasError={Boolean(errors.delay)}
           headers={form.headers}
           hostSlug={form.hostSlug}
           lockedHeaders={lockedHeader}
+          onDelayChange={(delay) => set("delay", delay)}
           onHeadersChange={(headers) => set("headers", headers)}
           onHostSlugChange={(hostSlug) => set("hostSlug", hostSlug)}
         />
