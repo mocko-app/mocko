@@ -113,7 +113,7 @@ export function MockFormAdvancedOptions({
             <Label htmlFor="mock-host">Host</Label>
             <Tooltip>
               <TooltipTrigger
-                render={<button type="button" />}
+                type="button"
                 className="text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Host field help"
               >

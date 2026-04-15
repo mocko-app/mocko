@@ -90,7 +90,7 @@ export function HostForm({ initial, mode }: HostFormProps) {
               <Label htmlFor="host-slug">Slug</Label>
               <Tooltip>
                 <TooltipTrigger
-                  render={<button type="button" />}
+                  type="button"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                   aria-label="Slug field help"
                 >
@@ -126,7 +126,7 @@ export function HostForm({ initial, mode }: HostFormProps) {
               <Label>Slug</Label>
               <Tooltip>
                 <TooltipTrigger
-                  render={<button type="button" />}
+                  type="button"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                   aria-label="Slug field help"
                 >
@@ -168,7 +168,7 @@ export function HostForm({ initial, mode }: HostFormProps) {
             <Label htmlFor="host-source">Source</Label>
             <Tooltip>
               <TooltipTrigger
-                render={<button type="button" />}
+                type="button"
                 className="text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Source field help"
               >
@@ -203,7 +203,7 @@ export function HostForm({ initial, mode }: HostFormProps) {
             </Label>
             <Tooltip>
               <TooltipTrigger
-                render={<button type="button" />}
+                type="button"
                 className="text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Destination field help"
               >
