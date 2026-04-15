@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   labelStyle,
   labelStyleSelected,
@@ -89,15 +90,17 @@ export function LabelFilterBar({
         const style = getLabelFilterStyle(key, selected);
 
         return (
-          <button
+          <Button
             key={key}
             type="button"
             onClick={() => toggle(key)}
+            variant="outline"
+            size="xs"
             style={style}
-            className="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer"
+            className="h-auto shrink-0 rounded-full px-2.5 py-1 text-xs"
           >
             {getLabelFilterText(key)}
-          </button>
+          </Button>
         );
       })}
     </div>
