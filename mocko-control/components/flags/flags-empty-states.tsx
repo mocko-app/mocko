@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
 
 export function EmptyFlags() {
   return (
-    <div className="px-6 py-12 text-center" role="status">
-      <h2 className="text-lg font-medium text-foreground mb-2">No flags yet</h2>
-      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+    <EmptyState title="No flags yet">
+      <>
         Flags are set by mocks using Bigodon templating. See{" "}
         <a
           href="https://mocko.dev/docs/templating/persistence/"
@@ -17,8 +17,8 @@ export function EmptyFlags() {
           docs
         </a>
         .
-      </p>
-    </div>
+      </>
+    </EmptyState>
   );
 }
 

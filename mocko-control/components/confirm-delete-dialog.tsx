@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,22 +13,29 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-type FlagDeleteDialogProps = {
+type ConfirmDeleteDialogProps = {
   open: boolean;
-  flagKey: string;
+  title: string;
+  children: ReactNode;
+  itemLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
   onDontAskAgain: () => void;
 };
 
-export function FlagDeleteDialog({
+export function ConfirmDeleteDialog({
   open,
-  flagKey,
+  title,
+  children,
+  itemLabel,
   onConfirm,
   onCancel,
   onDontAskAgain,
-}: FlagDeleteDialogProps) {
+}: ConfirmDeleteDialogProps) {
   const [skipConfirm, setSkipConfirm] = useState(false);
+  const descriptionId = useId();
+  const titleId = useId();
+  const checkboxId = useId();
 
   function handleConfirm() {
     if (skipConfirm) {
@@ -42,30 +49,21 @@ export function FlagDeleteDialog({
       <DialogContent
         showCloseButton={false}
         className="sm:max-w-md"
-        aria-labelledby="delete-flag-title"
-        aria-describedby="delete-flag-description"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
       >
         <DialogHeader>
-          <DialogTitle id="delete-flag-title">Delete flag</DialogTitle>
-          <DialogDescription id="delete-flag-description">
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-foreground font-mono">
-              {flagKey}
-            </span>
-            ? This action cannot be undone.
-          </DialogDescription>
+          <DialogTitle id={titleId}>{title}</DialogTitle>
+          <DialogDescription id={descriptionId}>{children}</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-2 py-1">
           <Checkbox
-            id="dont-ask-again-flag"
+            id={checkboxId}
             checked={skipConfirm}
             onCheckedChange={(checked) => setSkipConfirm(checked === true)}
             aria-label="Don't ask again this session"
           />
-          <Label
-            htmlFor="dont-ask-again-flag"
-            className="font-normal cursor-pointer"
-          >
+          <Label htmlFor={checkboxId} className="cursor-pointer font-normal">
             Don&apos;t ask again this session
           </Label>
         </div>
@@ -80,7 +78,7 @@ export function FlagDeleteDialog({
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            aria-label={`Confirm deletion of ${flagKey}`}
+            aria-label={`Confirm deletion of ${itemLabel}`}
           >
             Delete
           </Button>

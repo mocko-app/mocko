@@ -3,23 +3,24 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { DeleteDialog } from "@/components/delete-dialog";
+import { Callout } from "@/components/callout";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { LabelFilterBar } from "@/components/label-filter-bar";
+import { ListPageHeader } from "@/components/list-page-header";
 import { MockCard } from "@/components/mock-card";
 import {
   EmptyMocks,
   EmptySearchResult,
   FilteredOutNotice,
-  PollErrorBanner,
 } from "@/components/mocks-empty-states";
 import {
   LabelBarSkeleton,
   MocksListSkeleton,
 } from "@/components/mocks-list-skeleton";
+import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { matchesMockSearch } from "@/lib/mock/filter";
@@ -27,31 +28,6 @@ import type { MockDto } from "@/lib/types/mock-dtos";
 import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
 const EMPTY_MOCKS: MockDto[] = [];
-
-const MocksPageHeader: React.FC<{
-  totalCount: number;
-  activeCount: number;
-}> = ({ totalCount, activeCount }) => {
-  return (
-    <div className="flex items-center justify-between mb-5">
-      <div>
-        <h1 className="text-2xl font-semibold text-white tracking-tight">
-          Mocks
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {totalCount} total · {activeCount} active
-        </p>
-      </div>
-      <Button
-        nativeButton={false}
-        render={<Link href="/mocks/new" aria-label="Create new mock" />}
-      >
-        <PlusIcon aria-hidden="true" />
-        New mock
-      </Button>
-    </div>
-  );
-};
 
 const MocksPage: React.FC = () => {
   const router = useRouter();
@@ -152,24 +128,36 @@ const MocksPage: React.FC = () => {
 
   return (
     <div>
-      <MocksPageHeader totalCount={mocks.length} activeCount={activeCount} />
+      <ListPageHeader
+        title="Mocks"
+        description={`${mocks.length} total · ${activeCount} active`}
+        actions={
+          <Button
+            nativeButton={false}
+            render={<Link href="/mocks/new" aria-label="Create new mock" />}
+          >
+            <PlusIcon aria-hidden="true" />
+            New mock
+          </Button>
+        }
+      />
 
-      {Boolean(error) && <PollErrorBanner />}
-
-      <div className="flex flex-col gap-3 mb-6">
-        <div className="relative">
-          <SearchIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#444] pointer-events-none"
-            aria-hidden="true"
-          />
-          <Input
-            className="max-w-sm pl-9 bg-muted border-input placeholder:text-[#3a3a3a] focus-visible:ring-1 focus-visible:ring-[#444] focus-visible:border-[#444]"
-            placeholder="Search mocks…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search mocks"
+      {Boolean(error) && (
+        <div className="mb-4">
+          <Callout
+            title="Could not fetch mocks"
+            message="Refresh the page or restart Mocko."
           />
         </div>
+      )}
+
+      <div className="flex flex-col gap-3 mb-6">
+        <PageSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search mocks…"
+          ariaLabel="Search mocks"
+        />
         {isLoading ? (
           <LabelBarSkeleton />
         ) : (
@@ -218,13 +206,20 @@ const MocksPage: React.FC = () => {
       )}
 
       {deleteTarget && (
-        <DeleteDialog
+        <ConfirmDeleteDialog
           open={true}
-          mockName={deleteTarget.name}
+          title="Delete mock"
+          itemLabel={deleteTarget.name}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(undefined)}
           onDontAskAgain={() => setSkipDeleteConfirm(true)}
-        />
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground">
+            {deleteTarget.name}
+          </span>
+          ? This action cannot be undone.
+        </ConfirmDeleteDialog>
       )}
     </div>
   );

@@ -1,24 +1,22 @@
 "use client";
 
-import Link from "next/link";
+import { Callout } from "@/components/callout";
+import { EmptyState } from "@/components/empty-state";
 import { FlagForm } from "@/components/flags/flag-form";
-import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/frontend/api";
 import { useFlag } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
 function FlagMissingState() {
   return (
-    <div className="max-w-2xl mx-auto text-center">
-      <h1 className="text-lg font-semibold text-foreground">Flag not found</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
+    <div className="mx-auto max-w-2xl">
+      <EmptyState
+        title="Flag not found"
+        actionHref="/flags"
+        actionLabel="Back to flags"
+      >
         This flag does not exist or has expired.
-      </p>
-      <div className="mt-4 flex justify-center">
-        <Button nativeButton={false} render={<Link href="/flags" />}>
-          Back to flags
-        </Button>
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -47,11 +45,10 @@ export default function FlagDetailPage() {
   if (error || !data) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2">
-          <p className="text-xs text-destructive">
-            Failed to load this flag. Please try again.
-          </p>
-        </div>
+        <Callout
+          title="Could not load flag"
+          message="Refresh the page or restart Mocko."
+        />
       </div>
     );
   }
