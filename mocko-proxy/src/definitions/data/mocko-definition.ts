@@ -16,10 +16,17 @@ const definitionSchema = Joi.object({
     data: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
 });
 
-export const definitionFromConfig = (config: any): MockoDefinition => {
+export const definitionFromConfig = (config: any, onMockError?: (error: Error) => void): MockoDefinition => {
     const mocks = Object.entries(mergeRecords(config.mock || []))
         .flatMap(([req, resList]) => resList.map(res => [req, res]))
-        .map(([req, res]) => mockFromConfig(req, res));
+        .flatMap(([req, res]) => {
+            try {
+                return [mockFromConfig(req, res)];
+            } catch(e) {
+                onMockError?.(e);
+                return [];
+            }
+        });
 
     const data = config.data && Object.entries(mergeRecords(config.data))
         .map(([key, values]) => ({key, value: mergeRecords(values)}))

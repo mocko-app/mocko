@@ -55,11 +55,45 @@ describe('resilience to malformed input', () => {
       expect(res.status).toBe(200);
     });
 
-    // TODO Currently the entire file is rejected when any mock in it is invalid.
-    // This is unintended — valid mocks in the same file should still be served.
-    it.skip('still serves valid mocks when file also contains invalid ones', async () => {
+    it('still serves valid mocks when file also contains invalid ones', async () => {
       const res = await subject.client.get('/good');
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('invalid template body', () => {
+    let subject: MockoInstance;
+
+    beforeAll(async () => {
+      subject = await startWithFile(`
+        mock "GET /good" {
+          body = "ok"
+        }
+        mock "GET /bad-template" {
+          body = "{{unclosed"
+        }
+      `);
+    });
+
+    afterAll(() => subject.stop());
+
+    it('does not crash on invalid template body', async () => {
+      expect(subject.hasCrashed()).toBe(false);
+    });
+
+    it('still serves health endpoint after file with invalid template', async () => {
+      const res = await subject.client.get('/health');
+      expect(res.status).toBe(200);
+    });
+
+    it('still serves valid mocks when file also contains invalid template', async () => {
+      const res = await subject.client.get('/good');
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 500 for the mock with invalid template', async () => {
+      const res = await subject.client.get('/bad-template');
+      expect(res.status).toBe(500);
     });
   });
 

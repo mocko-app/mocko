@@ -176,16 +176,13 @@ export class DefinitionProvider {
             return null;
         }
 
-        try {
-            const definition = definitionFromConfig(data);
-            definition.mocks = definition.mocks.map((mock) =>
-                this.withFileMetadata(path, mock),
-            );
-            return definition;
-        } catch(e) {
-            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`);
-            return null;
-        }
+        const definition = definitionFromConfig(data, (e) =>
+            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`),
+        );
+        definition.mocks = definition.mocks.map((mock) =>
+            this.withFileMetadata(path, mock),
+        );
+        return definition;
     }
 
     private withSource(mocks: Mock[], source: MockSource): Mock[] {

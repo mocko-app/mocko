@@ -45,9 +45,8 @@ export class MockService {
             this.repository,
             this.proxyController,
             this.logger,
-            mock.response,
+            mock,
             data,
-            mock.id
         ).handle;
         const vhost = this.resolveMockHost(mock.host, hosts);
 
