@@ -18,12 +18,14 @@ type HeadersEditorProps = {
   headers: Header[];
   onChange: (headers: Header[]) => void;
   lockedHeaders?: Header[];
+  readOnly?: boolean;
 };
 
 export function HeadersEditor({
   headers,
   onChange,
   lockedHeaders = [],
+  readOnly = false,
 }: HeadersEditorProps) {
   function addRow() {
     onChange([...headers, { key: "", value: "" }]);
@@ -84,6 +86,7 @@ export function HeadersEditor({
             placeholder="Name"
             aria-label={`Header name ${i + 1}`}
             className="flex-1"
+            readOnly={readOnly}
           />
           <Input
             value={header.value}
@@ -91,6 +94,7 @@ export function HeadersEditor({
             placeholder="Value"
             aria-label={`Header value ${i + 1}`}
             className="flex-1"
+            readOnly={readOnly}
           />
           <Button
             type="button"
@@ -98,6 +102,7 @@ export function HeadersEditor({
             size="icon-sm"
             onClick={() => removeRow(i)}
             aria-label={`Remove header ${i + 1}`}
+            disabled={readOnly}
           >
             <XIcon aria-hidden="true" />
           </Button>
@@ -110,6 +115,7 @@ export function HeadersEditor({
         onClick={addRow}
         className="w-fit"
         aria-label="Add header"
+        disabled={readOnly}
       >
         <PlusIcon aria-hidden="true" />
         Add header

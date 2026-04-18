@@ -1,53 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDownIcon, CircleHelpIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { MockFormHostField } from "@/components/mock-form-host-field";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { HeadersEditor } from "@/components/headers-editor";
-import { useHosts } from "@/lib/frontend/hooks/resources";
-import type { HostDto } from "@/lib/types/host-dtos";
 import { cn } from "@/lib/utils";
-
-const ANY_HOST_VALUE = "__any_host__";
-
-function getHostLabel(host?: HostDto): string {
-  if (!host) {
-    return "Any host";
-  }
-
-  return host.name ? `${host.slug} (${host.name})` : host.slug;
-}
-
-function getSelectedHostLabel(
-  hostSlug: string,
-  hostOptions: HostDto[],
-): string {
-  if (!hostSlug) {
-    return "Any host";
-  }
-
-  const host = hostOptions.find((option) => option.slug === hostSlug);
-  return host ? getHostLabel(host) : hostSlug;
-}
 
 type MockFormAdvancedOptionsProps = {
   delay: string;
@@ -55,6 +19,8 @@ type MockFormAdvancedOptionsProps = {
   delayHasError?: boolean;
   headers: { key: string; value: string }[];
   hostSlug: string;
+  isReadOnly?: boolean;
+  isSubmitting?: boolean;
   lockedHeaders: { key: string; value: string }[];
   onDelayChange: (delay: string) => void;
   onHeadersChange: (headers: { key: string; value: string }[]) => void;
@@ -67,14 +33,13 @@ export function MockFormAdvancedOptions({
   delayHasError,
   headers,
   hostSlug,
+  isReadOnly = false,
+  isSubmitting = false,
   lockedHeaders,
   onDelayChange,
   onHeadersChange,
   onHostSlugChange,
 }: MockFormAdvancedOptionsProps) {
-  const { data: hostOptions = [] } = useHosts({
-    refreshInterval: 0,
-  });
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const parsedDelay = delay.trim() === "" ? null : Number(delay);
   const showDelayWarning =
@@ -106,58 +71,15 @@ export function MockFormAdvancedOptions({
             headers={headers}
             onChange={onHeadersChange}
             lockedHeaders={lockedHeaders}
+            readOnly={isReadOnly}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <Label htmlFor="mock-host">Host</Label>
-            <Tooltip>
-              <TooltipTrigger
-                type="button"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Host field help"
-              >
-                <CircleHelpIcon className="size-3.5" aria-hidden="true" />
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-56">
-                Only respond to requests with this host.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {hostOptions.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              No hosts defined.{" "}
-              <Link
-                href="/hosts"
-                className="underline underline-offset-2 hover:text-foreground"
-              >
-                Create one on the Hosts page
-              </Link>{" "}
-              to scope mocks to a specific Host header.
-            </p>
-          ) : (
-            <Select
-              value={hostSlug || ANY_HOST_VALUE}
-              onValueChange={(value) =>
-                onHostSlugChange(value === ANY_HOST_VALUE ? "" : (value ?? ""))
-              }
-            >
-              <SelectTrigger id="mock-host" className="w-48" aria-label="Host">
-                <SelectValue>
-                  {getSelectedHostLabel(hostSlug, hostOptions)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ANY_HOST_VALUE}>Any host</SelectItem>
-                {hostOptions.map((host) => (
-                  <SelectItem key={host.slug} value={host.slug}>
-                    {getHostLabel(host)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        <MockFormHostField
+          hostSlug={hostSlug}
+          isReadOnly={isReadOnly}
+          isSubmitting={isSubmitting}
+          onHostSlugChange={onHostSlugChange}
+        />
         <div className="flex w-full max-w-48 flex-col gap-1.5">
           <Label htmlFor="mock-delay">Delay (ms)</Label>
           <Input
@@ -169,6 +91,7 @@ export function MockFormAdvancedOptions({
             onChange={(e) => onDelayChange(e.target.value)}
             placeholder="Optional"
             aria-invalid={Boolean(delayHasError)}
+            readOnly={isReadOnly}
           />
           {delayError && (
             <p className="text-xs text-destructive">{delayError}</p>
