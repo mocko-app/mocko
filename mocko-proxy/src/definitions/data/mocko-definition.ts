@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
 import { mergeRecords } from "../../utils/utils";
-import { Data } from "./data";
+import { Data, DataEntry } from "./data";
 import { Host, hostFromConfig, validateHost } from "./host";
 import { Mock, mockFromConfig, validateMock } from "./mock";
 
@@ -13,11 +13,20 @@ export type MockoDefinition = {
 const definitionSchema = Joi.object({
     mocks: Joi.array().items(Joi.any()).required(),
     hosts: Joi.array().items(Joi.any()).required(),
-    data: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
+    data: Joi.object()
+        .pattern(
+            Joi.string(),
+            Joi.object().pattern(
+                Joi.string(),
+                Joi.array().items(Joi.any()).required(),
+            ),
+        )
+        .optional(),
 });
 
 export const definitionFromConfig = (config: any, onMockError?: (error: Error) => void): MockoDefinition => {
-    const mocks = Object.entries(mergeRecords(config.mock || []))
+    const mergedMocks = mergeRecords<any>(config.mock || []);
+    const mocks = Object.entries(mergedMocks)
         .flatMap(([req, resList]) => resList.map(res => [req, res]))
         .flatMap(([req, res]) => {
             try {
@@ -28,9 +37,11 @@ export const definitionFromConfig = (config: any, onMockError?: (error: Error) =
             }
         });
 
-    const data = config.data && Object.entries(mergeRecords(config.data))
-        .map(([key, values]) => ({key, value: mergeRecords(values)}))
-        .reduce((acc, {key, value}) => ({ ...acc, [key]: value}), {});
+    const mergedDataBlocks = mergeRecords<DataEntry>(config.data || []);
+    const data = config.data && Object.fromEntries(
+        Object.entries(mergedDataBlocks)
+            .map(([key, values]) => [key, mergeRecords(values)]),
+    ) as Data;
 
     const hosts = Object.entries(mergeRecords(config.host || []))
         .map(([name, data]) => hostFromConfig(name, data));

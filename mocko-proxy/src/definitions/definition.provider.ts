@@ -12,6 +12,7 @@ import { Synchronize } from '@mocko/sync';
 import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
 import { Host } from "./data/host";
+import { mergeData } from "../utils/utils";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -78,7 +79,7 @@ export class DefinitionProvider {
         const options = (await this.getMockFilesContent()).filter(o => o !== null);
         return {
             mocks: options.map(o => o.mocks || []).flat(),
-            data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value}), {}),
+            data: mergeData(options.map(o => o.data || {})),
             hosts: options.map(o => o.hosts || []).flat(),
         };
     }
@@ -117,11 +118,11 @@ export class DefinitionProvider {
             ...(redisDefinitions?.hosts || []),
             ...fileDefinitions.hosts,
         ];
-        const data = {
-            ...(fileDefinitions.data || {}),
-            ...(redisDefinitions?.data || {}),
-            ...(deployDefinitions?.data || {}),
-        };
+        const data = mergeData([
+            fileDefinitions.data || {},
+            redisDefinitions?.data || {},
+            deployDefinitions?.data || {},
+        ]);
 
         return {
             mocks,

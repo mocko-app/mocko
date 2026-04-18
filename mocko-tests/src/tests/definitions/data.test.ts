@@ -88,4 +88,64 @@ describe('data stanza', () => {
     expect((await subject.client.get('/data/cross-file1')).data).toBe('value1');
     expect((await subject.client.get('/data/cross-file2')).data).toBe('value2');
   });
+
+  it('merges repeated data blocks across different files', async () => {
+    await subject.createMock(`
+      data "shared" {
+        first = "value1"
+      }
+    `);
+    await subject.createMock(`
+      data "shared" {
+        second = "value2"
+      }
+      mock "GET /data/shared-first" {
+        body = "{{data.shared.first}}"
+      }
+      mock "GET /data/shared-second" {
+        body = "{{data.shared.second}}"
+      }
+    `);
+
+    expect((await subject.client.get('/data/shared-first')).data).toBe(
+      'value1',
+    );
+    expect((await subject.client.get('/data/shared-second')).data).toBe(
+      'value2',
+    );
+  });
+
+  it('merges repeated data array blocks across different files', async () => {
+    await subject.createMock(`
+      data "shared_list" {
+        item {
+          id = 1
+        }
+      }
+    `);
+    await subject.createMock(`
+      data "shared_list" {
+        item {
+          id = 2
+        }
+        item {
+          id = 3
+        }
+      }
+
+      mock "GET /data/shared-list" {
+        body = <<-EOF
+          [
+            {{#forEach data.shared_list.item}}
+              {{pick item 'id'}}{{^isLast}},{{/isLast}}
+            {{/forEach}}
+          ]
+        EOF
+      }
+    `);
+
+    expect((await subject.client.get('/data/shared-list')).data).toEqual([
+      1, 2, 3,
+    ]);
+  });
 });

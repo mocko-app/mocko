@@ -1,13 +1,33 @@
-export function mergeRecords(array: Record<string, any[]>[]): Record<string, any[]> {
-    const output = {};
+import { Data } from "../definitions/data/data";
 
-    for(const obj of array) {
-        for(const key in obj) {
-            output[key] = output[key] ? [...output[key], ...obj[key]] : obj[key];
+export function mergeRecords<T>(records: Record<string, T[]>[]): Record<string, T[]> {
+    const merged: Record<string, T[]> = {};
+
+    for(const record of records) {
+        for(const [key, values] of Object.entries(record)) {
+            const existingValues = merged[key] || [];
+            merged[key] = [...existingValues, ...values];
         }
     }
 
-    return output;
+    return merged;
+}
+
+export function mergeData(dataBlocks: Data[]): Data {
+    const merged: Data = {};
+
+    for(const dataBlock of dataBlocks) {
+        for(const [blockName, entry] of Object.entries(dataBlock)) {
+            if(!merged[blockName]) {
+                merged[blockName] = entry;
+                continue;
+            }
+
+            merged[blockName] = mergeRecords([merged[blockName], entry]);
+        }
+    }
+
+    return merged;
 }
 
 export function firstString(value: string | string[] | undefined): string {
