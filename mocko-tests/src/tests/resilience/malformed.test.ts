@@ -91,9 +91,10 @@ describe('resilience to malformed input', () => {
       expect(res.status).toBe(200);
     });
 
-    it('returns 500 for the mock with invalid template', async () => {
+    it('returns 500 with the error message for the mock with invalid template', async () => {
       const res = await subject.client.get('/bad-template');
       expect(res.status).toBe(500);
+      expect(JSON.stringify(res.data)).toContain('invalid template body');
     });
   });
 

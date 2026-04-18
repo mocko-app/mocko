@@ -1,5 +1,4 @@
 import * as Hoek from '@hapi/hoek';
-import * as Boom from '@hapi/boom';
 import { Request, ResponseObject, ResponseToolkit } from "@hapi/hapi";
 import { MockRepository } from './mock.repository';
 import { ProxyController } from '../proxy/proxy.controller';
@@ -62,7 +61,11 @@ export class MockHandler {
         request['_label'] = 'mock';
 
         if(this.compilationError) {
-            throw Boom.internal(`This mock has an invalid template body: ${this.compilationError}`);
+            return h.response({
+                statusCode: 500,
+                error: 'Internal Server Error',
+                message: `This mock has an invalid template body: ${this.compilationError}`,
+            }).code(500);
         }
 
         debug('creating context');
