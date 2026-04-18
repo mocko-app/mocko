@@ -26,7 +26,7 @@ describeRedis('redis flags persistence', () => {
     }
   });
 
-  it.skip('persists flags across restart and exposes them to templating', async () => {
+  it('persists flags across restart and exposes them to templating', async () => {
     const route = randomPath();
     const flagKey = 'users:redis:status';
 
