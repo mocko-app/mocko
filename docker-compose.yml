@@ -1,0 +1,20 @@
+services:
+  redis:
+    image: redis:6-alpine
+    volumes:
+      - ./data/redis:/data
+
+  mocko:
+    build: docker-images/standalone
+    ports:
+      - "${MOCKO_PORT:-8080}:8080"
+      - "${MOCKO_UI_PORT:-6625}:6625"
+    environment:
+      MOCKO_URL: ${MOCKO_URL:-}
+      MOCKO_TIMEOUT: ${MOCKO_TIMEOUT:-30000}
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data/mocks:/var/mocks
+    depends_on:
+      - redis
