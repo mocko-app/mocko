@@ -28,7 +28,7 @@
     "@hapi/hapi": "^21.4.2",
     "@hapi/hoek": "^11.0.7",
     "@mocko/h2o2": "^9.2.0",
-    "@mocko/logger": "^2.1.2",
+    "@mocko/logger": "^2.2.0",
     "@mocko/sync": "^0.2.2",
     "bigodon": "^2.4.0",
     "debug": "^4.4.1",
