@@ -16,10 +16,7 @@ const definitionSchema = Joi.object({
     data: Joi.object()
         .pattern(
             Joi.string(),
-            Joi.object().pattern(
-                Joi.string(),
-                Joi.array().items(Joi.any()).required(),
-            ),
+            Joi.object().pattern(Joi.string(), Joi.any()),
         )
         .optional(),
 });
@@ -37,7 +34,7 @@ export const definitionFromConfig = (config: any, onMockError?: (error: Error) =
             }
         });
 
-    const mergedDataBlocks = mergeRecords<DataEntry>(config.data || []);
+    const mergedDataBlocks = mergeRecords<DataEntry[]>(config.data || []);
     const data = config.data && Object.fromEntries(
         Object.entries(mergedDataBlocks)
             .map(([key, values]) => [key, mergeRecords(values)]),

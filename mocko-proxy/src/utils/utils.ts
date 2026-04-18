@@ -1,12 +1,18 @@
 import { Data } from "../definitions/data/data";
 
-export function mergeRecords<T>(records: Record<string, T[]>[]): Record<string, T[]> {
-    const merged: Record<string, T[]> = {};
+export function mergeRecords<T>(records: Record<string, T>[]): Record<string, T> {
+    const merged: Record<string, T> = {};
 
     for(const record of records) {
         for(const [key, values] of Object.entries(record)) {
-            const existingValues = merged[key] || [];
-            merged[key] = [...existingValues, ...values];
+            const existingValues = merged[key];
+
+            if(Array.isArray(existingValues) && Array.isArray(values)) {
+                merged[key] = [...existingValues, ...values] as T;
+                continue;
+            }
+
+            merged[key] = values;
         }
     }
 
