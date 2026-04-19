@@ -10,7 +10,11 @@ import type {
   HostDto,
   PatchHostDto,
 } from "@/lib/types/host-dtos";
-import type { CreateMockDto, PatchMockDto } from "@/lib/types/mock-dtos";
+import type {
+  CreateMockDto,
+  MockDetailsDto,
+  PatchMockDto,
+} from "@/lib/types/mock-dtos";
 
 export type ApiErrorDto = ErrorDto;
 export type ApiValidationErrors = ValidationErrors;
@@ -62,9 +66,15 @@ export async function createMock(payload: CreateMockDto) {
   }
 }
 
-export async function patchMock(id: string, payload: PatchMockDto) {
+export async function patchMock(
+  id: string,
+  payload: PatchMockDto,
+): Promise<MockDetailsDto> {
   try {
-    const response = await api.patch(`/api/mocks/${id}`, payload);
+    const response = await api.patch<MockDetailsDto>(
+      `/api/mocks/${id}`,
+      payload,
+    );
     return response.data;
   } catch (error) {
     throw toApiError(error);

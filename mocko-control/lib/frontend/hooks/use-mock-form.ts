@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import {
   ApiError,
@@ -218,7 +219,8 @@ export function useMockForm(
   mode: MockFormMode,
 ) {
   const router = useRouter();
-  const { data: mocksData, mutate } = useMocks();
+  const { mutate } = useSWRConfig();
+  const { data: mocksData, mutate: mutateMocks } = useMocks();
   const [form, setForm] = useState<MockFormState>(() =>
     getInitialFormState(initial),
   );
@@ -297,11 +299,14 @@ export function useMockForm(
         if (!initial) {
           throw new Error("Mock ID is required for edit mode");
         }
-        await patchMock(initial.id, payload);
+        const updatedMock = await patchMock(initial.id, payload);
+        await mutate(`/api/mocks/${initial.id}`, updatedMock, {
+          revalidate: false,
+        });
         toast.success("Mock updated.");
       }
 
-      await mutate();
+      await mutateMocks();
       router.push("/mocks");
     } catch (error) {
       if (error instanceof ApiError && error.code === "BAD_REQUEST") {

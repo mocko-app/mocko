@@ -7,7 +7,7 @@ import {
   tryCatch,
 } from "@/lib/http";
 import { mockService } from "@/lib/mock/mock.service";
-import { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
+import { MockDetailsDto } from "@/lib/types/mock-dtos";
 import { patchMockSchema } from "@/lib/validation/mock.schema";
 
 export const runtime = "nodejs";
@@ -52,7 +52,7 @@ export async function PATCH(
     return errorResponse(updateError);
   }
 
-  return jsonResponse(MockDto.ofMock(mock));
+  return jsonResponse(MockDetailsDto.ofMock(mock));
 }
 
 export async function DELETE(
