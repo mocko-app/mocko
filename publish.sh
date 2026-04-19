@@ -48,4 +48,7 @@ npm install
 npm publish
 popd >/dev/null
 
+log "Updating standalone Dockerfile"
+sed -i "s/@mocko\/cli@[^ ]*/@mocko\/cli@${VERSION}/" "${ROOT_DIR}/docker-images/standalone/Dockerfile"
+
 log "Published Mocko version ${VERSION}"
