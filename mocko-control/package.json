@@ -1,6 +1,6 @@
 {
   "name": "@mocko/control",
-  "version": "2.0.0-alpha.11",
+  "version": "2.0.0-alpha.12",
   "description": "Mocko control service, the UI used to manage your mocks, part of @mocko/cli.",
   "main": "index.js",
   "files": [
