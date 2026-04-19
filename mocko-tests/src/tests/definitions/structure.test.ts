@@ -163,13 +163,13 @@ describe('definition structure', () => {
 
     it('does not crash on an empty file', async () => {
       await subject.createMock('');
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
 
     it('does not crash on a comments-only file', async () => {
       await subject.createMock('# just a comment');
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
 
@@ -177,7 +177,7 @@ describe('definition structure', () => {
       const route = randomPath();
       await subject.createMock(`mock "GET ${route}" { body = "first" }`);
       await subject.createMock(`mock "GET ${route}" { body = "second" }`);
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
 

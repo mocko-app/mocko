@@ -157,7 +157,7 @@ export class MockoInstance {
   }
 
   async getRevision(): Promise<number> {
-    const res = await this.client.get<HealthResponse>('/health');
+    const res = await this.client.get<HealthResponse>('/__mocko__/health');
     return res.data.revision;
   }
 

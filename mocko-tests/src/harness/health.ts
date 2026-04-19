@@ -14,7 +14,7 @@ export async function waitForHealth(
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
-      const res = await client.get<HealthResponse>('/health');
+      const res = await client.get<HealthResponse>('/__mocko__/health');
       if (res.data.revision >= targetRevision) return;
     } catch {}
     await sleep(POLL_INTERVAL);

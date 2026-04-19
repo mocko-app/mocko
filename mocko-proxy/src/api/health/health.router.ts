@@ -12,7 +12,7 @@ export class HealthRouter implements IRouter {
     async getRoutes(): Promise<ServerRoute[]> {
         return [{
             method: 'GET',
-            path: '/health',
+            path: '/__mocko__/health',
             handler: this.controller.healthCheck.bind(this.controller),
             rules: {
                 mapSilently: true,

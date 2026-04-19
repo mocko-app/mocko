@@ -12,7 +12,7 @@ describe('response status', () => {
   });
 
   it('returns 200 on healthcheck with revision', async () => {
-    const res = await subject.client.get('/health');
+    const res = await subject.client.get('/__mocko__/health');
     expect(res.status).toBe(200);
     expect(typeof res.data.revision).toBe('number');
   });
