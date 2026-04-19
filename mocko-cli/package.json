@@ -33,7 +33,7 @@
   "dependencies": {
     "@hapi/bossy": "^6.0.0",
     "@mocko/control": "2.0.0-alpha.11",
-    "@mocko/proxy": "2.0.0-alpha.11",
+    "@mocko/core": "2.0.0-alpha.11",
     "chokidar": "^3.4.3",
     "debug": "^4.3.1",
     "joi": "^17.3.0",

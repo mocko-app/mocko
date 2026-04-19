@@ -11,10 +11,10 @@ email (o54b27nq0oasp75z5mwr44a4vur17bgp@owlmail.io), or any other method with th
 ### Mocko API
 A NestJS application used by Mocko UI to manage Mocko resources, it
 saves and reads the mocks from Redis as well as publishing a deploy
-message when changes are made to any Mock. That way, all the mocko-proxies can load the new mock definitions from Redis to update
+message when changes are made to any Mock. That way, all the mocko-core instances can load the new mock definitions from Redis to update
 the routes.
 
-### Mocko Proxy
+### Mocko Core
 The heart of Mocko. It's a Hapi application that receives the requests
 from the user and provides mocks or proxies to the real API.
 
@@ -32,48 +32,48 @@ it's response.
 
 ## Standalone mode
 
-On standalone mode, only mocko-proxy is present and it loads its mocks
-from the mocks directory. Mocko-proxy can also be called from Mocko CLI:
+On standalone mode, only mocko-core is present and it loads its mocks
+from the mocks directory. Mocko-core can also be called from Mocko CLI:
 ![Complete Stack](https://cdn.codetunnel.net/mocko/cli-arch.png)
 
 In that case, mocko-cli reads the settings from the admin and passes to
-mocko-proxy. It also watches for file changes (when told to do so) and
-notifies mocko-proxy with a deploy message.
+mocko-core. It also watches for file changes (when told to do so) and
+notifies mocko-core with a deploy message.
 
 # Running Mocko from the repository
 
-As you've seen above, `mocko-proxy` is the main component so let's get
-started with it. Clone Mocko's repository, navigate to `mocko-proxy` and
+As you've seen above, `mocko-core` is the main component so let's get
+started with it. Clone Mocko's repository, navigate to `mocko-core` and
 install its dependencies.
 ```shell
 $ git clone https://github.com/mocko-app/mocko.git
-$ cd mocko/mocko-proxy
+$ cd mocko/mocko-core
 $ npm install
 ```
 
-Now create a sample mock file inside `mocko-proxy/mocks` and start
-mocko-proxy (inside the `mocko-proxy` dir) with:
+Now create a sample mock file inside `mocko-core/mocks` and start
+mocko-core (inside the `mocko-core` dir) with:
 ```shell
 $ npm run start:dev
 ```
 
 Now you're ready to contribute to Mocko! Some files that might be useful:
 
-- `mocko-proxy/src/api/definition/definition.provider.ts`: Reads mocks from Redis
+- `mocko-core/src/api/definition/definition.provider.ts`: Reads mocks from Redis
 and the mocks dir
-- `mocko-proxy/src/api/mock/data/mock-options.ts`: Converts the .hcl definitions to the internal Mock object
-- `mocko-proxy/src/api/mock/mock.handler.ts`: Processes the request pipeline:
+- `mocko-core/src/api/mock/data/mock-options.ts`: Converts the .hcl definitions to the internal Mock object
+- `mocko-core/src/api/mock/mock.handler.ts`: Processes the request pipeline:
     - Builds handlebars context
     - Builds the response body from the template (with the context previously built)
     - Waits for the specified amount of millis
     - Proxies if the template told so
     - Builds the Hapi response
-- `mocko-proxy/src/api/mock/mock.service.ts`: Registers custom Handlebars helpers
+- `mocko-core/src/api/mock/mock.service.ts`: Registers custom Handlebars helpers
 
 # Running tests
-Run mocko-proxy tests with:
+Run mocko-core tests with:
 ```shell
-$ cd mocko-proxy
+$ cd mocko-core
 $ docker-compose up -d
 $ npm test
 $ docker-compose down

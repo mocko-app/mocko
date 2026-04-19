@@ -34,7 +34,7 @@ log "Running root tests"
 npm test
 popd >/dev/null
 
-publish_package "mocko-proxy"
+publish_package "mocko-core"
 publish_package "mocko-control"
 
 log "Waiting 60 seconds for npm distribution"
@@ -42,7 +42,7 @@ sleep 60
 
 log "Publishing mocko-cli with version ${VERSION}"
 pushd "${ROOT_DIR}/mocko-cli" >/dev/null
-npm i "@mocko/proxy@${VERSION}" "@mocko/control@${VERSION}" --save-exact
+npm i "@mocko/core@${VERSION}" "@mocko/control@${VERSION}" --save-exact
 npm version "${VERSION}" --no-git-tag-version
 npm install
 npm publish

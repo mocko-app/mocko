@@ -69,8 +69,8 @@ async function run() {
         process.env['DEPLOY_SECRET'] = deploySecret;
     }
 
-    debug('starting mocko-proxy');
-    const { server } = require('@mocko/proxy');
+    debug('starting mocko-core');
+    const { server } = require('@mocko/core');
     const core = await server;
 
     if(uiEnabled) {
