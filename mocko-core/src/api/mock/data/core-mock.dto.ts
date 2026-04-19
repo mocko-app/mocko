@@ -42,6 +42,7 @@ export class CoreMockDetailsDto {
         public readonly isEnabled: boolean,
         public readonly source: CoreMockSource,
         public readonly labels: string[],
+        public readonly format: string | undefined,
         public readonly response: {
             code: number,
             delay?: number,
@@ -67,6 +68,7 @@ export class CoreMockDetailsDto {
             base.isEnabled,
             base.source,
             base.labels,
+            mock.format,
             {
                 code: mock.response.code,
                 delay: mock.response.delay,

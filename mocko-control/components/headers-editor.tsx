@@ -27,6 +27,10 @@ export function HeadersEditor({
   lockedHeaders = [],
   readOnly = false,
 }: HeadersEditorProps) {
+  const hasLockedContentType = lockedHeaders.some(
+    (header) => header.key.toLowerCase() === "content-type",
+  );
+
   function addRow() {
     onChange([...headers, { key: "", value: "" }]);
   }
@@ -78,36 +82,49 @@ export function HeadersEditor({
           </Tooltip>
         </div>
       ))}
-      {headers.map((header, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <Input
-            value={header.key}
-            onChange={(e) => updateRow(i, "key", e.target.value)}
-            placeholder="Name"
-            aria-label={`Header name ${i + 1}`}
-            className="flex-1"
-            readOnly={readOnly}
-          />
-          <Input
-            value={header.value}
-            onChange={(e) => updateRow(i, "value", e.target.value)}
-            placeholder="Value"
-            aria-label={`Header value ${i + 1}`}
-            className="flex-1"
-            readOnly={readOnly}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => removeRow(i)}
-            aria-label={`Remove header ${i + 1}`}
-            disabled={readOnly}
-          >
-            <XIcon aria-hidden="true" />
-          </Button>
-        </div>
-      ))}
+      {headers.map((header, i) => {
+        const hasContentTypeConflict =
+          hasLockedContentType &&
+          header.key.trim().toLowerCase() === "content-type";
+
+        return (
+          <div key={i} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Input
+                value={header.key}
+                onChange={(e) => updateRow(i, "key", e.target.value)}
+                placeholder="Name"
+                aria-label={`Header name ${i + 1}`}
+                className="flex-1"
+                readOnly={readOnly}
+              />
+              <Input
+                value={header.value}
+                onChange={(e) => updateRow(i, "value", e.target.value)}
+                placeholder="Value"
+                aria-label={`Header value ${i + 1}`}
+                className="flex-1"
+                readOnly={readOnly}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => removeRow(i)}
+                aria-label={`Remove header ${i + 1}`}
+                disabled={readOnly}
+              >
+                <XIcon aria-hidden="true" />
+              </Button>
+            </div>
+            {hasContentTypeConflict && (
+              <p className="text-xs text-amber-400">
+                Content-Type is already set by the selected body format.
+              </p>
+            )}
+          </div>
+        );
+      })}
       <Button
         type="button"
         variant="outline"

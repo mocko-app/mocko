@@ -18,6 +18,7 @@ export function toDeployDefinition(
         method: mock.method,
         path: mock.path,
         parse: true,
+        format: mock.format,
         host: mock.host,
         labels: mock.labels,
         response: {
@@ -45,6 +46,7 @@ export function toReadOnlyMock(coreMock: CoreMockDto): Mock {
     path: coreMock.path,
     host: coreMock.host,
     filePath: coreMock.filePath,
+    format: coreMock.format,
     isEnabled: coreMock.isEnabled,
     labels: coreMock.labels ?? [],
     response: {
@@ -63,6 +65,7 @@ export function toReadOnlyDetailsMock(coreMock: CoreMockDetailsDto): Mock {
     path: coreMock.path,
     host: coreMock.host,
     filePath: coreMock.filePath,
+    format: coreMock.format,
     isEnabled: coreMock.isEnabled,
     labels: coreMock.labels ?? [],
     response: {

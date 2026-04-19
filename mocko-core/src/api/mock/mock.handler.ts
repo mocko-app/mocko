@@ -11,6 +11,15 @@ import { Execution } from 'bigodon/dist/runner/execution';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
 
+const FORMAT_TO_CONTENT_TYPE: Record<string, string> = {
+    json: 'application/json',
+    html: 'text/html',
+    text: 'text/plain',
+    xml: 'application/xml',
+    javascript: 'text/javascript',
+    css: 'text/css',
+};
+
 export type BigodonContext = {
     request: {
         params: Record<string, string>,
@@ -98,9 +107,14 @@ export class MockHandler {
     }
 
     private buildData(): BigodonData {
+        const responseHeaders = { ...this.mock.response.headers };
+        if(this.mock.format) {
+            responseHeaders['Content-Type'] = FORMAT_TO_CONTENT_TYPE[this.mock.format];
+        }
+
         return {
             status: this.mock.response.code,
-            responseHeaders: { ...this.mock.response.headers },
+            responseHeaders,
         };
     }
 

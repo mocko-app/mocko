@@ -20,6 +20,7 @@ export type Mock = {
     method: MockHttpMethod,
     path: string,
     parse: boolean,
+    format?: string,
     host?: string,
     labels: string[],
     response: MockResponse
@@ -35,6 +36,7 @@ const mockSchema = Joi.object({
     method: Joi.string().valid(...MOCK_METHODS),
     path: Joi.string(),
     parse: Joi.boolean().default(true),
+    format: Joi.string().valid('json', 'html', 'text', 'xml', 'javascript', 'css').optional(),
     host: Joi.string().optional(),
     response: Joi.object({
         code: Joi.number().min(200).max(599).label("status"),
@@ -50,7 +52,20 @@ export function validateMock(mock: any): Mock {
         throw new Error(validation.error.message);
     }
 
+    assertFormatDoesNotConflictWithContentType(validation.value);
     return validation.value;
+}
+
+function assertFormatDoesNotConflictWithContentType(mock: Mock): void {
+    if(!mock.format) {
+        return;
+    }
+
+    const hasContentType = Object.keys(mock.response.headers || {})
+        .some((key) => key.toLowerCase() === 'content-type');
+    if(hasContentType) {
+        throw new Error("cannot use both 'format' and an explicit Content-Type header");
+    }
 }
 
 export function mockFromConfig(req: string, res: any): Mock {
@@ -61,12 +76,13 @@ export function mockFromConfig(req: string, res: any): Mock {
     const code = res?.status || (method === 'POST' ? 201 : 200);
     const host = res?.host;
     const parse = res?.parse;
+    const format = res?.format;
     const name = res?.name?.trim() || undefined;
     const isEnabled = res?.enabled;
     const labels = res?.labels;
 
     const definition = {
-        name, method, path, host, parse, isEnabled, labels,
+        name, method, path, host, parse, format, isEnabled, labels,
         response: {
             code,
             delay: res?.delay,

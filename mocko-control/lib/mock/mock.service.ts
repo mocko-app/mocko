@@ -35,6 +35,7 @@ export class MockService {
       method: data.method,
       path: data.path,
       host: data.host || undefined,
+      format: data.format,
       response: {
         code: data.response.code,
         delay: data.response.delay,
@@ -45,6 +46,7 @@ export class MockService {
       labels: [...(data.labels ?? [])],
       annotations: this.store.getCreatedAnnotations(),
     };
+    this.assertFormatDoesNotConflictWithContentType(mock);
 
     await this.store.saveMock(mock);
     await this.store.deploy();
@@ -71,6 +73,7 @@ export class MockService {
       method: data.method ?? currentMock.method,
       path: data.path ?? currentMock.path,
       host: nextHost,
+      format: data.format ?? currentMock.format,
       isEnabled: data.isEnabled ?? currentMock.isEnabled,
       labels: data.labels ?? currentMock.labels,
       response: data.response
@@ -85,6 +88,7 @@ export class MockService {
     };
 
     this.assertTemplateIsValid(mock.response.body);
+    this.assertFormatDoesNotConflictWithContentType(mock);
 
     await this.store.saveMock(mock);
 
@@ -123,6 +127,21 @@ export class MockService {
         line,
         column,
       });
+    }
+  }
+
+  private assertFormatDoesNotConflictWithContentType(mock: Mock): void {
+    if (!mock.format) {
+      return;
+    }
+
+    const hasContentType = Object.keys(mock.response.headers ?? {}).some(
+      (key) => key.toLowerCase() === "content-type",
+    );
+    if (hasContentType) {
+      throw HttpResponseError.badRequest(
+        "cannot use both 'format' and an explicit Content-Type header",
+      );
     }
   }
 
