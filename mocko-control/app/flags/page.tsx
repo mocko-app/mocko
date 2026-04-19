@@ -4,18 +4,20 @@ import React, { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSWRConfig } from "swr";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Callout } from "@/components/callout";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { FlagsListSkeleton } from "@/components/flags-list-skeleton";
 import { parsePrefixCrumbs } from "@/components/flags/crumbs";
-import { FlagDeleteDialog } from "@/components/flags/flag-delete-dialog";
 import {
   EmptyFlags,
   EmptyFolder,
   EmptySearch,
 } from "@/components/flags/flags-empty-states";
 import { FlagItem, FolderItem } from "@/components/flags/flags-list-items";
+import { ListPageHeader } from "@/components/list-page-header";
+import { PageSearchInput } from "@/components/page-search-input";
 import { deleteFlag } from "@/lib/frontend/api";
 import { useFlags } from "@/lib/frontend/hooks/resources";
 import type { FlagKeyDto } from "@/lib/types/flag-dtos";
@@ -28,7 +30,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 type DeleteTarget = {
   key: string;
@@ -133,57 +134,38 @@ const FlagsPage: React.FC = () => {
         </Breadcrumb>
       )}
 
-      <div className="flex items-center justify-between mb-5">
-        {isRoot ? (
-          <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">
-              Flags
-            </h1>
-          </div>
-        ) : (
-          <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight font-mono">
-              {currentCrumb.label}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5 font-mono">
-              {prefix}
-            </p>
-          </div>
-        )}
-        <Button
-          nativeButton={false}
-          render={<Link href={newFlagHref} aria-label="Create new flag" />}
-        >
-          <PlusIcon aria-hidden="true" />
-          New flag
-        </Button>
-      </div>
+      <ListPageHeader
+        title={isRoot ? "Flags" : currentCrumb.label}
+        description={isRoot ? undefined : prefix}
+        titleClassName={isRoot ? undefined : "font-mono"}
+        descriptionClassName={isRoot ? undefined : "font-mono"}
+        actions={
+          <Button
+            nativeButton={false}
+            render={<Link href={newFlagHref} aria-label="Create new flag" />}
+          >
+            <PlusIcon aria-hidden="true" />
+            New flag
+          </Button>
+        }
+      />
 
       {Boolean(error) && (
-        <div
-          className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-xs text-amber-400">
-            Could not fetch flags, refresh the page or restart Mocko
-          </p>
+        <div className="mb-4">
+          <Callout
+            title="Could not fetch flags"
+            message="Refresh the page or restart Mocko."
+          />
         </div>
       )}
 
-      <div className="relative mb-6">
-        <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#444] pointer-events-none"
-          aria-hidden="true"
-        />
-        <Input
-          className="max-w-sm pl-9 bg-muted border-input placeholder:text-[#3a3a3a] focus-visible:ring-1 focus-visible:ring-[#444] focus-visible:border-[#444]"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search flags and folders"
-        />
-      </div>
+      <PageSearchInput
+        className="mb-6"
+        value={search}
+        onChange={setSearch}
+        placeholder="Search..."
+        ariaLabel="Search flags and folders"
+      />
 
       {isLoading && <FlagsListSkeleton />}
 
@@ -233,13 +215,20 @@ const FlagsPage: React.FC = () => {
       )}
 
       {deleteTarget && (
-        <FlagDeleteDialog
+        <ConfirmDeleteDialog
           open={true}
-          flagKey={deleteTarget.key}
+          title="Delete flag"
+          itemLabel={deleteTarget.key}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(undefined)}
           onDontAskAgain={() => setSkipDeleteConfirm(true)}
-        />
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground font-mono">
+            {deleteTarget.key}
+          </span>
+          ? This action cannot be undone.
+        </ConfirmDeleteDialog>
       )}
     </div>
   );

@@ -39,6 +39,7 @@ describeRedis('redis control persistence', () => {
       path: route,
       response: {
         code: 200,
+        delay: 200,
         body: 'persisted',
         headers: {},
       },
@@ -51,6 +52,7 @@ describeRedis('redis control persistence', () => {
     const updateRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
         code: 202,
+        delay: 250,
         body: 'updated after redis',
       },
     });
@@ -88,8 +90,14 @@ describeRedis('redis control persistence', () => {
     );
     expect(detailsRes.status).toBe(200);
     expect(detailsRes.data.response.code).toBe(202);
+    expect(detailsRes.data.response.delay).toBe(250);
     expect(detailsRes.data.response.body).toBe('updated after redis');
-    expect((await subject.client.get(route)).data).toBe('updated after redis');
+    const start = Date.now();
+    const routeRes = await subject.client.get(route);
+    const elapsed = Date.now() - start;
+    expect(routeRes.data).toBe('updated after redis');
+    expect(elapsed).toBeGreaterThanOrEqual(230);
+    expect(elapsed).toBeLessThan(600);
 
     await subject.createMock(`
       mock "GET ${fileRoute}" {

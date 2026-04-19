@@ -5,30 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Callout } from "@/components/callout";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { HostCard } from "@/components/host-card";
-import { HostDeleteDialog } from "@/components/host-delete-dialog";
+import { ListPageHeader } from "@/components/list-page-header";
 import { Button } from "@/components/ui/button";
 import { deleteHost } from "@/lib/frontend/api";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { Host } from "@/lib/types/host";
-
-const EmptyHosts: React.FC = () => {
-  return (
-    <div className="px-6 py-12 text-center" role="status">
-      <h2 className="text-lg font-medium text-foreground mb-2">No hosts yet</h2>
-      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-        Route requests to different upstreams based on the http Host.
-      </p>
-      <Button
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/hosts/new" />}
-      >
-        Add host
-      </Button>
-    </div>
-  );
-};
 
 const HostsPage: React.FC = () => {
   const router = useRouter();
@@ -70,33 +55,36 @@ const HostsPage: React.FC = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-semibold text-white tracking-tight">
-          Hosts
-        </h1>
-        <Button
-          nativeButton={false}
-          render={<Link href="/hosts/new" aria-label="Add new host" />}
-        >
-          <PlusIcon aria-hidden="true" />
-          Add host
-        </Button>
-      </div>
+      <ListPageHeader
+        title="Hosts"
+        actions={
+          <Button
+            nativeButton={false}
+            render={<Link href="/hosts/new" aria-label="Add new host" />}
+          >
+            <PlusIcon aria-hidden="true" />
+            Add host
+          </Button>
+        }
+      />
 
       {error && (
-        <div
-          className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-xs text-amber-400">
-            Could not fetch hosts, refresh the page or restart Mocko
-          </p>
+        <div className="mb-4">
+          <Callout
+            title="Could not fetch hosts"
+            message="Refresh the page or restart Mocko."
+          />
         </div>
       )}
 
       {hosts.length === 0 ? (
-        <EmptyHosts />
+        <EmptyState
+          title="No hosts yet"
+          actionHref="/hosts/new"
+          actionLabel="Add host"
+        >
+          Route requests to different upstreams based on the http Host.
+        </EmptyState>
       ) : (
         <div
           className="flex flex-col gap-2"
@@ -115,13 +103,21 @@ const HostsPage: React.FC = () => {
       )}
 
       {deleteTarget && (
-        <HostDeleteDialog
+        <ConfirmDeleteDialog
           open={true}
-          hostSlug={deleteTarget.slug}
+          title="Delete host"
+          itemLabel={deleteTarget.slug}
           onConfirm={handleDeleteConfirm}
           onCancel={() => !isDeleting && setDeleteTarget(undefined)}
           onDontAskAgain={() => setSkipDeleteConfirm(true)}
-        />
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground font-mono">
+            {deleteTarget.slug}
+          </span>
+          ? This will remove the host permanently. Mocks referencing this host
+          will no longer be scoped.
+        </ConfirmDeleteDialog>
       )}
     </div>
   );

@@ -164,14 +164,16 @@ export function LabelPicker({
           className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
         >
           {label}
-          <button
+          <Button
             type="button"
             onClick={() => remove(label)}
-            className="opacity-60 hover:opacity-100 transition-opacity"
+            variant="ghost"
+            size="icon-xs"
+            className="size-auto rounded-full p-0 text-current opacity-60 transition-opacity hover:bg-transparent hover:text-current hover:opacity-100"
             aria-label={`Remove label ${label}`}
           >
             <XIcon className="size-3" />
-          </button>
+          </Button>
         </span>
       ))}
     </div>

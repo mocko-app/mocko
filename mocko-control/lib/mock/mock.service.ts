@@ -4,7 +4,7 @@ import { State } from "pierrejs";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
 import type { MockFailure } from "@/lib/types/mock-dtos";
-import type { Mock, MockResponse } from "@/lib/types/mock";
+import type { Mock } from "@/lib/types/mock";
 import type {
   CreateMockInput,
   PatchMockInput,
@@ -37,6 +37,7 @@ export class MockService {
       host: data.host || undefined,
       response: {
         code: data.response.code,
+        delay: data.response.delay,
         body: data.response.body,
         headers: { ...data.response.headers },
       },
@@ -73,7 +74,12 @@ export class MockService {
       isEnabled: data.isEnabled ?? currentMock.isEnabled,
       labels: data.labels ?? currentMock.labels,
       response: data.response
-        ? this.mergeResponse(currentMock.response, data.response)
+        ? {
+            code: data.response.code,
+            delay: data.response.delay,
+            body: data.response.body,
+            headers: { ...data.response.headers },
+          }
         : currentMock.response,
       annotations: [...currentMock.annotations],
     };
@@ -83,12 +89,14 @@ export class MockService {
     await this.store.saveMock(mock);
 
     await this.store.deploy();
+    await this.store.clearFailure(mock.id);
     return mock;
   }
 
   async deleteMock(id: string): Promise<void> {
     await this.store.deleteMock(id);
     await this.store.deploy();
+    await this.store.clearFailure(id);
   }
 
   async health(): Promise<void> {
@@ -97,23 +105,6 @@ export class MockService {
 
   async getFailure(id: string): Promise<MockFailure | null> {
     return this.store.getFailure(id);
-  }
-
-  private mergeResponse(
-    currentResponse: MockResponse,
-    patchResponse: Partial<MockResponse>,
-  ): MockResponse {
-    return {
-      code: patchResponse.code ?? currentResponse.code,
-      body:
-        patchResponse.body === undefined
-          ? currentResponse.body
-          : patchResponse.body,
-      headers:
-        patchResponse.headers === undefined
-          ? { ...currentResponse.headers }
-          : { ...patchResponse.headers },
-    };
   }
 
   private assertTemplateIsValid(body?: string): void {

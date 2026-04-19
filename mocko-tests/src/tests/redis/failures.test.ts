@@ -99,4 +99,54 @@ describeRedis('redis mock failures', () => {
     expect(detailsRes.data.failure.message).toContain('Error');
     expect(fileMock.annotations).toContain('READ_ONLY');
   });
+
+  it('clears a control-created mock failure after editing and redeploying it', async () => {
+    const route = randomPath();
+
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const control = subject.ensureControl();
+    const createRes = await control.post('/api/mocks', {
+      name: 'failing mock',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        body: "{{getFlag 'foo::bar'}}",
+        headers: {},
+      },
+    });
+    expect(createRes.status).toBe(201);
+    const createdMock = createRes.data;
+
+    const proxyRes = await subject.client.get(route);
+    expect(proxyRes.status).toBe(500);
+
+    const detailsRes = await control.get(`/api/mocks/${createdMock.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.failure).toBeTruthy();
+
+    const patchRes = await control.patch(`/api/mocks/${createdMock.id}`, {
+      response: {
+        code: 200,
+        body: 'ok',
+        headers: {},
+      },
+    });
+    expect(patchRes.status).toBe(200);
+
+    const clearedDetailsRes = await control.get(`/api/mocks/${createdMock.id}`);
+    expect(clearedDetailsRes.status).toBe(200);
+    expect(clearedDetailsRes.data.failure).toBeNull();
+
+    const redisClient = createRedisClient(redis);
+    const storedFailure = await redisClient.get(
+      `${getEffectiveRedisPrefix(redis.prefix)}mock_failure:${createdMock.id}`,
+    );
+    expect(storedFailure).toBeNull();
+    redisClient.disconnect();
+  });
 });

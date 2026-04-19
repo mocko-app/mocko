@@ -44,6 +44,7 @@ export class CoreMockDetailsDto {
         public readonly labels: string[],
         public readonly response: {
             code: number,
+            delay?: number,
             body?: string,
             headers: Record<string, string>,
         },
@@ -68,6 +69,7 @@ export class CoreMockDetailsDto {
             base.labels,
             {
                 code: mock.response.code,
+                delay: mock.response.delay,
                 body: mock.response.body,
                 headers: {
                     ...mock.response.headers,

@@ -38,32 +38,17 @@ const responseSchema = z.object({
     .int("Response code must be an integer")
     .min(200, "Response code must be at least 200")
     .max(599, "Response code must be at most 599"),
+  delay: z
+    .number({
+      error: "Response delay must be a number",
+    })
+    .int("Response delay must be an integer")
+    .min(0, "Response delay must be at least 0")
+    .max(300000, "Response delay must be at most 300000")
+    .optional(),
   body: z.string().optional(),
   headers: headersSchema.default({}),
 });
-
-const responsePatchSchema = z
-  .object({
-    code: z
-      .number({
-        error: "Response code must be a number",
-      })
-      .int("Response code must be an integer")
-      .min(200, "Response code must be at least 200")
-      .max(599, "Response code must be at most 599")
-      .optional(),
-    body: z.string().optional(),
-    headers: headersSchema.optional(),
-  })
-  .refine(
-    (value) =>
-      value.code !== undefined ||
-      value.body !== undefined ||
-      value.headers !== undefined,
-    {
-      message: "Response patch must include at least one field",
-    },
-  );
 
 export const createMockSchema = z.object({
   name: z
@@ -90,7 +75,7 @@ export const patchMockSchema = z
     path: pathSchema.optional(),
     host: hostSchema.nullable().optional(),
     labels: z.array(z.string()).optional(),
-    response: responsePatchSchema.optional(),
+    response: responseSchema.optional(),
     isEnabled: z.boolean().optional(),
   })
   .refine(

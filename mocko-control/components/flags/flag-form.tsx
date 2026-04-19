@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { FlagBreadcrumb } from "@/components/flags/flag-breadcrumb";
 import {
   getParentHref,
   parseFlagKeyCrumbs,
   parsePrefixCrumbs,
 } from "@/components/flags/crumbs";
-import { FlagDeleteDialog } from "@/components/flags/flag-delete-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -247,13 +247,20 @@ export function FlagForm(props: FlagFormProps) {
       )}
 
       {flagKey && (
-        <FlagDeleteDialog
+        <ConfirmDeleteDialog
           open={showDeleteDialog}
-          flagKey={flagKey}
+          title="Delete flag"
+          itemLabel={flagKey}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setShowDeleteDialog(false)}
           onDontAskAgain={() => setSkipDeleteConfirm(true)}
-        />
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground font-mono">
+            {flagKey}
+          </span>
+          ? This action cannot be undone.
+        </ConfirmDeleteDialog>
       )}
     </div>
   );

@@ -5,6 +5,9 @@
 *.launch
 .settings/
 *.sublime-workspace
-/compose/data
+data/mocks/*
+!data/mocks/.gitkeep
+data/redis/*
+!data/redis/.gitkeep
 .eslintcache
 /node_modules

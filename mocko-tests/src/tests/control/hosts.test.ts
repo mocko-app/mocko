@@ -291,4 +291,140 @@ describe('control hosts integration', () => {
     expect(emptyPatchRes.status).toBe(400);
     expect(emptyPatchRes.data.code).toBe('BAD_REQUEST');
   });
+
+  it('creates a ui host without destination and uses it only for host-scoped mocks', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createHostRes = await control.post('/api/hosts', {
+      slug: 'header-only',
+      name: 'Header only',
+      source: 'header-only.local',
+    });
+    expect(createHostRes.status).toBe(201);
+    expect(createHostRes.data.destination).toBeUndefined();
+
+    const listRes = await control.get('/api/hosts');
+    expect(listRes.status).toBe(200);
+    expect(findHost(listRes.data, 'header-only').destination).toBeUndefined();
+
+    const detailsRes = await control.get('/api/hosts/header-only');
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.destination).toBeUndefined();
+
+    const createMockRes = await control.post('/api/mocks', {
+      name: 'header only scoped mock',
+      method: 'GET',
+      path: route,
+      host: 'header-only',
+      response: {
+        code: 200,
+        body: 'header only mock',
+        headers: {},
+      },
+    });
+    expect(createMockRes.status).toBe(201);
+
+    const matchingRes = await subject.client.get(route, {
+      headers: { Host: 'header-only.local' },
+    });
+    expect(matchingRes.status).toBe(200);
+    expect(matchingRes.data).toBe('header only mock');
+
+    expect((await subject.client.get(route)).status).toBe(404);
+
+    const unmatchedRes = await subject.client.get('/header-only-unmatched', {
+      headers: { Host: 'header-only.local' },
+    });
+    expect(unmatchedRes.status).toBe(404);
+  });
+
+  it('clears a ui host destination and keeps the host usable for host-header-only mocks', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await content.createMock(`
+      mock "GET /destination-cleared-upstream" {
+        body = "proxied before clear"
+      }
+    `);
+
+    const createHostRes = await control.post('/api/hosts', {
+      slug: 'cleardest',
+      source: 'clear-destination.local',
+      destination: `http://localhost:${CONTENT_PORT}`,
+    });
+    expect(createHostRes.status).toBe(201);
+
+    const proxiedBeforeClear = await subject.client.get(
+      '/destination-cleared-upstream',
+      {
+        headers: { Host: 'clear-destination.local' },
+      },
+    );
+    expect(proxiedBeforeClear.status).toBe(200);
+    expect(proxiedBeforeClear.data).toBe('proxied before clear');
+
+    const updateHostRes = await control.patch('/api/hosts/cleardest', {
+      destination: null,
+    });
+    expect(updateHostRes.status).toBe(200);
+    expect(updateHostRes.data.destination).toBeUndefined();
+
+    const unmatchedAfterClear = await subject.client.get(
+      '/destination-cleared-upstream',
+      {
+        headers: { Host: 'clear-destination.local' },
+      },
+    );
+    expect(unmatchedAfterClear.status).toBe(404);
+
+    const createMockRes = await control.post('/api/mocks', {
+      name: 'cleared destination scoped mock',
+      method: 'GET',
+      path: route,
+      host: 'cleardest',
+      response: {
+        code: 200,
+        body: 'still scoped',
+        headers: {},
+      },
+    });
+    expect(createMockRes.status).toBe(201);
+
+    const scopedRes = await subject.client.get(route, {
+      headers: { Host: 'clear-destination.local' },
+    });
+    expect(scopedRes.status).toBe(200);
+    expect(scopedRes.data).toBe('still scoped');
+  });
+
+  it('proxies unmatched requests for ui hosts without destination to the global proxy url when configured', async () => {
+    subject = await createSubject({
+      '--ui': true,
+      '-u': `http://localhost:${CONTENT_PORT}`,
+    });
+    const control = subject.ensureControl();
+
+    await content.createMock(`
+      mock "GET /ui-header-only-upstream" {
+        body = "from global proxy"
+      }
+    `);
+
+    const createHostRes = await control.post('/api/hosts', {
+      slug: 'uiglobal',
+      source: 'ui-header-only-upstream.local',
+    });
+    expect(createHostRes.status).toBe(201);
+    expect(createHostRes.data.destination).toBeUndefined();
+
+    const proxiedRes = await subject.client.get('/ui-header-only-upstream', {
+      headers: { Host: 'ui-header-only-upstream.local' },
+    });
+    expect(proxiedRes.status).toBe(200);
+    expect(proxiedRes.data).toBe('from global proxy');
+  });
 });

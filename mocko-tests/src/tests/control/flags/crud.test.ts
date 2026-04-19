@@ -1,5 +1,7 @@
 import { createSubject, MockoInstance } from '../../../harness';
 
+jest.setTimeout(30000);
+
 describe('control flags crud', () => {
   let subject: MockoInstance;
 

@@ -5,7 +5,7 @@ import { ProxyController } from '../proxy/proxy.controller';
 import { MockFailure } from './data/mock-failure';
 import { ILogger } from '@mocko/logger';
 import { isStream } from '../../utils/stream';
-import { MockResponse } from '../../definitions/data/mock';
+import { Mock } from '../../definitions/data/mock';
 import Bigodon, { TemplateRunner } from 'bigodon';
 import { Execution } from 'bigodon/dist/runner/execution';
 
@@ -34,7 +34,8 @@ export type MockoExecution = Execution & {
 };
 
 export class MockHandler {
-    private readonly bodyTemplate: TemplateRunner;
+    private readonly bodyTemplate: TemplateRunner | null;
+    private readonly compilationError: string | null;
 
     constructor(
         private readonly bigodon: Bigodon,
@@ -42,16 +43,30 @@ export class MockHandler {
         private readonly proxyController: ProxyController,
         private readonly logger: ILogger,
 
-        private readonly mockResponse: MockResponse,
+        private readonly mock: Mock,
         private readonly customData: Record<string, any> = {},
-        private readonly mockId?: string,
     ) {
-        this.bodyTemplate = this.bigodon.compile(this.mockResponse.body);
+        try {
+            this.bodyTemplate = this.bigodon.compile(mock.response.body);
+            this.compilationError = null;
+        } catch(e) {
+            this.bodyTemplate = null;
+            this.compilationError = e instanceof Error ? e.message : String(e);
+            this.logger.warn(`Mock '${mock.method} ${mock.path}' has an invalid template body: ${this.compilationError}`);
+        }
     }
 
     public handle = async (request: Request, h: ResponseToolkit): Promise<ResponseObject> => {
         // Setting logger label
         request['_label'] = 'mock';
+
+        if(this.compilationError) {
+            return h.response({
+                statusCode: 500,
+                error: 'Internal Server Error',
+                message: `This mock has an invalid template body: ${this.compilationError}`,
+            }).code(500);
+        }
 
         debug('creating context');
         const context = this.buildContext(request);
@@ -60,9 +75,9 @@ export class MockHandler {
         const renderedBody = await this.buildBody(context, data);
         const resBody = this.normalizeBody(renderedBody, data);
 
-        if(this.mockResponse.delay) {
-            debug(`waiting ${this.mockResponse.delay} ms`)
-            await Hoek.wait(this.mockResponse.delay);
+        if(this.mock.response.delay) {
+            debug(`waiting ${this.mock.response.delay} ms`)
+            await Hoek.wait(this.mock.response.delay);
         }
 
         if(data.proxyTo !== undefined) {
@@ -84,8 +99,8 @@ export class MockHandler {
 
     private buildData(): BigodonData {
         return {
-            status: this.mockResponse.code,
-            responseHeaders: { ...this.mockResponse.headers },
+            status: this.mock.response.code,
+            responseHeaders: { ...this.mock.response.headers },
         };
     }
 
@@ -100,7 +115,7 @@ export class MockHandler {
 
     private async buildBody(context: BigodonContext, data: BigodonData): Promise<string> {
         try {
-            return await this.bodyTemplate(context, { data });
+            return await this.bodyTemplate!(context, { data });
         } catch(e) {
             debug('failed to build body from template, registering failure');
             await this.registerFailure(e);
@@ -158,11 +173,11 @@ export class MockHandler {
     }
 
     private async registerFailure(error: Error): Promise<void> {
-        if(!this.mockId) {
+        if(!this.mock.id) {
             return;
         }
 
         const failure = new MockFailure(error.toString(), new Date());
-        await this.repository.saveFailure(this.mockId, failure);
+        await this.repository.saveFailure(this.mock.id, failure);
     }
 }

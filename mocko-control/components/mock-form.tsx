@@ -120,10 +120,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
           <p className="text-xs text-destructive">{errors.form}</p>
         </div>
       )}
-      <fieldset
-        className="flex flex-col gap-4"
-        disabled={isReadOnly || isSubmitting}
-      >
+      <fieldset className="flex flex-col gap-4" disabled={isSubmitting}>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="mock-name">Name</Label>
           <Input
@@ -162,6 +159,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
             <Label htmlFor="mock-method">Method</Label>
             <Select
               value={form.method}
+              disabled={isReadOnly}
               onValueChange={(v) => set("method", v as CreateMockDto["method"])}
             >
               <SelectTrigger
@@ -229,9 +227,15 @@ export function MockForm({ initial, mode }: MockFormProps) {
         </div>
 
         <MockFormAdvancedOptions
+          delay={form.delay}
+          delayError={showErrors ? errors.delay : undefined}
+          delayHasError={Boolean(errors.delay)}
           headers={form.headers}
           hostSlug={form.hostSlug}
+          isReadOnly={isReadOnly}
+          isSubmitting={isSubmitting}
           lockedHeaders={lockedHeader}
+          onDelayChange={(delay) => set("delay", delay)}
           onHeadersChange={(headers) => set("headers", headers)}
           onHostSlugChange={(hostSlug) => set("hostSlug", hostSlug)}
         />
@@ -241,6 +245,7 @@ export function MockForm({ initial, mode }: MockFormProps) {
             <Label>Response body</Label>
             <ToggleGroup
               value={[form.contentType]}
+              disabled={isReadOnly}
               onValueChange={(values) => {
                 if (values.length > 0) {
                   set("contentType", values[0] as ContentType);
@@ -260,6 +265,12 @@ export function MockForm({ initial, mode }: MockFormProps) {
             <Callout
               title="There is an issue with your template"
               message={bodyError.message}
+            />
+          )}
+          {initial?.failure && (
+            <Callout
+              title="Last runtime failure"
+              message={initial.failure.message}
             />
           )}
           <BodyEditor

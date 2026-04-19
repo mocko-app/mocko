@@ -26,6 +26,7 @@ describe('control integration', () => {
       path: route,
       response: {
         code: 200,
+        delay: 200,
         body: 'hello',
         headers: {
           'X-Test': '1',
@@ -46,26 +47,35 @@ describe('control integration', () => {
     expect(listedCreatedMock).toBeTruthy();
     expect(listedCreatedMock).not.toHaveProperty('filePath');
 
+    const initialStart = Date.now();
     const initialProxyResponse = await subject.client.get(route);
+    const initialElapsed = Date.now() - initialStart;
     expect(initialProxyResponse.status).toBe(200);
     expect(initialProxyResponse.data).toBe('hello');
     expect(initialProxyResponse.headers['x-test']).toBe('1');
+    expect(initialElapsed).toBeGreaterThanOrEqual(180);
+    expect(initialElapsed).toBeLessThan(500);
 
     const updateRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
         code: 202,
+        delay: 0,
         body: 'updated',
       },
     });
 
     expect(updateRes.status).toBe(200);
+    const updatedStart = Date.now();
     const updatedProxyResponse = await subject.client.get(route);
+    const updatedElapsed = Date.now() - updatedStart;
     expect(updatedProxyResponse.status).toBe(202);
     expect(updatedProxyResponse.data).toBe('updated');
+    expect(updatedElapsed).toBeLessThan(100);
 
     const detailsRes = await control.get(`/api/mocks/${createdMock.id}`);
     expect(detailsRes.status).toBe(200);
     expect(detailsRes.data.response.code).toBe(202);
+    expect(detailsRes.data.response.delay).toBe(0);
     expect(detailsRes.data.failure).toBeNull();
     expect(detailsRes.data).not.toHaveProperty('filePath');
 
@@ -89,6 +99,50 @@ describe('control integration', () => {
     );
   });
 
+  it('clears delay when patching a mock without a delay field', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/mocks', {
+      name: 'with delay',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        delay: 300,
+        body: 'delayed',
+        headers: {},
+      },
+    });
+    expect(createRes.status).toBe(201);
+
+    const initialDetailsRes = await control.get(
+      `/api/mocks/${createRes.data.id}`,
+    );
+    expect(initialDetailsRes.data.response.delay).toBe(300);
+
+    const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
+      response: {
+        code: 200,
+        body: 'no delay',
+        headers: {},
+      },
+    });
+    expect(patchRes.status).toBe(200);
+
+    const detailsRes = await control.get(`/api/mocks/${createRes.data.id}`);
+    expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.response.delay).toBeUndefined();
+
+    const start = Date.now();
+    const proxyRes = await subject.client.get(route);
+    const elapsed = Date.now() - start;
+    expect(proxyRes.status).toBe(200);
+    expect(proxyRes.data).toBe('no delay');
+    expect(elapsed).toBeLessThan(100);
+  });
+
   it('merges file mocks as read-only and blocks mutations', async () => {
     const route = randomPath();
     subject = await createSubject({ '--ui': true });
@@ -96,6 +150,7 @@ describe('control integration', () => {
 
     const filePath = await subject.createMock(`
       mock "GET ${route}" {
+        delay = 200
         body = "from file"
       }
     `);
@@ -118,6 +173,7 @@ describe('control integration', () => {
     expect(detailsRes.data.filePath).toBe(normalizedFilePath);
     expect(detailsRes.data.isEnabled).toBe(true);
     expect(detailsRes.data.response.code).toBe(200);
+    expect(detailsRes.data.response.delay).toBe(200);
     expect(detailsRes.data.failure).toBeNull();
 
     const patchRes = await control.patch(`/api/mocks/${fileMock.id}`, {
@@ -279,6 +335,76 @@ describe('control integration', () => {
     expect(res.data.code).toBe('BAD_REQUEST');
   });
 
+  it('validates response delay on create and patch', async () => {
+    const route = randomPath();
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/mocks', {
+      name: 'invalid delay',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        delay: -1,
+        headers: {},
+      },
+    });
+
+    expect(createRes.status).toBe(400);
+    expect(createRes.data.code).toBe('BAD_REQUEST');
+    expect(
+      createRes.data.errors.fieldErrors['response.delay'] ??
+        createRes.data.errors.fieldErrors.response,
+    ).toBeTruthy();
+
+    const validCreateRes = await control.post('/api/mocks', {
+      name: 'valid delay',
+      method: 'GET',
+      path: route,
+      response: {
+        code: 200,
+        headers: {},
+      },
+    });
+
+    expect(validCreateRes.status).toBe(201);
+
+    const fractionalPatchRes = await control.patch(
+      `/api/mocks/${validCreateRes.data.id}`,
+      {
+        response: {
+          code: 200,
+          delay: 1.5,
+          headers: {},
+        },
+      },
+    );
+    expect(fractionalPatchRes.status).toBe(400);
+    expect(fractionalPatchRes.data.code).toBe('BAD_REQUEST');
+    expect(
+      fractionalPatchRes.data.errors.fieldErrors['response.delay'] ??
+        fractionalPatchRes.data.errors.fieldErrors.response,
+    ).toBeTruthy();
+
+    const overLimitPatchRes = await control.patch(
+      `/api/mocks/${validCreateRes.data.id}`,
+      {
+        response: {
+          code: 200,
+          delay: 300001,
+          headers: {},
+        },
+      },
+    );
+    expect(overLimitPatchRes.status).toBe(400);
+    expect(overLimitPatchRes.data.code).toBe('BAD_REQUEST');
+    expect(
+      overLimitPatchRes.data.errors.fieldErrors['response.delay'] ??
+        overLimitPatchRes.data.errors.fieldErrors.response,
+    ).toBeTruthy();
+  });
+
   it('rejects save when response body has invalid bigodon template', async () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
@@ -326,7 +452,9 @@ describe('control integration', () => {
 
     const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
       response: {
+        code: 200,
         body: '{{#if value}}x{{/each}}',
+        headers: {},
       },
     });
 

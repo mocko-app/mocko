@@ -55,11 +55,17 @@ export const HostCard: React.FC<{
               {host.name}
             </p>
           )}
-          <div className="flex items-center gap-1.5 font-mono text-xs mt-1.5 text-muted-foreground">
-            <span className="truncate">{host.source}</span>
-            <ArrowRightIcon className="size-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">{host.destination}</span>
-          </div>
+          {host.destination ? (
+            <div className="flex items-center gap-1.5 font-mono text-xs mt-1.5 text-muted-foreground">
+              <span className="truncate">{host.source}</span>
+              <ArrowRightIcon className="size-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">{host.destination}</span>
+            </div>
+          ) : (
+            <div className="font-mono text-xs mt-1.5 text-muted-foreground">
+              <span className="truncate">{host.source}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0 pointer-events-auto">

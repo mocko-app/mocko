@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
 
 export function EmptySearchResult({ onClear }: { onClear: () => void }) {
   return (
@@ -22,9 +22,12 @@ export function EmptySearchResult({ onClear }: { onClear: () => void }) {
 
 export function EmptyMocks() {
   return (
-    <div className="px-6 py-12 text-center" role="status">
-      <h2 className="text-lg font-medium text-foreground mb-2">No mocks yet</h2>
-      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+    <EmptyState
+      title="No mocks yet"
+      actionHref="/mocks/new"
+      actionLabel="Create your first mock"
+    >
+      <>
         No mocks yet. Create one with the button below, or add an HCL file and
         it will appear here automatically. See{" "}
         <a
@@ -36,15 +39,8 @@ export function EmptyMocks() {
           docs
         </a>
         .
-      </p>
-      <Button
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/mocks/new" />}
-      >
-        Create your first mock
-      </Button>
-    </div>
+      </>
+    </EmptyState>
   );
 }
 
@@ -63,20 +59,6 @@ export function FilteredOutNotice({
       <Button variant="ghost" size="sm" onClick={onClear}>
         Clear filters
       </Button>
-    </div>
-  );
-}
-
-export function PollErrorBanner() {
-  return (
-    <div
-      className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2"
-      role="status"
-      aria-live="polite"
-    >
-      <p className="text-xs text-amber-400">
-        Could not fetch mocks, refresh the page or restart Mocko
-      </p>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export function toDeployDefinition(
         labels: mock.labels,
         response: {
           code: mock.response.code,
+          delay: mock.response.delay,
           body: mock.response.body ?? "",
           headers: { ...mock.response.headers },
         },
@@ -66,6 +67,7 @@ export function toReadOnlyDetailsMock(coreMock: CoreMockDetailsDto): Mock {
     labels: coreMock.labels ?? [],
     response: {
       code: coreMock.response.code,
+      delay: coreMock.response.delay,
       body: coreMock.response.body,
       headers: { ...coreMock.response.headers },
     },

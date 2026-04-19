@@ -6,6 +6,7 @@ export type MockAnnotation = (typeof MOCK_ANNOTATIONS)[number];
 
 export type MockResponse = {
   code: number;
+  delay?: number;
   body?: string;
   headers: Record<string, string>;
 };

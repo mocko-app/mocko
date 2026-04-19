@@ -31,7 +31,13 @@ export function Sidebar() {
       className="hidden md:flex w-12 lg:w-52 shrink-0 flex-col py-5 px-1.5 lg:px-3 gap-1"
       aria-label="Main navigation"
     >
-      <div className="px-1.5 lg:px-3 mb-5 flex items-center justify-center lg:justify-start gap-2">
+      <a
+        href="https://mocko.dev/"
+        target="_blank"
+        rel="noreferrer"
+        className="px-1.5 lg:px-3 mb-5 flex items-center justify-center lg:justify-start gap-2"
+        aria-label="Open mocko.dev in a new tab"
+      >
         <Image
           src="https://cdn.codetunnel.net/mocko/logo-white.svg"
           alt=""
@@ -43,7 +49,7 @@ export function Sidebar() {
         <span className="hidden lg:block font-semibold text-sm tracking-tight text-white">
           Mocko
         </span>
-      </div>
+      </a>
 
       <div className="hidden lg:block px-3 mb-1 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
         Project

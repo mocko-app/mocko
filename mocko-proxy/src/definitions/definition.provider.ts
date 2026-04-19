@@ -12,6 +12,7 @@ import { Synchronize } from '@mocko/sync';
 import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
 import { Host } from "./data/host";
+import { mergeData } from "../utils/utils";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -78,7 +79,7 @@ export class DefinitionProvider {
         const options = (await this.getMockFilesContent()).filter(o => o !== null);
         return {
             mocks: options.map(o => o.mocks || []).flat(),
-            data: options.map(o => o.data || {}).reduce((acc, value) => ({...acc, ...value}), {}),
+            data: mergeData(options.map(o => o.data || {})),
             hosts: options.map(o => o.hosts || []).flat(),
         };
     }
@@ -117,11 +118,11 @@ export class DefinitionProvider {
             ...(redisDefinitions?.hosts || []),
             ...fileDefinitions.hosts,
         ];
-        const data = {
-            ...(fileDefinitions.data || {}),
-            ...(redisDefinitions?.data || {}),
-            ...(deployDefinitions?.data || {}),
-        };
+        const data = mergeData([
+            fileDefinitions.data || {},
+            redisDefinitions?.data || {},
+            deployDefinitions?.data || {},
+        ]);
 
         return {
             mocks,
@@ -176,16 +177,13 @@ export class DefinitionProvider {
             return null;
         }
 
-        try {
-            const definition = definitionFromConfig(data);
-            definition.mocks = definition.mocks.map((mock) =>
-                this.withFileMetadata(path, mock),
-            );
-            return definition;
-        } catch(e) {
-            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`);
-            return null;
-        }
+        const definition = definitionFromConfig(data, (e) =>
+            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`),
+        );
+        definition.mocks = definition.mocks.map((mock) =>
+            this.withFileMetadata(path, mock),
+        );
+        return definition;
     }
 
     private withSource(mocks: Mock[], source: MockSource): Mock[] {

@@ -10,6 +10,7 @@ export type CoreDeployMockDefinition = {
   labels: string[];
   response: {
     code: number;
+    delay?: number;
     body: string;
     headers: Record<string, string>;
   };
@@ -19,7 +20,7 @@ export type CoreDeployHostDefinition = {
   slug: string;
   name?: string;
   source: string;
-  destination: string;
+  destination?: string;
 };
 
 export type CoreMockDto = {
@@ -37,6 +38,7 @@ export type CoreMockDto = {
 export type CoreMockDetailsDto = CoreMockDto & {
   response: {
     code: number;
+    delay?: number;
     body?: string;
     headers: Record<string, string>;
   };
@@ -56,7 +58,7 @@ export type CoreHostDto = {
   slug: string;
   name?: string;
   source: string;
-  destination: string;
+  destination?: string;
 };
 
 export type CoreFlagKeyDto = {
