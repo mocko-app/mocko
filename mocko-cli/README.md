@@ -16,7 +16,7 @@ npm i -g @mocko/cli
 Check the installation with the `--help` flag for the help screen:
 ```shell
 $ mocko --help
-Usage: mocko [options] <path to mocks folder>
+Usage: mocko [options] [path to mocks folder]
 Example: mocko -p 4000 mocks
 
 Options:                    

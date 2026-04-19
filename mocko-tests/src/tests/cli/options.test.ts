@@ -8,6 +8,28 @@ async function createContentOn(port: number): Promise<MockoInstance> {
 }
 
 describe('cli options', () => {
+  describe('mocks folder argument', () => {
+    let subject: MockoInstance;
+
+    beforeAll(async () => {
+      subject = await createSubject({ mocksFolder: false });
+    });
+
+    afterAll(async () => {
+      await subject.stop();
+    });
+
+    it('starts without a mocks folder', async () => {
+      expect(subject.hasCrashed()).toBe(false);
+    });
+
+    it('warns that file mocks are disabled', async () => {
+      expect(subject.getOutput()).toContain(
+        'No mocks folder specified, file mocks are disabled',
+      );
+    });
+  });
+
   describe('-u / --url flag', () => {
     let subject: MockoInstance;
     let content: MockoInstance;

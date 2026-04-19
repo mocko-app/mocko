@@ -132,16 +132,17 @@ export class DefinitionProvider {
     }
 
     private async getMockFilesContent(path = MOCKS_DIR): Promise<MockoDefinition[]> {
+        if(!MUST_LOAD_DIR) {
+            return [];
+        }
+
         debug(`loading mocks from dir '${path}'`);
         const fileNames = await readdir(path)
             .catch(Hoek.ignore);
 
         if(!fileNames) {
-            if(MUST_LOAD_DIR) {
-                this.logger.error(`Failed to load the mocks from '${MOCKS_DIR}', make sure it's a directory and your user has read permission on its files`);
-                process.exit(1);
-            }
-            return [];
+            this.logger.error(`Failed to load the mocks from '${MOCKS_DIR}', make sure it's a directory and your user has read permission on its files`);
+            process.exit(1);
         }
 
         const files: FileOrDir[] = await Promise.all(fileNames.map(async (name) => {

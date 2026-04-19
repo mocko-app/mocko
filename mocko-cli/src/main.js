@@ -17,7 +17,7 @@ const control = require('@mocko/control');
 const debug = require('debug')('mocko:cli:main');
 const DEFAULT_UI_PORT = 6625;
 
-const usage = Bossy.usage(definition, 'mocko [options] <path to mocks folder>\nExample: mocko -p 4000 mocks');
+const usage = Bossy.usage(definition, 'mocko [options] [path to mocks folder]\nExample: mocko -p 4000 mocks');
 
 async function run() {
     debug('running simple-update-notifier');
@@ -31,7 +31,9 @@ async function run() {
         process.exit(0);
     }
 
-    if(args.help || !args._ || args._.length !== 1) {
+    const paths = args._ || [];
+
+    if(args.help || paths.length > 1) {
         console.log(usage);
         process.exit(0);
     }
@@ -39,7 +41,7 @@ async function run() {
     debug('validating args with joi');
     validateArgs(args);
 
-    const path = args._[0];
+    const path = paths[0];
     const { port, url, timeout, redis } = args;
     const uiEnabled = !args['no-ui'];
     const uiPort = args.P ?? DEFAULT_UI_PORT;
@@ -48,7 +50,12 @@ async function run() {
     process.env['SERVER_PORT'] = port;
     process.env['PROXY_BASE-URI'] = url;
     process.env['PROXY_TIMEOUT-MILLIS'] = timeout;
-    process.env['MOCKS_FOLDER'] = path;
+    if(path) {
+        process.env['MOCKS_FOLDER'] = path;
+    } else {
+        delete process.env['MOCKS_FOLDER'];
+        console.warn('No mocks folder specified, file mocks are disabled');
+    }
 
     if(redis) {
         process.env['REDIS_ENABLED'] = 'true';
@@ -76,7 +83,7 @@ async function run() {
         console.log(`Manage your mocks on http://localhost:${uiPort}`);
     }
 
-    if(args.watch) {
+    if(args.watch && path) {
         debug('starting watcher with chokidar');
         watch(path, () => core.remapRoutes());
     }

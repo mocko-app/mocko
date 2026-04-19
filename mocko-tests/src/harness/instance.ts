@@ -17,7 +17,9 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export type InstanceOptions = Record<
   string,
   boolean | string | number | undefined
->;
+> & {
+  mocksFolder?: false;
+};
 
 export class MockoInstance {
   readonly client: AxiosInstance;
@@ -31,6 +33,8 @@ export class MockoInstance {
   private readonly extraEnv: NodeJS.ProcessEnv;
   private readonly uiEnabled: boolean;
   private readonly uiPort: number | null;
+  private readonly includeMocksFolder: boolean;
+  private output = '';
   private exitCode: number | null = null;
   private intentionallyStopped = false;
 
@@ -48,7 +52,9 @@ export class MockoInstance {
     }
     this.flags = { ...options };
     delete this.flags['--ui'];
+    delete this.flags.mocksFolder;
     this.extraEnv = { ...env };
+    this.includeMocksFolder = options.mocksFolder !== false;
     if (!port) {
       this.flags['--port'] = this.serverPort;
     }
@@ -78,9 +84,19 @@ export class MockoInstance {
 
   async start(): Promise<void> {
     const args = buildArgs(this.flags);
-    this.proc = spawn(process.execPath, [CLI_BIN, ...args, this.tempDir], {
+    if (this.includeMocksFolder) {
+      args.push(this.tempDir);
+    }
+
+    this.proc = spawn(process.execPath, [CLI_BIN, ...args], {
       env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    this.proc.stdout?.on('data', (chunk) => {
+      this.output += chunk.toString();
+    });
+    this.proc.stderr?.on('data', (chunk) => {
+      this.output += chunk.toString();
     });
     this.proc.on('close', (code) => {
       this.exitCode = code;
@@ -123,6 +139,10 @@ export class MockoInstance {
 
   get port(): number {
     return this.serverPort;
+  }
+
+  getOutput(): string {
+    return this.output;
   }
 
   ensureControl(): AxiosInstance {
