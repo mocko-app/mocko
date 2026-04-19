@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mocko.core.fullname" . }}
+  labels:
+    {{- include "mocko.core.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.core.replicas }}
+  selector:
+    matchLabels:
+      {{- include "mocko.core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mocko.core.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: core
+          image: {{ include "mocko.core.image" . | quote }}
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.core.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /__mocko__/health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 30
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /__mocko__/health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            failureThreshold: 2
+          env:
+            - name: SERVER_PORT
+              value: {{ .Values.core.service.port | quote }}
+            - name: SERVER_ALLOW-CORS
+              value: {{ .Values.core.cors | quote }}
+            - name: PROXY_TIMEOUT-MILLIS
+              value: {{ .Values.core.timeoutMillis | quote }}
+            {{- if .Values.core.proxyUrl }}
+            - name: PROXY_BASE-URI
+              value: {{ .Values.core.proxyUrl | quote }}
+            {{- end }}
+            - name: MOCKS_FOLDER
+              value: /var/mocks
+            {{- if .Values.control.enabled }}
+            - name: DEPLOY_ENDPOINT_ENABLED
+              value: "true"
+            - name: DEPLOY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mocko.fullname" . }}
+                  key: deploy-secret
+            {{- end }}
+            {{- if .Values.persistence.redis.enabled }}
+            - name: REDIS_ENABLED
+              value: "true"
+            - name: REDIS_PREFIX
+              value: {{ .Values.persistence.redis.prefix | quote }}
+            {{- include "mocko.redis.envVars" . | trim | nindent 12 }}
+            {{- end }}
+          {{- with .Values.core.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.core.fileMocks.chartFolder.enabled }}
+            - name: mocks-chart
+              mountPath: /var/mocks/chart
+            {{- end }}
+            {{- if .Values.core.fileMocks.existingConfigMap }}
+            - name: mocks-custom
+              mountPath: /var/mocks/custom
+            {{- end }}
+      volumes:
+        {{- if .Values.core.fileMocks.chartFolder.enabled }}
+        - name: mocks-chart
+          configMap:
+            name: {{ include "mocko.core.fullname" . }}-mocks
+        {{- end }}
+        {{- if .Values.core.fileMocks.existingConfigMap }}
+        - name: mocks-custom
+          configMap:
+            name: {{ .Values.core.fileMocks.existingConfigMap }}
+        {{- end }}
+      {{- with .Values.core.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.core.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.core.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
