@@ -13,4 +13,4 @@ EXPOSE 8080
 EXPOSE 6625
 VOLUME ["/var/mocks"]
 
-ENTRYPOINT ["sh", "-c", "mocko --ui --watch --port 8080 --url \"$MOCKO_URL\" --timeout $MOCKO_TIMEOUT /var/mocks"]
+ENTRYPOINT ["sh", "-c", "mocko --watch --port 8080 --url \"$MOCKO_URL\" --timeout $MOCKO_TIMEOUT /var/mocks"]

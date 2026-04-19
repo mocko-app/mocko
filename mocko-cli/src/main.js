@@ -41,7 +41,7 @@ async function run() {
 
     const path = args._[0];
     const { port, url, timeout, redis } = args;
-    const uiEnabled = Boolean(args.ui || args.P);
+    const uiEnabled = !args['no-ui'];
     const uiPort = args.P ?? DEFAULT_UI_PORT;
     let deploySecret = '';
 

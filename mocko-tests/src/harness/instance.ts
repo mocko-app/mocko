@@ -47,12 +47,16 @@ export class MockoInstance {
       this.uiPort = Number(explicitUiPort ?? nextPort());
     }
     this.flags = { ...options };
+    delete this.flags['--ui'];
     this.extraEnv = { ...env };
     if (!port) {
       this.flags['--port'] = this.serverPort;
     }
     if (this.uiEnabled && explicitUiPort == null && this.uiPort !== null) {
       this.flags['--ui-port'] = this.uiPort;
+    }
+    if (!this.uiEnabled) {
+      this.flags['--no-ui'] = true;
     }
 
     this.client = axios.create({
@@ -124,7 +128,7 @@ export class MockoInstance {
   ensureControl(): AxiosInstance {
     if (!this.control) {
       throw new Error(
-        'Control client is not available. Start subject with --ui or --ui-port.',
+        'Control client is not available. Start subject with --ui harness option or --ui-port.',
       );
     }
 
