@@ -72,6 +72,8 @@ sed -i "s/@mocko\/cli@[^ ]*/@mocko\/cli@${VERSION}/" "${ROOT_DIR}/docker-images/
 log "Updating Helm chart appVersion"
 sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT_DIR}/helm-charts/mocko/Chart.yaml"
 
+log "Waiting for npm distribution before building standalone image"
+sleep 60
 publish_docker_image "${STANDALONE_IMAGE}" "docker-images/standalone"
 
 log "Published Mocko version ${VERSION}"
