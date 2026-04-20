@@ -1,0 +1,17 @@
+{{- if .Values.control.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mocko.control.fullname" . }}
+  labels:
+    {{- include "mocko.control.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.control.service.type }}
+  ports:
+    - port: {{ .Values.control.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "mocko.control.selectorLabels" . | nindent 4 }}
+{{- end }}

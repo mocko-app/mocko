@@ -17,7 +17,9 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export type InstanceOptions = Record<
   string,
   boolean | string | number | undefined
->;
+> & {
+  mocksFolder?: false;
+};
 
 export class MockoInstance {
   readonly client: AxiosInstance;
@@ -31,6 +33,8 @@ export class MockoInstance {
   private readonly extraEnv: NodeJS.ProcessEnv;
   private readonly uiEnabled: boolean;
   private readonly uiPort: number | null;
+  private readonly includeMocksFolder: boolean;
+  private output = '';
   private exitCode: number | null = null;
   private intentionallyStopped = false;
 
@@ -47,12 +51,18 @@ export class MockoInstance {
       this.uiPort = Number(explicitUiPort ?? nextPort());
     }
     this.flags = { ...options };
+    delete this.flags['--ui'];
+    delete this.flags.mocksFolder;
     this.extraEnv = { ...env };
+    this.includeMocksFolder = options.mocksFolder !== false;
     if (!port) {
       this.flags['--port'] = this.serverPort;
     }
     if (this.uiEnabled && explicitUiPort == null && this.uiPort !== null) {
       this.flags['--ui-port'] = this.uiPort;
+    }
+    if (!this.uiEnabled) {
+      this.flags['--no-ui'] = true;
     }
 
     this.client = axios.create({
@@ -74,9 +84,19 @@ export class MockoInstance {
 
   async start(): Promise<void> {
     const args = buildArgs(this.flags);
-    this.proc = spawn(process.execPath, [CLI_BIN, ...args, this.tempDir], {
+    if (this.includeMocksFolder) {
+      args.push(this.tempDir);
+    }
+
+    this.proc = spawn(process.execPath, [CLI_BIN, ...args], {
       env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    this.proc.stdout?.on('data', (chunk) => {
+      this.output += chunk.toString();
+    });
+    this.proc.stderr?.on('data', (chunk) => {
+      this.output += chunk.toString();
     });
     this.proc.on('close', (code) => {
       this.exitCode = code;
@@ -121,10 +141,14 @@ export class MockoInstance {
     return this.serverPort;
   }
 
+  getOutput(): string {
+    return this.output;
+  }
+
   ensureControl(): AxiosInstance {
     if (!this.control) {
       throw new Error(
-        'Control client is not available. Start subject with --ui or --ui-port.',
+        'Control client is not available. Start subject with --ui harness option or --ui-port.',
       );
     }
 
@@ -157,7 +181,7 @@ export class MockoInstance {
   }
 
   async getRevision(): Promise<number> {
-    const res = await this.client.get<HealthResponse>('/health');
+    const res = await this.client.get<HealthResponse>('/__mocko__/health');
     return res.data.revision;
   }
 

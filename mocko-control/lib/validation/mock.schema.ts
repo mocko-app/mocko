@@ -2,6 +2,7 @@ import { z } from "zod";
 import { HTTP_METHODS } from "@/lib/types/mock";
 
 const RESERVED_PREFIX = "/__mocko__";
+const FORMAT_CONTENT_TYPES = ["json", "html", "text", "xml"] as const;
 
 function normalizePath(path: string): string {
   const trimmed = path.trim();
@@ -22,6 +23,7 @@ const pathSchema = z
   });
 
 const headersSchema = z.record(z.string(), z.string());
+const formatSchema = z.enum(FORMAT_CONTENT_TYPES).optional();
 const hostSchema = z
   .string()
   .trim()
@@ -50,18 +52,40 @@ const responseSchema = z.object({
   headers: headersSchema.default({}),
 });
 
-export const createMockSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(255, "Name must be at most 255 characters"),
-  method: z.enum(HTTP_METHODS),
-  path: pathSchema,
-  host: hostSchema.nullable().optional(),
-  labels: z.array(z.string()).optional().default([]),
-  response: responseSchema,
-});
+function hasContentTypeHeader(headers: Record<string, string> | undefined) {
+  return Object.keys(headers ?? {}).some(
+    (key) => key.toLowerCase() === "content-type",
+  );
+}
+
+function validateFormatContentTypeConflict(
+  value: { format?: string; response?: { headers?: Record<string, string> } },
+  context: z.RefinementCtx,
+) {
+  if (value.format && hasContentTypeHeader(value.response?.headers)) {
+    context.addIssue({
+      code: "custom",
+      path: ["response", "headers"],
+      message: "cannot use both 'format' and an explicit Content-Type header",
+    });
+  }
+}
+
+export const createMockSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Name is required")
+      .max(255, "Name must be at most 255 characters"),
+    method: z.enum(HTTP_METHODS),
+    path: pathSchema,
+    host: hostSchema.nullable().optional(),
+    format: formatSchema,
+    labels: z.array(z.string()).optional().default([]),
+    response: responseSchema,
+  })
+  .superRefine(validateFormatContentTypeConflict);
 
 export const patchMockSchema = z
   .object({
@@ -74,6 +98,7 @@ export const patchMockSchema = z
     method: z.enum(HTTP_METHODS).optional(),
     path: pathSchema.optional(),
     host: hostSchema.nullable().optional(),
+    format: formatSchema,
     labels: z.array(z.string()).optional(),
     response: responseSchema.optional(),
     isEnabled: z.boolean().optional(),
@@ -84,13 +109,15 @@ export const patchMockSchema = z
       value.method !== undefined ||
       value.path !== undefined ||
       value.host !== undefined ||
+      value.format !== undefined ||
       value.labels !== undefined ||
       value.response !== undefined ||
       value.isEnabled !== undefined,
     {
       message: "Patch body must include at least one field",
     },
-  );
+  )
+  .superRefine(validateFormatContentTypeConflict);
 
 export type CreateMockInput = z.infer<typeof createMockSchema>;
 export type PatchMockInput = z.infer<typeof patchMockSchema>;

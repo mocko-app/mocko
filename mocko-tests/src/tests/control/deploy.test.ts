@@ -290,7 +290,7 @@ describe('deploy endpoint', () => {
       }
     });
 
-    it('returns 404 without ui flags', async () => {
+    it('returns 404 when ui is disabled', async () => {
       subject = await createSubject();
 
       const res = await subject.client.post('/__mocko__/deploy', {
@@ -301,7 +301,7 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(404);
     });
 
-    it('enables deploy endpoint with --ui', async () => {
+    it('enables deploy endpoint by default', async () => {
       subject = await createSubject({ '--ui': true });
 
       const res = await subject.client.post('/__mocko__/deploy', {
@@ -322,7 +322,7 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(401);
     });
 
-    it('enables deploy endpoint when both ui flags are present', async () => {
+    it('enables deploy endpoint with a harness ui request and ui-port', async () => {
       subject = await createSubject({ '--ui': true, '--ui-port': 7799 });
       const res = await subject.client.post('/__mocko__/deploy', {
         mocks: [],

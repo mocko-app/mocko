@@ -25,7 +25,7 @@ describe('resilience to malformed input', () => {
     });
 
     it('still serves health endpoint after malformed file', async () => {
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
   });
@@ -51,7 +51,7 @@ describe('resilience to malformed input', () => {
     });
 
     it('still serves health endpoint after file with invalid mock', async () => {
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
 
@@ -82,7 +82,7 @@ describe('resilience to malformed input', () => {
     });
 
     it('still serves health endpoint after file with invalid template', async () => {
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
 
@@ -115,7 +115,7 @@ describe('resilience to malformed input', () => {
       );
 
       expect(subject.hasCrashed()).toBe(false);
-      const res = await subject.client.get('/health');
+      const res = await subject.client.get('/__mocko__/health');
       expect(res.status).toBe(200);
     });
   });

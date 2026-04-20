@@ -32,8 +32,8 @@ module.exports.definition = {
         type: 'number',
         default: 30000,
     },
-    ui: {
-        description: 'Enables UI mode on the default UI port (6625)',
+    'no-ui': {
+        description: 'Disables the control panel UI',
         type: 'boolean',
         default: false,
     },
@@ -43,7 +43,7 @@ module.exports.definition = {
         type: 'string',
     },
     P: {
-        description: 'Enables UI mode on the given UI port',
+        description: 'Overrides the UI port (default: 6625)',
         alias: 'ui-port',
         type: 'number',
     },

@@ -1,6 +1,6 @@
 {
   "name": "@mocko/control",
-  "version": "2.0.0-alpha.11",
+  "version": "2.0.0-alpha.13",
   "description": "Mocko control service, the UI used to manage your mocks, part of @mocko/cli.",
   "main": "index.js",
   "files": [
@@ -38,11 +38,13 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/ioredis": "^4.28.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "eslint-plugin-react-hooks": "7.0.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.1",

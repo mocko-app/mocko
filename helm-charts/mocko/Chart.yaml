@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mocko
+description: Dynamic HTTP mock server with web UI and optional Redis persistence
+type: application
+version: 0.1.0
+appVersion: "2.0.0-alpha.13"

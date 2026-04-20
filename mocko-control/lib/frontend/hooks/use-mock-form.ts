@@ -36,7 +36,7 @@ export const CONTENT_TYPES = [
     monacoLanguage: "html",
   },
   {
-    id: "plaintext",
+    id: "text",
     label: "Plain Text",
     contentTypeHeader: "text/plain",
     monacoLanguage: "plaintext",
@@ -89,38 +89,22 @@ function rowsToHeaders(rows: Array<{ key: string; value: string }>) {
   return headers;
 }
 
-function deriveInitialContentType(headers: Record<string, string>): {
-  contentType: ContentType;
-  filteredHeaders: { key: string; value: string }[];
-} {
-  const entry = Object.entries(headers).find(
-    ([key]) => key.toLowerCase() === "content-type",
-  );
-  const filteredHeaders = headersToRows(
+function filterContentTypeHeader(headers: Record<string, string>) {
+  return headersToRows(
     Object.fromEntries(
       Object.entries(headers).filter(
         ([key]) => key.toLowerCase() !== "content-type",
       ),
     ),
   );
+}
 
-  if (!entry) {
-    return { contentType: "other", filteredHeaders };
+function toFormContentType(format: string | undefined): ContentType {
+  if (!CONTENT_TYPES.some((contentType) => contentType.id === format)) {
+    return "other";
   }
 
-  const match = CONTENT_TYPES.find(
-    (contentType) =>
-      contentType.contentTypeHeader &&
-      entry[1].toLowerCase() === contentType.contentTypeHeader.toLowerCase(),
-  );
-  if (match) {
-    return { contentType: match.id, filteredHeaders };
-  }
-
-  return {
-    contentType: "other",
-    filteredHeaders: [{ key: entry[0], value: entry[1] }, ...filteredHeaders],
-  };
+  return format as ContentType;
 }
 
 function getInitialFormState(initial?: MockDetailsDto): MockFormState {
@@ -139,9 +123,6 @@ function getInitialFormState(initial?: MockDetailsDto): MockFormState {
     };
   }
 
-  const { contentType, filteredHeaders } = deriveInitialContentType(
-    initial.response.headers,
-  );
   return {
     name: initial.name,
     method: initial.method,
@@ -151,9 +132,9 @@ function getInitialFormState(initial?: MockDetailsDto): MockFormState {
       initial.response.delay === undefined
         ? ""
         : String(initial.response.delay),
-    headers: filteredHeaders,
+    headers: filterContentTypeHeader(initial.response.headers),
     body: initial.response.body ?? "",
-    contentType,
+    contentType: toFormContentType(initial.format),
     labels: initial.labels ?? [],
     hostSlug: initial.host ?? "",
   };
@@ -274,6 +255,7 @@ export function useMockForm(
     const statusCode = Number(form.statusCode.trim());
     const delay = form.delay.trim();
     const payload = {
+      format: form.contentType !== "other" ? form.contentType : undefined,
       name: form.name.trim(),
       method: form.method,
       path: form.path.trim(),
@@ -283,10 +265,7 @@ export function useMockForm(
         code: statusCode,
         delay: delay === "" ? undefined : Number(delay),
         body: form.body === "" ? undefined : form.body,
-        headers: {
-          ...rowsToHeaders(lockedHeader),
-          ...rowsToHeaders(form.headers),
-        },
+        headers: rowsToHeaders(form.headers),
       },
     };
 

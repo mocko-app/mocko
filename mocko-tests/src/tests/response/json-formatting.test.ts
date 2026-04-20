@@ -61,9 +61,7 @@ describe('json normalization', () => {
 
     await subject.createMock(`
       mock "GET ${path}" {
-        headers {
-          Content-Type = "text/plain"
-        }
+        format = "text"
         body = "{\\"foo\\":\\"bar\\"}"
       }
     `);
