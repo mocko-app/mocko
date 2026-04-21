@@ -12,7 +12,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mocko-app/mocko.git"
+    "url": "git+https://github.com/mocko-app/mocko.git",
+    "directory": "mocko-libs/mocko-logger"
   },
   "keywords": [
     "mocko",
