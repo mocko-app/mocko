@@ -41,7 +41,6 @@
     "typescript": "^5.9.2"
   },
   "publishConfig": {
-    "access": "public",
-    "tag": "alpha"
+    "access": "public"
   }
 }
