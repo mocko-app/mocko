@@ -14,12 +14,12 @@ export class MockController {
     ) { }
 
     async listMocks(request: Hapi.Request): Promise<CoreMockDto[]> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeManagement(request.headers.authorization);
         return await this.service.listMocks();
     }
 
     async getMockById(request: Hapi.Request): Promise<CoreMockDetailsDto> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeManagement(request.headers.authorization);
         const id = firstString(request.params['id']);
         const mock = await this.service.getMockById(id);
 

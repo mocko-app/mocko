@@ -7,8 +7,10 @@ import { RemapEventBus } from "../../utils/remap-event-bus";
 import { firstString } from "../../utils/utils";
 
 const DEPLOY_ENDPOINT_ENABLED = configProvider.getOptionalBoolean('DEPLOY_ENDPOINT_ENABLED');
-const DEPLOY_AUTH_ENABLED = configProvider.getOptionalBoolean('DEPLOY_AUTH_ENABLED') !== false;
 const DEPLOY_SECRET = configProvider.getOptional('DEPLOY_SECRET');
+const MANAGEMENT_AUTH_MODE = getManagementAuthMode();
+
+type ManagementAuthMode = 'none' | 'deploy' | 'all';
 
 @Service()
 export class DeployService {
@@ -18,9 +20,12 @@ export class DeployService {
     ) {
         if(
             DEPLOY_ENDPOINT_ENABLED &&
-            DEPLOY_AUTH_ENABLED &&
+            this.deployAuthRequired() &&
             !DEPLOY_SECRET
         ) {
+            throw new Error('Missing DEPLOY_SECRET config');
+        }
+        if(this.managementAuthRequired() && !DEPLOY_SECRET) {
             throw new Error('Missing DEPLOY_SECRET config');
         }
     }
@@ -29,11 +34,47 @@ export class DeployService {
         return DEPLOY_ENDPOINT_ENABLED === true;
     }
 
-    authorize(authorization?: string | string[]): void {
-        if(!DEPLOY_AUTH_ENABLED) {
+    authorizeDeploy(authorization?: string | string[]): void {
+        if(!this.deployAuthRequired()) {
             return;
         }
 
+        this.authorize(authorization);
+    }
+
+    authorizeManagement(authorization?: string | string[]): void {
+        if(!this.authRequired()) {
+            return;
+        }
+
+        this.authorize(authorization);
+    }
+
+    authorizeFlags(authorization?: string | string[]): void {
+        if(!this.flagsAuthRequired()) {
+            return;
+        }
+
+        this.authorize(authorization);
+    }
+
+    private deployAuthRequired(): boolean {
+        return MANAGEMENT_AUTH_MODE === 'deploy' || MANAGEMENT_AUTH_MODE === 'all';
+    }
+
+    private managementAuthRequired(): boolean {
+        return MANAGEMENT_AUTH_MODE === 'all';
+    }
+
+    private flagsAuthRequired(): boolean {
+        return MANAGEMENT_AUTH_MODE === 'all';
+    }
+
+    private authRequired(): boolean {
+        return MANAGEMENT_AUTH_MODE === 'deploy' || MANAGEMENT_AUTH_MODE === 'all';
+    }
+
+    private authorize(authorization?: string | string[]): void {
         const token = firstString(authorization).trim();
 
         if(!token || token !== `Bearer ${DEPLOY_SECRET}`) {
@@ -45,4 +86,15 @@ export class DeployService {
         this.definitionProvider.setDeployDefinition(definition);
         await this.remapEventBus.emit();
     }
+}
+
+function getManagementAuthMode(): ManagementAuthMode {
+    const mode = configProvider.getOptional('MANAGEMENT_AUTH_MODE') || 'deploy';
+    if(mode === 'none' || mode === 'deploy' || mode === 'all') {
+        return mode;
+    }
+
+    throw new Error(
+        'Invalid MANAGEMENT_AUTH_MODE config. Expected one of: none, deploy, all',
+    );
 }

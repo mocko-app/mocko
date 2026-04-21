@@ -12,7 +12,7 @@ export class DeployController {
     ) { }
 
     async deploy(request: Hapi.Request, h: Hapi.ResponseToolkit) {
-        this.service.authorize(request.headers.authorization);
+        this.service.authorizeDeploy(request.headers.authorization);
 
         const [definition, error] = tryCatchSync(() => validateDefinition(request.payload));
         if(error) {
