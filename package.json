@@ -15,6 +15,7 @@
     "mocko-control",
     "mocko-core",
     "mocko-cli",
-    "mocko-tests"
+    "mocko-tests",
+    "mocko-sdk"
   ]
 }
