@@ -4,6 +4,10 @@ type JsonRequestOptions = {
   body?: unknown;
 };
 
+export type HttpClientOptions = {
+  headers?: HeadersInit;
+};
+
 export type HttpResponse<TBody> = {
   status: number;
   ok: boolean;
@@ -12,9 +16,11 @@ export type HttpResponse<TBody> = {
 
 export class HttpClient {
   private readonly baseUrl: string;
+  private readonly defaultHeaders: HeadersInit;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, options: HttpClientOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
+    this.defaultHeaders = options.headers ?? {};
   }
 
   async get<TBody>(path: string): Promise<HttpResponse<TBody>> {
@@ -63,13 +69,14 @@ export class HttpClient {
   }
 
   private headers(options: JsonRequestOptions): HeadersInit | undefined {
+    const headers = new Headers(this.defaultHeaders);
+
     if (typeof options.body === 'undefined') {
-      return undefined;
+      return headers;
     }
 
-    return {
-      'content-type': 'application/json',
-    };
+    headers.set('content-type', 'application/json');
+    return headers;
   }
 
   private body(options: JsonRequestOptions): string | undefined {

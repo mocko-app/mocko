@@ -16,7 +16,7 @@ describe('deploy endpoint', () => {
         {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
-          DEPLOY_AUTH_ENABLED: 'false',
+          MANAGEMENT_AUTH_MODE: 'none',
         },
       );
 
@@ -75,11 +75,12 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(401);
     });
 
-    it('rejects mock management routes without token when auth is enabled', async () => {
+    it('rejects mock management routes without token when management auth mode is all', async () => {
       const route = randomPath();
       subject = await createSubject(
         {},
         {
+          MANAGEMENT_AUTH_MODE: 'all',
           DEPLOY_SECRET: 'secret',
         },
       );
@@ -109,11 +110,23 @@ describe('deploy endpoint', () => {
       expect(detailsRes.status).toBe(401);
     });
 
-    it('allows mock management routes without token when auth is disabled', async () => {
+    it('rejects mock management routes without token in default deploy auth mode', async () => {
       subject = await createSubject(
         {},
         {
-          DEPLOY_AUTH_ENABLED: 'false',
+          DEPLOY_SECRET: 'secret',
+        },
+      );
+
+      const res = await subject.client.get('/__mocko__/mocks');
+      expect(res.status).toBe(401);
+    });
+
+    it('allows mock management routes without token when auth mode is none', async () => {
+      subject = await createSubject(
+        {},
+        {
+          MANAGEMENT_AUTH_MODE: 'none',
         },
       );
 
@@ -121,12 +134,12 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(200);
     });
 
-    it('lists only file-defined hosts on host management route when auth is disabled', async () => {
+    it('lists only file-defined hosts on host management route when auth mode is none', async () => {
       subject = await createSubject(
-        { '--ui': true },
+        {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
-          DEPLOY_AUTH_ENABLED: 'false',
+          MANAGEMENT_AUTH_MODE: 'none',
         },
       );
 
@@ -161,10 +174,11 @@ describe('deploy endpoint', () => {
       ).toEqual([{ slug: 'file-host', name: 'File host' }]);
     });
 
-    it('requires auth for host management routes when auth is enabled', async () => {
+    it('requires auth for host management routes when management auth mode is all', async () => {
       subject = await createSubject(
         { '--ui': true },
         {
+          MANAGEMENT_AUTH_MODE: 'all',
           DEPLOY_SECRET: 'secret',
         },
       );
@@ -180,7 +194,7 @@ describe('deploy endpoint', () => {
         {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
-          DEPLOY_AUTH_ENABLED: 'false',
+          MANAGEMENT_AUTH_MODE: 'none',
         },
       );
 
@@ -228,7 +242,7 @@ describe('deploy endpoint', () => {
         {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
-          DEPLOY_AUTH_ENABLED: 'false',
+          MANAGEMENT_AUTH_MODE: 'none',
         },
       );
 

@@ -18,7 +18,7 @@ describe('sdk flags', () => {
   });
 
   it('supports raw flag round trips against mocko core', async () => {
-    subject = await createSdkSubject();
+    subject = await createSubject();
     const mocko = sdkClient(subject);
     const prefix = randomFlagPrefix();
     const stringFlagKey = `${prefix}:raw:user-123:status`;
@@ -53,8 +53,24 @@ describe('sdk flags', () => {
     expect(await mocko.getFlag<string[]>(arrayFlagKey)).toBeUndefined();
   });
 
+  it('supports authenticated flag requests when management auth mode is all', async () => {
+    subject = await createSubject(
+      {},
+      {
+        MANAGEMENT_AUTH_MODE: 'all',
+        DEPLOY_SECRET: 'secret',
+      },
+    );
+    const mocko = sdkClient(subject, 'secret');
+    const flagKey = `${randomFlagPrefix()}:auth:user-123:status`;
+
+    await mocko.setFlag(flagKey, 'active');
+
+    expect(await mocko.getFlag<string>(flagKey)).toBe('active');
+  });
+
   it('supports typed flag definitions against mocko core', async () => {
-    subject = await createSdkSubject();
+    subject = await createSubject();
     const mocko = sdkClient(subject);
     const prefix = randomFlagPrefix();
     const profile: UserProfile = {
@@ -128,7 +144,7 @@ describe('sdk flags', () => {
   });
 
   it('exposes SDK-written flags to mock templates', async () => {
-    subject = await createSdkSubject();
+    subject = await createSubject();
     const mocko = sdkClient(subject);
     const path = randomPath();
     const prefix = randomFlagPrefix();
@@ -169,7 +185,7 @@ describe('sdk flags', () => {
   });
 
   it('reads mock-written flags through the SDK', async () => {
-    subject = await createSdkSubject();
+    subject = await createSubject();
     const mocko = sdkClient(subject);
     const path = randomPath();
     const prefix = randomFlagPrefix();
@@ -204,17 +220,8 @@ describe('sdk flags', () => {
   });
 });
 
-async function createSdkSubject(): Promise<MockoInstance> {
-  return await createSubject(
-    {},
-    {
-      DEPLOY_AUTH_ENABLED: 'false',
-    },
-  );
-}
-
-function sdkClient(subject: MockoInstance): MockoClient {
-  return new MockoClient(`http://127.0.0.1:${subject.port}`);
+function sdkClient(subject: MockoInstance, secret?: string): MockoClient {
+  return new MockoClient(`http://127.0.0.1:${subject.port}`, { secret });
 }
 
 function randomFlagPrefix(): string {

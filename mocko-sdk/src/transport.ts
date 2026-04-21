@@ -12,8 +12,15 @@ type SetFlagPayload = {
 export class MockoTransport {
   private readonly http: HttpClient;
 
-  constructor(baseUrl: string) {
-    this.http = new HttpClient(baseUrl);
+  constructor(baseUrl: string, secret?: string) {
+    const headers: Record<string, string> = {};
+    if (secret) {
+      headers.Authorization = `Bearer ${secret}`;
+    }
+
+    this.http = new HttpClient(baseUrl, {
+      headers,
+    });
   }
 
   async getFlag<TValue>(key: string): Promise<TValue | undefined> {

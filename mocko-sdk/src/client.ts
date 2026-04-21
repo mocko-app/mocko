@@ -17,6 +17,13 @@ export type MockoClientOptions = {
    */
   defaultFlagTtl?: number;
   /**
+   * Bearer token for Mocko instances running with MANAGEMENT_AUTH_MODE=all.
+   *
+   * Not needed for the default MANAGEMENT_AUTH_MODE=deploy mode because flag
+   * endpoints are open while the deploy endpoint remains protected.
+   */
+  secret?: string;
+  /**
    * Internal transport override.
    *
    * @internal
@@ -31,9 +38,7 @@ export type MockoClientOptions = {
  * setup file.
  *
  * @example
- * const mocko = new MockoClient('http://localhost:8080', {
- *   defaultFlagTtl: 300,
- * });
+ * const mocko = new MockoClient('http://localhost:8080');
  */
 export class MockoClient {
   private readonly defaultFlagTtl: number;
@@ -44,7 +49,8 @@ export class MockoClient {
    */
   constructor(baseUrl: string, options: MockoClientOptions = {}) {
     this.defaultFlagTtl = options.defaultFlagTtl ?? 300;
-    this.transport = options.transport ?? new MockoTransport(baseUrl);
+    this.transport =
+      options.transport ?? new MockoTransport(baseUrl, options.secret);
   }
 
   /**
