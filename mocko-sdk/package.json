@@ -1,11 +1,12 @@
 {
   "name": "@mocko/sdk",
-  "version": "0.0.1-alpha.0",
+  "version": "0.1.0",
   "description": "TypeScript SDK for integrating Mocko into test automations.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -17,14 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mocko-app/mocko.git"
+    "url": "git+https://github.com/mocko-app/mocko.git",
+    "directory": "mocko-sdk"
   },
   "author": "Gabriel Pinheiro <gabrielctpinheiro@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/mocko-app/mocko/issues"
   },
-  "homepage": "https://github.com/mocko-app/mocko#readme",
+  "homepage": "https://github.com/mocko-app/mocko/tree/main/mocko-sdk#readme",
   "engines": {
     "node": ">=20"
   },
