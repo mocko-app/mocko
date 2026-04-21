@@ -19,14 +19,14 @@ export class FlagController {
     ) { }
 
     async listFlags(request: Hapi.Request): Promise<FlagListDto> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeFlags(request.headers.authorization);
         const prefix = firstString(request.query['prefix']);
 
         return await this.flagService.listFlags(prefix);
     }
 
     async putFlag(request: Hapi.Request): Promise<FlagDto> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeFlags(request.headers.authorization);
         const key = decodeURIComponent(firstString(request.params['key']));
         this.assertValidKey(key);
         const { value } = this.parseSetPayload(request.payload);
@@ -35,7 +35,7 @@ export class FlagController {
     }
 
     async getFlag(request: Hapi.Request): Promise<FlagDto> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeFlags(request.headers.authorization);
         const key = decodeURIComponent(firstString(request.params['key']));
         const exists = await this.flagService.hasFlag(key);
         if(!exists) {
@@ -47,7 +47,7 @@ export class FlagController {
     }
 
     async deleteFlag(request: Hapi.Request, h: Hapi.ResponseToolkit) {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeFlags(request.headers.authorization);
         const key = decodeURIComponent(firstString(request.params['key']));
         await this.flagService.delFlag(key);
         return h.response().code(204);

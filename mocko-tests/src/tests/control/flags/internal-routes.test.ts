@@ -9,8 +9,24 @@ describe('proxy __mocko__ flags routes', () => {
     }
   });
 
-  it('requires authorization by default', async () => {
+  it('allows flag routes without authorization by default', async () => {
     subject = await createSubject({ '--ui': true });
+
+    const listRes = await subject.client.get('/__mocko__/flags');
+    expect(listRes.status).toBe(200);
+
+    const getRes = await subject.client.get('/__mocko__/flags/test');
+    expect(getRes.status).toBe(404);
+  });
+
+  it('requires authorization when management auth mode is all', async () => {
+    subject = await createSubject(
+      {},
+      {
+        MANAGEMENT_AUTH_MODE: 'all',
+        DEPLOY_SECRET: 'secret',
+      },
+    );
 
     const listRes = await subject.client.get('/__mocko__/flags');
     expect(listRes.status).toBe(401);
@@ -19,13 +35,8 @@ describe('proxy __mocko__ flags routes', () => {
     expect(getRes.status).toBe(401);
   });
 
-  it('supports full lifecycle when deploy auth is disabled', async () => {
-    subject = await createSubject(
-      {},
-      {
-        DEPLOY_AUTH_ENABLED: 'false',
-      },
-    );
+  it('supports full lifecycle in default deploy auth mode', async () => {
+    subject = await createSubject();
 
     const createRes = await subject.client.put(
       '/__mocko__/flags/internal%3Atest%3Aflag',

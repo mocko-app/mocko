@@ -12,8 +12,7 @@ export class HostController {
     ) { }
 
     async listHosts(request: Hapi.Request): Promise<CoreHostDto[]> {
-        this.deployService.authorize(request.headers.authorization);
+        this.deployService.authorizeManagement(request.headers.authorization);
         return await this.service.listHosts();
     }
 }
-
