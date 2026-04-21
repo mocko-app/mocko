@@ -125,9 +125,11 @@ export type MultiParamFlagDef<TValue, TPattern extends string> = {
  * placeholder use a single positional string. Patterns with two or more
  * placeholders use a named params object.
  */
-export type FlagDef<TValue, TPattern extends string> =
-  ExtractParams<TPattern> extends []
-    ? ZeroParamFlagDef<TValue>
-    : ExtractParams<TPattern> extends [string]
-      ? OneParamFlagDef<TValue>
-      : MultiParamFlagDef<TValue, TPattern>;
+export type FlagDef<
+  TValue,
+  TPattern extends string,
+> = ExtractParams<TPattern> extends []
+  ? ZeroParamFlagDef<TValue>
+  : ExtractParams<TPattern> extends [string]
+  ? OneParamFlagDef<TValue>
+  : MultiParamFlagDef<TValue, TPattern>;

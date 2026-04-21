@@ -90,7 +90,9 @@ export class HttpClient {
     } catch (error) {
       const text = await response.text().catch(() => '');
       console.error(
-        `Mocko expected JSON but received a non-JSON response from ${response.url || 'the server'}: ${text}`,
+        `Mocko expected JSON but received a non-JSON response from ${
+          response.url || 'the server'
+        }: ${text}`,
       );
       throw error;
     }
