@@ -11,3 +11,4 @@ data/redis/*
 !data/redis/.gitkeep
 .eslintcache
 /node_modules
+/research
