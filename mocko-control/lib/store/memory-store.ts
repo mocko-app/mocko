@@ -54,8 +54,8 @@ export class MemoryStore extends Store {
     return this.hosts.delete(slug);
   }
 
-  async listFlags(prefix: string): Promise<FlagListResult> {
-    const list = await this.coreClient.listCoreFlags(prefix);
+  async listFlags(prefix: string, search?: string): Promise<FlagListResult> {
+    const list = await this.coreClient.listCoreFlags(prefix, search);
     return {
       flagKeys: list.flagKeys.map((flagKey) => this.toFlagKey(flagKey)),
       isTruncated: list.isTruncated,
@@ -104,10 +104,17 @@ export class MemoryStore extends Store {
     return Promise.resolve();
   }
 
-  private toFlagKey(flagKey: { type: string; name: string }): FlagKey {
+  private toFlagKey(flagKey: {
+    type: string;
+    name: string;
+    count?: number;
+    matchCount?: number;
+  }): FlagKey {
     return {
       type: flagKey.type as FlagType,
       name: flagKey.name,
+      count: flagKey.count,
+      matchCount: flagKey.matchCount,
     };
   }
 }

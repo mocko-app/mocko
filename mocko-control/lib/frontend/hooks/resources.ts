@@ -10,6 +10,7 @@ import {
   toApiError,
   type ApiError,
 } from "@/lib/frontend/api";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
@@ -58,14 +59,13 @@ export function useMock(
 
 export function useFlags(
   prefix?: string,
+  search?: string,
   options?: SWRConfiguration<FlagListDto, ApiError>,
 ) {
-  const resourceKey = prefix
-    ? `/api/flags?prefix=${encodeURIComponent(prefix)}`
-    : "/api/flags";
+  const resourceKey = buildFlagListUrl("/api/flags", prefix, search);
   return useSWR<FlagListDto, ApiError>(
     resourceKey,
-    async () => getFlags(prefix),
+    async () => getFlags(prefix, search),
     {
       refreshInterval: 0,
       revalidateOnFocus: true,

@@ -129,10 +129,126 @@ describeRedis('redis flags persistence', () => {
     expect(res.data.isTruncated).toBe(false);
     expect(res.data.flagKeys).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ type: 'PREFIX', name: 'alpha' }),
-        expect.objectContaining({ type: 'PREFIX', name: 'beta' }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'alpha',
+          count: 10050,
+          matchCount: 10050,
+        }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'beta',
+          count: 10050,
+          matchCount: 10050,
+        }),
       ]),
     );
     expect(res.data.flagKeys).toHaveLength(2);
+  });
+
+  it('filters Redis-backed lists deeply and keeps total folder counts', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+      env: {
+        FLAGS_LIST_LIMIT: '10',
+      },
+    }));
+
+    const redisClient = createRedisClient(redis);
+    const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
+    await redisClient
+      .pipeline()
+      .set(`${effectivePrefix}flags:users:1234:status`, JSON.stringify('ok'))
+      .set(
+        `${effectivePrefix}flags:users:1234:meta:plan`,
+        JSON.stringify('gold'),
+      )
+      .set(`${effectivePrefix}flags:users:9999:status`, JSON.stringify('nope'))
+      .exec();
+    redisClient.disconnect();
+
+    const res = await subject
+      .ensureControl()
+      .get('/api/flags?prefix=users:&q=1234');
+    expect(res.status).toBe(200);
+    expect(res.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: '1234',
+        count: 2,
+        matchCount: 2,
+      }),
+    ]);
+  });
+
+  it('filters Redis-backed lists case-insensitively', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+      env: {
+        FLAGS_LIST_LIMIT: '10',
+      },
+    }));
+
+    const redisClient = createRedisClient(redis);
+    const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
+    await redisClient
+      .pipeline()
+      .set(`${effectivePrefix}flags:users:AbC:status`, JSON.stringify('ok'))
+      .set(`${effectivePrefix}flags:users:xyz:status`, JSON.stringify('nope'))
+      .exec();
+    redisClient.disconnect();
+
+    const res = await subject
+      .ensureControl()
+      .get('/api/flags?prefix=users:&q=abc');
+    expect(res.status).toBe(200);
+    expect(res.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: 'AbC',
+        count: 1,
+        matchCount: 1,
+      }),
+    ]);
+  });
+
+  it('keeps Redis descendants visible when the current prefix matches the query', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+      env: {
+        FLAGS_LIST_LIMIT: '10',
+      },
+    }));
+
+    const redisClient = createRedisClient(redis);
+    const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
+    await redisClient
+      .pipeline()
+      .set(`${effectivePrefix}flags:users:1214:device`, JSON.stringify('ios'))
+      .set(
+        `${effectivePrefix}flags:users:1214:profile:phone`,
+        JSON.stringify('555-1214'),
+      )
+      .exec();
+    redisClient.disconnect();
+
+    const res = await subject
+      .ensureControl()
+      .get('/api/flags?prefix=users:1214:&q=1214');
+    expect(res.status).toBe(200);
+    expect(res.data.flagKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'FLAG', name: 'device' }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'profile',
+          count: 1,
+          matchCount: 1,
+        }),
+      ]),
+    );
   });
 });

@@ -8,8 +8,11 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const prefix = searchParams.get("prefix") ?? "";
+  const search = searchParams.get("q") ?? undefined;
 
-  const [list, listError] = await tryCatch(() => flagService.listFlags(prefix));
+  const [list, listError] = await tryCatch(() =>
+    flagService.listFlags(prefix, search),
+  );
   if (listError) {
     return errorResponse(listError);
   }

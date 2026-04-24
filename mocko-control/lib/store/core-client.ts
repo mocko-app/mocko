@@ -9,6 +9,7 @@ import type {
   CoreMockDto,
   CorePutFlagDto,
 } from "@/lib/core/data/core.dto";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 
 export class CoreClientHttpError extends Error {
   constructor(
@@ -69,11 +70,13 @@ export class CoreClient {
     return response.data;
   }
 
-  async listCoreFlags(prefix: string): Promise<CoreFlagListDto> {
+  async listCoreFlags(
+    prefix: string,
+    search?: string,
+  ): Promise<CoreFlagListDto> {
     try {
-      const query = prefix ? `?prefix=${encodeURIComponent(prefix)}` : "";
       const response = await this.http.get<CoreFlagListDto>(
-        `/__mocko__/flags${query}`,
+        buildFlagListUrl("/__mocko__/flags", prefix, search),
       );
       return response.data;
     } catch (error) {

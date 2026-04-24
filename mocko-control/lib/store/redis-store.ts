@@ -14,6 +14,10 @@ const FLAG_PREFIX = "flags:";
 const FAILURE_PREFIX = "mock_failure:";
 const RELOAD_CHANNEL = "mocko:deploy";
 const REDIS_SCAN_COUNT = 10_000;
+type GroupCounts = {
+  total: number;
+  matches: number;
+};
 
 export class RedisStore extends Store {
   constructor(
@@ -95,8 +99,10 @@ export class RedisStore extends Store {
     return true;
   }
 
-  async listFlags(prefix: string): Promise<FlagListResult> {
+  async listFlags(prefix: string, search?: string): Promise<FlagListResult> {
     const normalizedPrefix = this.normalizePrefix(prefix);
+    const normalizedSearch = search?.toLowerCase();
+    const counts = new Map<string, GroupCounts>();
     const groups = new Set<string>();
     const flags: string[] = [];
     let cursor = "0";
@@ -114,26 +120,41 @@ export class RedisStore extends Store {
       cursor = nextCursor;
 
       for (const key of keys) {
-        if (groups.size + flags.length >= this.flagsListLimit) {
-          isTruncated = true;
-          cursor = "0";
-          break;
-        }
-
-        const relativeKey = key
-          .replace(`${this.redisPrefix}${FLAG_PREFIX}`, "")
-          .slice(normalizedPrefix.length);
+        const fullKey = key.replace(`${this.redisPrefix}${FLAG_PREFIX}`, "");
+        const relativeKey = fullKey.slice(normalizedPrefix.length);
 
         if (!relativeKey) {
           continue;
         }
 
-        if (relativeKey.includes(":")) {
-          groups.add(relativeKey.split(":")[0]);
+        const groupName = relativeKey.includes(":")
+          ? relativeKey.split(":")[0]
+          : relativeKey;
+        const currentCounts = counts.get(groupName) ?? { total: 0, matches: 0 };
+        currentCounts.total += 1;
+
+        const matchesSearch =
+          !normalizedSearch || fullKey.toLowerCase().includes(normalizedSearch);
+        if (matchesSearch) {
+          currentCounts.matches += 1;
+        }
+        counts.set(groupName, currentCounts);
+
+        if (!matchesSearch) {
           continue;
         }
 
-        flags.push(relativeKey);
+        if (relativeKey.includes(":")) {
+          groups.add(groupName);
+        } else {
+          flags.push(relativeKey);
+        }
+
+        if (groups.size + flags.length >= this.flagsListLimit) {
+          isTruncated = true;
+          cursor = "0";
+          break;
+        }
       }
     } while (cursor !== "0");
 
@@ -142,6 +163,8 @@ export class RedisStore extends Store {
         ...Array.from(groups).map<FlagKey>((name) => ({
           type: "PREFIX",
           name,
+          count: counts.get(name)?.total,
+          matchCount: counts.get(name)?.matches,
         })),
         ...flags.map<FlagKey>((name) => ({ type: "FLAG", name })),
       ],

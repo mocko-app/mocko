@@ -15,6 +15,7 @@ import type {
   MockDetailsDto,
   PatchMockDto,
 } from "@/lib/types/mock-dtos";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 
 export type ApiErrorDto = ErrorDto;
 export type ApiValidationErrors = ValidationErrors;
@@ -136,11 +137,12 @@ export async function deleteHost(slug: string): Promise<void> {
   }
 }
 
-export async function getFlags(prefix?: string): Promise<FlagListDto> {
+export async function getFlags(
+  prefix?: string,
+  search?: string,
+): Promise<FlagListDto> {
   try {
-    const url = prefix
-      ? `/api/flags?prefix=${encodeURIComponent(prefix)}`
-      : "/api/flags";
+    const url = buildFlagListUrl("/api/flags", prefix, search);
     const response = await api.get<FlagListDto>(url);
     return response.data;
   } catch (error) {

@@ -58,7 +58,7 @@ export abstract class Store {
 
   abstract deleteMock(id: string): Promise<boolean>;
   abstract clearFailure(mockId: string): Promise<void>;
-  abstract listFlags(prefix: string): Promise<FlagListResult>;
+  abstract listFlags(prefix: string, search?: string): Promise<FlagListResult>;
   abstract getFlag(key: string): Promise<StoreFlag | null>;
   abstract setFlag(key: string, value: string): Promise<StoreFlag>;
   abstract deleteFlag(key: string): Promise<boolean>;
