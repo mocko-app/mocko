@@ -15,6 +15,7 @@ import type {
   MockDetailsDto,
   PatchMockDto,
 } from "@/lib/types/mock-dtos";
+import type { Operation, OperationsResponse } from "@/lib/types/operation";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 
 export type ApiErrorDto = ErrorDto;
@@ -180,6 +181,48 @@ export async function deleteFlag(key: string): Promise<void> {
   try {
     const encodedKey = encodeURIComponent(key);
     await api.delete(`/api/flags/${encodedKey}`);
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function getOperations(): Promise<OperationsResponse> {
+  try {
+    const response = await api.get<OperationsResponse>("/api/operations");
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function createOperation(
+  thresholdSeconds: number,
+): Promise<Operation> {
+  try {
+    const response = await api.post<Operation>("/api/operations", {
+      type: "STALE_FLAGS",
+      staleFlagsData: { thresholdSeconds },
+    });
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function executeOperation(id: string): Promise<Operation> {
+  try {
+    const response = await api.patch<Operation>(`/api/operations/${id}`, {
+      status: "EXECUTING",
+    });
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function deleteOperation(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/operations/${id}`);
   } catch (error) {
     throw toApiError(error);
   }

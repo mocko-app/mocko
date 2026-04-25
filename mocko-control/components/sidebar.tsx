@@ -10,6 +10,7 @@ import {
   ServerIcon,
   BookOpenIcon,
   SquareCodeIcon,
+  WrenchIcon,
 } from "lucide-react";
 import {
   Tooltip,
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
   { label: "Flags", href: "/flags", icon: FlagIcon },
   { label: "Hosts", href: "/hosts", icon: ServerIcon },
+  { label: "Management", href: "/management", icon: WrenchIcon },
 ];
 
 export function Sidebar() {

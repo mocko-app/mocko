@@ -43,6 +43,10 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(400, ErrorDto.ofBadRequest(message));
   }
 
+  static unprocessableEntity(message: string): HttpResponseError {
+    return new HttpResponseError(422, ErrorDto.ofUnprocessableEntity(message));
+  }
+
   static validationError(error: ZodError): HttpResponseError {
     return new HttpResponseError(400, ErrorDto.ofValidationError(error));
   }
@@ -61,6 +65,10 @@ export class HttpResponseError extends Error {
 
   static hostNotFound(slug: string): HttpResponseError {
     return new HttpResponseError(404, ErrorDto.ofHostNotFound(slug));
+  }
+
+  static operationNotFound(id: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofOperationNotFound(id));
   }
 
   static hostSlugConflict(slug: string): HttpResponseError {

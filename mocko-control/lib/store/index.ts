@@ -1,4 +1,3 @@
-import Redis from "ioredis";
 import { getStoreConfig, type StoreConfig } from "@/lib/config/store-config";
 import { MemoryStore } from "@/lib/store/memory-store";
 import { RedisStore } from "@/lib/store/redis-store";
@@ -13,12 +12,9 @@ export function createStore(config: StoreConfig): Store {
   const coreClient = new CoreClient(config.coreUrl, config.deploySecret);
 
   if (config.redisEnabled) {
-    const redis = config.redisUrl
-      ? new Redis(config.redisUrl, config.redisOptions)
-      : new Redis(config.redisOptions);
-
     return new RedisStore(
-      redis,
+      config.redisUrl,
+      config.redisOptions,
       config.redisPrefix,
       config.flagsListLimit,
       coreClient,

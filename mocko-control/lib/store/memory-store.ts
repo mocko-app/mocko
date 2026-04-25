@@ -1,12 +1,16 @@
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
+import { StoreNotSupportedError } from "@/lib/store/store-errors";
 import type { FlagKey, FlagType } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
+import type { Operation, OperationUpdate } from "@/lib/types/operation";
 
 export class MemoryStore extends Store {
+  readonly isManagementSupported = false;
+
   private readonly mocks = new Map<string, Mock>();
   private readonly hosts = new Map<string, Host>();
 
@@ -102,6 +106,49 @@ export class MemoryStore extends Store {
 
   async health(): Promise<void> {
     return Promise.resolve();
+  }
+
+  async createOperation(_op: Operation): Promise<void> {
+    void _op;
+    throw new StoreNotSupportedError();
+  }
+
+  async updateOperation(_id: string, _fields: OperationUpdate): Promise<void> {
+    void _id;
+    void _fields;
+    throw new StoreNotSupportedError();
+  }
+
+  async listOperations(): Promise<Operation[]> {
+    throw new StoreNotSupportedError();
+  }
+
+  async getOperation(_id: string): Promise<Operation | null> {
+    void _id;
+    throw new StoreNotSupportedError();
+  }
+
+  async deleteOperation(_id: string): Promise<boolean> {
+    void _id;
+    throw new StoreNotSupportedError();
+  }
+
+  async getSentinelIdleSeconds(): Promise<number | null> {
+    throw new StoreNotSupportedError();
+  }
+
+  async scanStaleFlagsForManagement(
+    _operationId: string,
+    _thresholdSeconds: number,
+  ): Promise<void> {
+    void _operationId;
+    void _thresholdSeconds;
+    throw new StoreNotSupportedError();
+  }
+
+  async purgeStaleFlagsForManagement(_operationId: string): Promise<void> {
+    void _operationId;
+    throw new StoreNotSupportedError();
   }
 
   private toFlagKey(flagKey: {

@@ -21,6 +21,8 @@ type ConfirmDeleteDialogProps = {
   onConfirm: () => void;
   onCancel: () => void;
   onDontAskAgain: () => void;
+  confirmLabel?: string;
+  showDontAskAgain?: boolean;
 };
 
 export function ConfirmDeleteDialog({
@@ -31,6 +33,8 @@ export function ConfirmDeleteDialog({
   onConfirm,
   onCancel,
   onDontAskAgain,
+  confirmLabel = "Delete",
+  showDontAskAgain = true,
 }: ConfirmDeleteDialogProps) {
   const [skipConfirm, setSkipConfirm] = useState(false);
   const descriptionId = useId();
@@ -38,7 +42,7 @@ export function ConfirmDeleteDialog({
   const checkboxId = useId();
 
   function handleConfirm() {
-    if (skipConfirm) {
+    if (showDontAskAgain && skipConfirm) {
       onDontAskAgain();
     }
     onConfirm();
@@ -56,17 +60,19 @@ export function ConfirmDeleteDialog({
           <DialogTitle id={titleId}>{title}</DialogTitle>
           <DialogDescription id={descriptionId}>{children}</DialogDescription>
         </DialogHeader>
-        <div className="flex items-center gap-2 py-1">
-          <Checkbox
-            id={checkboxId}
-            checked={skipConfirm}
-            onCheckedChange={(checked) => setSkipConfirm(checked === true)}
-            aria-label="Don't ask again this session"
-          />
-          <Label htmlFor={checkboxId} className="cursor-pointer font-normal">
-            Don&apos;t ask again this session
-          </Label>
-        </div>
+        {showDontAskAgain && (
+          <div className="flex items-center gap-2 py-1">
+            <Checkbox
+              id={checkboxId}
+              checked={skipConfirm}
+              onCheckedChange={(checked) => setSkipConfirm(checked === true)}
+              aria-label="Don't ask again this session"
+            />
+            <Label htmlFor={checkboxId} className="cursor-pointer font-normal">
+              Don&apos;t ask again this session
+            </Label>
+          </div>
+        )}
         <DialogFooter>
           <Button
             variant="outline"
@@ -80,7 +86,7 @@ export function ConfirmDeleteDialog({
             onClick={handleConfirm}
             aria-label={`Confirm deletion of ${itemLabel}`}
           >
-            Delete
+            {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
