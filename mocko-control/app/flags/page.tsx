@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSWRConfig } from "swr";
@@ -39,6 +39,7 @@ const FlagsPage: React.FC = () => {
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState(search);
 
   const { data, error, isLoading } = useFlags(prefix, search || undefined);
   const items = data?.flagKeys ?? EMPTY_KEYS;
@@ -61,6 +62,7 @@ const FlagsPage: React.FC = () => {
   }
 
   function handleSearchChange(value: string) {
+    setSearchInputValue(value);
     const nextUrl = buildFlagListUrl(
       "/flags",
       prefix || undefined,
@@ -68,6 +70,10 @@ const FlagsPage: React.FC = () => {
     );
     router.replace(nextUrl, { scroll: false });
   }
+
+  useEffect(() => {
+    setSearchInputValue(search);
+  }, [search]);
 
   async function handleDelete(flagKey: string) {
     if (skipDeleteConfirm) {
@@ -136,7 +142,7 @@ const FlagsPage: React.FC = () => {
 
       <PageSearchInput
         className="mb-6"
-        value={search}
+        value={searchInputValue}
         onChange={handleSearchChange}
         placeholder="Search..."
         ariaLabel="Search flags and folders"
@@ -159,7 +165,7 @@ const FlagsPage: React.FC = () => {
             <div className="mb-5">
               <Callout
                 title="Flag list is truncated"
-                message="Only part of this prefix is shown. Narrow your prefix to inspect more keys."
+                message="Only part of this prefix is shown. Use search to narrow the results, even if the flag you need is not visible yet."
               />
             </div>
           )}
