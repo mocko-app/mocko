@@ -38,14 +38,17 @@ function formatFolderCount(
   if (isFiltering) {
     const matchCount = item.matchCount ?? item.count;
     const suffix = isTruncated ? "+" : "";
-    return `${matchCount}${suffix} matches · ${item.count}${suffix} total`;
+    const matchLabel = matchCount === 1 ? "match" : "matches";
+    return `${matchCount}${suffix} ${matchLabel} · ${item.count}${suffix} total`;
   }
 
   if (isTruncated) {
-    return `At least ${item.count} flags`;
+    const flagLabel = item.count === 1 ? "flag" : "flags";
+    return `At least ${item.count} ${flagLabel}`;
   }
 
-  return `${item.count} flags`;
+  const flagLabel = item.count === 1 ? "flag" : "flags";
+  return `${item.count} ${flagLabel}`;
 }
 
 export function FolderItem({
