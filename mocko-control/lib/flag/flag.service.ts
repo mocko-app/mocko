@@ -7,8 +7,8 @@ import type { PutFlagInput } from "@/lib/validation/flag.schema";
 export class FlagService {
   constructor(private readonly store: Store) {}
 
-  async listFlags(prefix: string): Promise<FlagListDto> {
-    const list = await this.store.listFlags(prefix);
+  async listFlags(prefix: string, search?: string): Promise<FlagListDto> {
+    const list = await this.store.listFlags(prefix, search);
     return new FlagListDto(list.flagKeys, list.isTruncated);
   }
 

@@ -117,4 +117,104 @@ describe('control flags crud', () => {
     );
     expect(hasBazFlag).toBe(true);
   });
+
+  it('filters deeply within the current prefix and returns folder counts', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await control.put('/api/flags/users%3A1234%3Astatus', {
+      value: '"active"',
+    });
+    await control.put('/api/flags/users%3A1234%3Ameta%3Aplan', {
+      value: '"gold"',
+    });
+    await control.put('/api/flags/users%3A9999%3Astatus', {
+      value: '"inactive"',
+    });
+
+    const rootSearch = await control.get('/api/flags?q=1234');
+    expect(rootSearch.status).toBe(200);
+    expect(rootSearch.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: 'users',
+        count: 3,
+        matchCount: 2,
+      }),
+    ]);
+
+    const scopedSearch = await control.get('/api/flags?prefix=users:&q=1234');
+    expect(scopedSearch.status).toBe(200);
+    expect(scopedSearch.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: '1234',
+        count: 2,
+        matchCount: 2,
+      }),
+    ]);
+
+    const nestedList = await control.get('/api/flags?prefix=users:1234:');
+    expect(nestedList.status).toBe(200);
+    expect(nestedList.data.flagKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'meta',
+          count: 1,
+          matchCount: 1,
+        }),
+        expect.objectContaining({ type: 'FLAG', name: 'status' }),
+      ]),
+    );
+  });
+
+  it('filters flags case-insensitively', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await control.put('/api/flags/users%3AAbC%3Astatus', {
+      value: '"active"',
+    });
+    await control.put('/api/flags/users%3Axyz%3Astatus', {
+      value: '"inactive"',
+    });
+
+    const scopedSearch = await control.get('/api/flags?prefix=users:&q=ABC');
+    expect(scopedSearch.status).toBe(200);
+    expect(scopedSearch.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: 'AbC',
+        count: 1,
+        matchCount: 1,
+      }),
+    ]);
+  });
+
+  it('keeps matching descendants when the current prefix matches the query', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await control.put('/api/flags/users%3A1214%3Adevice', {
+      value: '"ios"',
+    });
+    await control.put('/api/flags/users%3A1214%3Aprofile%3Aphone', {
+      value: '"555-1214"',
+    });
+
+    const res = await control.get('/api/flags?prefix=users:1214:&q=1214');
+    expect(res.status).toBe(200);
+    expect(res.data.flagKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'FLAG', name: 'device' }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'profile',
+          count: 1,
+          matchCount: 1,
+        }),
+      ]),
+    );
+  });
 });

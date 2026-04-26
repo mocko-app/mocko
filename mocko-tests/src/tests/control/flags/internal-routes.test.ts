@@ -76,4 +76,31 @@ describe('proxy __mocko__ flags routes', () => {
     );
     expect(idempotentDeleteRes.status).toBe(204);
   });
+
+  it('supports scoped search and returns prefix counts on __mocko__ routes', async () => {
+    subject = await createSubject();
+
+    await subject.client.put('/__mocko__/flags/internal%3Atest%3Aone', {
+      value: '"one"',
+    });
+    await subject.client.put('/__mocko__/flags/internal%3Atest%3Atwo', {
+      value: '"two"',
+    });
+    await subject.client.put('/__mocko__/flags/internal%3Aother%3Aone', {
+      value: '"three"',
+    });
+
+    const searchRes = await subject.client.get(
+      '/__mocko__/flags?prefix=internal:&q=test',
+    );
+    expect(searchRes.status).toBe(200);
+    expect(searchRes.data.flagKeys).toEqual([
+      expect.objectContaining({
+        type: 'PREFIX',
+        name: 'test',
+        count: 2,
+        matchCount: 2,
+      }),
+    ]);
+  });
 });

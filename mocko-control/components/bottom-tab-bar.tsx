@@ -8,12 +8,14 @@ import {
   FlagIcon,
   ServerIcon,
   BookOpenIcon,
+  WrenchIcon,
 } from "lucide-react";
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon, external: false },
   { label: "Flags", href: "/flags", icon: FlagIcon, external: false },
   { label: "Hosts", href: "/hosts", icon: ServerIcon, external: false },
+  { label: "Manage", href: "/management", icon: WrenchIcon, external: false },
   {
     label: "Docs",
     href: "https://mocko.dev/docs/",

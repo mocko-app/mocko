@@ -23,6 +23,10 @@ export class ErrorDto {
     return new ErrorDto("BAD_REQUEST", message);
   }
 
+  static ofUnprocessableEntity(message: string): ErrorDto {
+    return new ErrorDto("UNPROCESSABLE_ENTITY", message);
+  }
+
   static ofValidationError(error: ZodError): ErrorDto {
     return new ErrorDto(
       "BAD_REQUEST",
@@ -48,6 +52,13 @@ export class ErrorDto {
 
   static ofHostNotFound(slug: string): ErrorDto {
     return new ErrorDto("HOST_NOT_FOUND", `Host "${slug}" was not found`);
+  }
+
+  static ofOperationNotFound(id: string): ErrorDto {
+    return new ErrorDto(
+      "OPERATION_NOT_FOUND",
+      `Operation "${id}" was not found`,
+    );
   }
 
   static ofHostSlugConflict(slug: string): ErrorDto {

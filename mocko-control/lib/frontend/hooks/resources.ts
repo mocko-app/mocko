@@ -8,11 +8,14 @@ import {
   getFlag,
   getFlags,
   toApiError,
+  getOperations,
   type ApiError,
 } from "@/lib/frontend/api";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
+import type { OperationsResponse } from "@/lib/types/operation";
 
 export function useMocks(options?: SWRConfiguration<MockDto[], ApiError>) {
   return useSWR<MockDto[], ApiError>(
@@ -58,14 +61,13 @@ export function useMock(
 
 export function useFlags(
   prefix?: string,
+  search?: string,
   options?: SWRConfiguration<FlagListDto, ApiError>,
 ) {
-  const resourceKey = prefix
-    ? `/api/flags?prefix=${encodeURIComponent(prefix)}`
-    : "/api/flags";
+  const resourceKey = buildFlagListUrl("/api/flags", prefix, search);
   return useSWR<FlagListDto, ApiError>(
     resourceKey,
-    async () => getFlags(prefix),
+    async () => getFlags(prefix, search),
     {
       refreshInterval: 0,
       revalidateOnFocus: true,
@@ -118,6 +120,26 @@ export function useFlag(
     },
     {
       refreshInterval: 10_000,
+      revalidateOnFocus: true,
+      ...options,
+    },
+  );
+}
+
+export function useOperations(
+  options?: SWRConfiguration<OperationsResponse, ApiError>,
+) {
+  return useSWR<OperationsResponse, ApiError>(
+    "/api/operations",
+    async () => getOperations(),
+    {
+      refreshInterval: (data) =>
+        data?.operations.some(
+          (operation) =>
+            operation.status === "SCANNING" || operation.status === "EXECUTING",
+        )
+          ? 1_000
+          : 10_000,
       revalidateOnFocus: true,
       ...options,
     },

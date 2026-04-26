@@ -23,6 +23,14 @@ const badgeVariants = cva(
           "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-amber-500/80 uppercase",
         annotationReadOnly:
           "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-muted-foreground uppercase",
+        statusInfo:
+          "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-sky-400/80 uppercase",
+        statusWarning:
+          "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-amber-500/80 uppercase",
+        statusSuccess:
+          "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-emerald-500/80 uppercase",
+        statusDanger:
+          "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-destructive/80 uppercase",
       },
     },
     defaultVariants: {

@@ -1,12 +1,16 @@
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
+import { StoreNotSupportedError } from "@/lib/store/store-errors";
 import type { FlagKey, FlagType } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
+import type { Operation, OperationUpdate } from "@/lib/types/operation";
 
 export class MemoryStore extends Store {
+  readonly isManagementSupported = false;
+
   private readonly mocks = new Map<string, Mock>();
   private readonly hosts = new Map<string, Host>();
 
@@ -54,8 +58,8 @@ export class MemoryStore extends Store {
     return this.hosts.delete(slug);
   }
 
-  async listFlags(prefix: string): Promise<FlagListResult> {
-    const list = await this.coreClient.listCoreFlags(prefix);
+  async listFlags(prefix: string, search?: string): Promise<FlagListResult> {
+    const list = await this.coreClient.listCoreFlags(prefix, search);
     return {
       flagKeys: list.flagKeys.map((flagKey) => this.toFlagKey(flagKey)),
       isTruncated: list.isTruncated,
@@ -104,10 +108,60 @@ export class MemoryStore extends Store {
     return Promise.resolve();
   }
 
-  private toFlagKey(flagKey: { type: string; name: string }): FlagKey {
+  async createOperation(_op: Operation): Promise<void> {
+    void _op;
+    throw new StoreNotSupportedError();
+  }
+
+  async updateOperation(_id: string, _fields: OperationUpdate): Promise<void> {
+    void _id;
+    void _fields;
+    throw new StoreNotSupportedError();
+  }
+
+  async listOperations(): Promise<Operation[]> {
+    throw new StoreNotSupportedError();
+  }
+
+  async getOperation(_id: string): Promise<Operation | null> {
+    void _id;
+    throw new StoreNotSupportedError();
+  }
+
+  async deleteOperation(_id: string): Promise<boolean> {
+    void _id;
+    throw new StoreNotSupportedError();
+  }
+
+  async getSentinelIdleSeconds(): Promise<number | null> {
+    throw new StoreNotSupportedError();
+  }
+
+  async scanStaleFlagsForManagement(
+    _operationId: string,
+    _thresholdSeconds: number,
+  ): Promise<void> {
+    void _operationId;
+    void _thresholdSeconds;
+    throw new StoreNotSupportedError();
+  }
+
+  async purgeStaleFlagsForManagement(_operationId: string): Promise<void> {
+    void _operationId;
+    throw new StoreNotSupportedError();
+  }
+
+  private toFlagKey(flagKey: {
+    type: string;
+    name: string;
+    count?: number;
+    matchCount?: number;
+  }): FlagKey {
     return {
       type: flagKey.type as FlagType,
       name: flagKey.name,
+      count: flagKey.count,
+      matchCount: flagKey.matchCount,
     };
   }
 }

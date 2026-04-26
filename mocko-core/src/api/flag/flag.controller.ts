@@ -21,8 +21,9 @@ export class FlagController {
     async listFlags(request: Hapi.Request): Promise<FlagListDto> {
         this.deployService.authorizeFlags(request.headers.authorization);
         const prefix = firstString(request.query['prefix']);
+        const search = firstString(request.query['q']);
 
-        return await this.flagService.listFlags(prefix);
+        return await this.flagService.listFlags(prefix, search);
     }
 
     async putFlag(request: Hapi.Request): Promise<FlagDto> {

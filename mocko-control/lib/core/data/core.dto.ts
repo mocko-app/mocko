@@ -66,6 +66,8 @@ export type CoreHostDto = {
 export type CoreFlagKeyDto = {
   type: CoreFlagType;
   name: string;
+  count?: number;
+  matchCount?: number;
 };
 
 export type CoreFlagListDto = {

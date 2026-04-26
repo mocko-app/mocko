@@ -4,6 +4,7 @@ import type { FlagKey } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock, MockAnnotation } from "@/lib/types/mock";
+import type { Operation, OperationUpdate } from "@/lib/types/operation";
 
 export type StoreFlag = {
   key: string;
@@ -58,7 +59,7 @@ export abstract class Store {
 
   abstract deleteMock(id: string): Promise<boolean>;
   abstract clearFailure(mockId: string): Promise<void>;
-  abstract listFlags(prefix: string): Promise<FlagListResult>;
+  abstract listFlags(prefix: string, search?: string): Promise<FlagListResult>;
   abstract getFlag(key: string): Promise<StoreFlag | null>;
   abstract setFlag(key: string, value: string): Promise<StoreFlag>;
   abstract deleteFlag(key: string): Promise<boolean>;
@@ -69,6 +70,18 @@ export abstract class Store {
   abstract saveMock(mock: Mock): Promise<void>;
   abstract saveHost(host: Host): Promise<void>;
   abstract getCreatedAnnotations(): MockAnnotation[];
+  abstract readonly isManagementSupported: boolean;
+  abstract createOperation(op: Operation): Promise<void>;
+  abstract updateOperation(id: string, fields: OperationUpdate): Promise<void>;
+  abstract listOperations(): Promise<Operation[]>;
+  abstract getOperation(id: string): Promise<Operation | null>;
+  abstract deleteOperation(id: string): Promise<boolean>;
+  abstract getSentinelIdleSeconds(): Promise<number | null>;
+  abstract scanStaleFlagsForManagement(
+    operationId: string,
+    thresholdSeconds: number,
+  ): Promise<void>;
+  abstract purgeStaleFlagsForManagement(operationId: string): Promise<void>;
 
   protected abstract listOwnMocks(): Promise<Mock[]>;
   protected abstract getOwnMock(id: string): Promise<Mock | null>;

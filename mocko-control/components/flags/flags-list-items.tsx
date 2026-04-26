@@ -21,13 +21,47 @@ import type { FlagKeyDto } from "@/lib/types/flag-dtos";
 
 type FolderItemProps = {
   item: FlagKeyDto;
-  prefix: string;
+  href: string;
+  isFiltering: boolean;
+  isTruncated: boolean;
 };
 
-export function FolderItem({ item, prefix }: FolderItemProps) {
+function formatFolderCount(
+  item: FlagKeyDto,
+  isFiltering: boolean,
+  isTruncated: boolean,
+) {
+  if (typeof item.count !== "number") {
+    return null;
+  }
+
+  if (isFiltering) {
+    const matchCount = item.matchCount ?? item.count;
+    const suffix = isTruncated ? "+" : "";
+    const matchLabel = matchCount === 1 ? "match" : "matches";
+    return `${matchCount}${suffix} ${matchLabel} · ${item.count}${suffix} total`;
+  }
+
+  if (isTruncated) {
+    const flagLabel = item.count === 1 ? "flag" : "flags";
+    return `At least ${item.count} ${flagLabel}`;
+  }
+
+  const flagLabel = item.count === 1 ? "flag" : "flags";
+  return `${item.count} ${flagLabel}`;
+}
+
+export function FolderItem({
+  item,
+  href,
+  isFiltering,
+  isTruncated,
+}: FolderItemProps) {
+  const countLabel = formatFolderCount(item, isFiltering, isTruncated);
+
   return (
     <Link
-      href={`/flags?prefix=${prefix}`}
+      href={href}
       className="group flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-[#252528] hover:bg-card/80"
       aria-label={`Open folder ${item.name}`}
     >
@@ -38,6 +72,11 @@ export function FolderItem({ item, prefix }: FolderItemProps) {
       <span className="flex-1 text-sm font-medium text-white truncate font-mono">
         {item.name}
       </span>
+      {countLabel && (
+        <span className="text-xs text-muted-foreground shrink-0">
+          {countLabel}
+        </span>
+      )}
       <ChevronRightIcon
         className="size-4 shrink-0 text-[#444] group-hover:text-muted-foreground transition-colors"
         aria-hidden="true"

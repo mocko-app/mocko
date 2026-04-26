@@ -4,6 +4,8 @@ export class FlagKeyDto {
   constructor(
     public readonly type: FlagType,
     public readonly name: string,
+    public readonly count?: number,
+    public readonly matchCount?: number,
   ) {}
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSWRConfig } from "swr";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Callout } from "@/components/callout";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { FlagsListSkeleton } from "@/components/flags-list-skeleton";
-import { parsePrefixCrumbs } from "@/components/flags/crumbs";
+import { FlagCrumbs } from "@/components/flags/flag-crumbs";
 import {
   EmptyFlags,
   EmptyFolder,
@@ -18,17 +18,10 @@ import {
 import { FlagItem, FolderItem } from "@/components/flags/flags-list-items";
 import { ListPageHeader } from "@/components/list-page-header";
 import { PageSearchInput } from "@/components/page-search-input";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag } from "@/lib/frontend/api";
 import { useFlags } from "@/lib/frontend/hooks/resources";
 import type { FlagKeyDto } from "@/lib/types/flag-dtos";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 
 type DeleteTarget = {
@@ -42,27 +35,18 @@ const FlagsPage: React.FC = () => {
   const { mutate } = useSWRConfig();
   const searchParams = useSearchParams();
   const prefix = searchParams.get("prefix") ?? "";
+  const search = searchParams.get("q") ?? "";
 
-  const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState(search);
 
-  const { data, error, isLoading } = useFlags(prefix);
-  const allItems = data?.flagKeys ?? EMPTY_KEYS;
+  const { data, error, isLoading } = useFlags(prefix, search || undefined);
+  const items = data?.flagKeys ?? EMPTY_KEYS;
   const isTruncated = data?.isTruncated ?? false;
-  const filtered = useMemo(() => {
-    const query = search.toLowerCase();
-    if (!query) {
-      return allItems;
-    }
-
-    return allItems.filter((item) => item.name.toLowerCase().includes(query));
-  }, [allItems, search]);
-
-  const crumbs = parsePrefixCrumbs(prefix);
-  const linkedCrumbs = crumbs.slice(0, -1);
-  const currentCrumb = crumbs.at(-1)!;
   const isRoot = !prefix;
+  const crumbs = prefix.split(":").filter(Boolean);
+  const currentCrumb = crumbs.at(-1) ?? "Flags";
   const newFlagHref = `/flags/new${prefix ? `?prefix=${prefix}` : ""}`;
 
   async function revalidateFlagCaches() {
@@ -76,6 +60,20 @@ const FlagsPage: React.FC = () => {
   function handleEdit(key: string) {
     router.push(`/flags/${key}`);
   }
+
+  function handleSearchChange(value: string) {
+    setSearchInputValue(value);
+    const nextUrl = buildFlagListUrl(
+      "/flags",
+      prefix || undefined,
+      value || undefined,
+    );
+    router.replace(nextUrl, { scroll: false });
+  }
+
+  useEffect(() => {
+    setSearchInputValue(search);
+  }, [search]);
 
   async function handleDelete(flagKey: string) {
     if (skipDeleteConfirm) {
@@ -110,32 +108,15 @@ const FlagsPage: React.FC = () => {
   return (
     <div>
       {!isRoot && (
-        <Breadcrumb className="mb-5">
-          <BreadcrumbList>
-            {linkedCrumbs.map((crumb, index) => (
-              <React.Fragment key={`${crumb.label}-${index}`}>
-                {index > 0 && <BreadcrumbSeparator />}
-                <BreadcrumbItem>
-                  {crumb.href !== undefined ? (
-                    <BreadcrumbLink render={<Link href={crumb.href} />}>
-                      {crumb.label}
-                    </BreadcrumbLink>
-                  ) : (
-                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                  )}
-                </BreadcrumbItem>
-              </React.Fragment>
-            ))}
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{currentCrumb.label}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <FlagCrumbs
+          className="mb-5"
+          crumbs={crumbs}
+          query={search || undefined}
+        />
       )}
 
       <ListPageHeader
-        title={isRoot ? "Flags" : currentCrumb.label}
+        title={currentCrumb}
         description={isRoot ? undefined : prefix}
         titleClassName={isRoot ? undefined : "font-mono"}
         descriptionClassName={isRoot ? undefined : "font-mono"}
@@ -161,30 +142,30 @@ const FlagsPage: React.FC = () => {
 
       <PageSearchInput
         className="mb-6"
-        value={search}
-        onChange={setSearch}
+        value={searchInputValue}
+        onChange={handleSearchChange}
         placeholder="Search..."
         ariaLabel="Search flags and folders"
       />
 
       {isLoading && <FlagsListSkeleton />}
 
-      {!isLoading && search && filtered.length === 0 && (
-        <EmptySearch search={search} onClear={() => setSearch("")} />
+      {!isLoading && search && items.length === 0 && (
+        <EmptySearch search={search} onClear={() => handleSearchChange("")} />
       )}
 
       {!isLoading &&
         !search &&
-        allItems.length === 0 &&
+        items.length === 0 &&
         (isRoot ? <EmptyFlags /> : <EmptyFolder />)}
 
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && items.length > 0 && (
         <>
           {isTruncated && (
             <div className="mb-5">
               <Callout
                 title="Flag list is truncated"
-                message="Only part of this prefix is shown. Narrow your prefix to inspect more keys."
+                message="Only part of this prefix is shown. Use search to narrow the results, even if the flag you need is not visible yet."
               />
             </div>
           )}
@@ -193,12 +174,18 @@ const FlagsPage: React.FC = () => {
             role="list"
             aria-label="Flags and folders"
           >
-            {filtered.map((item) =>
+            {items.map((item) =>
               item.type === "PREFIX" ? (
                 <FolderItem
                   key={`${prefix}${item.name}:`}
                   item={item}
-                  prefix={`${prefix}${item.name}:`}
+                  href={buildFlagListUrl(
+                    "/flags",
+                    `${prefix}${item.name}:`,
+                    search || undefined,
+                  )}
+                  isFiltering={Boolean(search)}
+                  isTruncated={isTruncated}
                 />
               ) : (
                 <FlagItem
