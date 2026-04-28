@@ -1,89 +1,149 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via issue,
-email (o54b27nq0oasp75z5mwr44a4vur17bgp@owlmail.io), or any other method with the owners of this repository before making a change.
+Thanks for taking the time to contribute to Mocko.
 
-# Architecture
+For small fixes, docs improvements, tests, and obvious bug fixes, feel free to open a pull request directly.
 
-## Complete stack
-![Complete Stack](https://cdn.codetunnel.net/mocko/complete-arch.png)
+For larger changes, open an issue first so we can align on the design before you spend time implementing it. This is especially useful for changes that affect mock definition syntax, templating behavior, routing, persistence, the Control Panel UX, or public package APIs.
 
-### Mocko API
-A NestJS application used by Mocko UI to manage Mocko resources, it
-saves and reads the mocks from Redis as well as publishing a deploy
-message when changes are made to any Mock. That way, all the mocko-core instances can load the new mock definitions from Redis to update
-the routes.
+## Repository Layout
 
-### Mocko Core
-The heart of Mocko. It's a Hapi application that receives the requests
-from the user and provides mocks or proxies to the real API.
+Mocko is an npm workspace with a few focused packages:
 
-On startup or on deploy messages from Mocko API or from Mocko CLI, it
-loads the mocks from the mocks dir and from Redis (if it's enabled in
-the config), parses all the handlebars templates and maps all the
-routes.
+- `mocko-core`: HTTP mock server. It loads File Mocks, matches incoming requests, renders Bigodon templates, manages flags, and proxies unmatched requests.
+- `mocko-control`: Control Panel. It is a Next.js app for managing mocks, hosts, flags, and management operations.
+- `mocko-cli`: CLI entrypoint. It starts `mocko-core` and, by default, the Control Panel.
+- `mocko-sdk`: TypeScript SDK for test automation and flags.
+- `mocko-tests`: Integration test suite. It spawns real Mocko processes and exercises them over HTTP.
+- `helm-charts/mocko`: Kubernetes deployment chart.
+- `docker-images`: Docker image definitions.
 
-When it receives a request, it tries to match a mock route. If a mock is
-found, it builds the handlebars context, processes the mock template and
-responds with the result.
+## Requirements
 
-When no mocks are found, it proxies to your actual API and responds with
-it's response.
+Use the current Node.js LTS version for development.
 
-## Standalone mode
+You also need npm. Docker is optional, but useful for Redis-backed development and tests.
 
-On standalone mode, only mocko-core is present and it loads its mocks
-from the mocks directory. Mocko-core can also be called from Mocko CLI:
-![Complete Stack](https://cdn.codetunnel.net/mocko/cli-arch.png)
+## Install
 
-In that case, mocko-cli reads the settings from the admin and passes to
-mocko-core. It also watches for file changes (when told to do so) and
-notifies mocko-core with a deploy message.
+Install dependencies from the repository root:
 
-# Running Mocko from the repository
-
-As you've seen above, `mocko-core` is the main component so let's get
-started with it. Clone Mocko's repository, navigate to `mocko-core` and
-install its dependencies.
-```shell
-$ git clone https://github.com/mocko-app/mocko.git
-$ cd mocko/mocko-core
-$ npm install
+```sh
+npm install
 ```
 
-Now create a sample mock file inside `mocko-core/mocks` and start
-mocko-core (inside the `mocko-core` dir) with:
-```shell
-$ npm run start:dev
+## Running Mocko Locally
+
+To build and run the full app from the repository root:
+
+```sh
+npm start
 ```
 
-Now you're ready to contribute to Mocko! Some files that might be useful:
+This builds `mocko-core` and `mocko-control`, then starts Mocko through the local CLI with File Mocks from `./mocko-core/mocks`.
 
-- `mocko-core/src/api/definition/definition.provider.ts`: Reads mocks from Redis
-and the mocks dir
-- `mocko-core/src/api/mock/data/mock-options.ts`: Converts the .hcl definitions to the internal Mock object
-- `mocko-core/src/api/mock/mock.handler.ts`: Processes the request pipeline:
-    - Builds handlebars context
-    - Builds the response body from the template (with the context previously built)
-    - Waits for the specified amount of millis
-    - Proxies if the template told so
-    - Builds the Hapi response
-- `mocko-core/src/api/mock/mock.service.ts`: Registers custom Handlebars helpers
+After you have already built the packages, use the faster local start command:
 
-# Running tests
-Run mocko-core tests with:
-```shell
-$ cd mocko-core
-$ docker-compose up -d
-$ npm test
-$ docker-compose down
+```sh
+npm run start:fast
 ```
 
-Run end-to-end tests with:
-```shell
-$ cd e2e-tests
-$ docker-compose build
-$ docker-compose up -d
-$ npm test
-$ docker-compose down
+The Control Panel is available at [http://localhost:6625](http://localhost:6625), and mocked endpoints are served from [http://localhost:8080](http://localhost:8080).
+
+You can also run the CLI directly:
+
+```sh
+node ./mocko-cli/bin/main.js ./mocko-core/mocks --watch
 ```
+
+## Working On Each Package
+
+Run `mocko-core` directly when working on request handling, routing, templating, flags, proxying, or File Mock loading:
+
+```sh
+npm run start:dev --prefix ./mocko-core
+```
+
+Run `mocko-control` directly when working on the Control Panel:
+
+```sh
+npm run dev --prefix ./mocko-control
+```
+
+Build individual packages when you want a focused check:
+
+```sh
+npm run build --prefix ./mocko-core
+npm run build --prefix ./mocko-control
+npm run build --prefix ./mocko-sdk
+```
+
+For Control Panel changes, `npm run build --prefix ./mocko-control` is usually enough because it lints and builds the UI.
+
+## Redis For Development
+
+Most local development does not require Redis. Use Redis when you are working on persistence, multi-replica behavior, Redis-backed flags, or management operations.
+
+Start the contributor Redis service:
+
+```sh
+docker compose -f ./mocko-tests/docker-compose.yaml up -d redis
+```
+
+Stop it when you are done:
+
+```sh
+docker compose -f ./mocko-tests/docker-compose.yaml down
+```
+
+The Redis test harness uses `127.0.0.1:6379`, database `15`, and flushes that database before and after Redis suites.
+
+## Testing
+
+Run the standard test suite from the repository root:
+
+```sh
+npm test
+```
+
+This builds `mocko-core`, `mocko-control`, and `mocko-sdk`, then runs the integration tests in `mocko-tests`.
+
+For a faster loop after packages are already built:
+
+```sh
+npm run test:fast
+```
+
+Run the Redis-enabled suite when your change touches Redis-backed behavior:
+
+```sh
+npm run test:full
+```
+
+Redis tests expect Redis to be available at `127.0.0.1:6379`.
+
+Run SDK tests directly when working on `@mocko/sdk`:
+
+```sh
+npm test --prefix ./mocko-sdk
+```
+
+## Architecture Overview
+
+Mocko v2 is split into a core runtime, a control plane, and a CLI.
+
+The core runtime lives in `mocko-core`. It receives HTTP requests, loads File Mocks, matches routes, renders Bigodon templates, applies response status, headers and delay, reads or writes flags, and proxies unmatched requests when an upstream URL is configured.
+
+The control plane lives in `mocko-control`. It is a Next.js app that provides the Control Panel UI and APIs for mocks, hosts, flags, and management operations.
+
+The CLI lives in `mocko-cli`. It wires the runtime together for local and self-hosted usage: starts core, starts the Control Panel unless disabled, passes CLI options into core, and watches File Mock folders when `--watch` is enabled.
+
+The typical request flow is:
+
+1. The CLI starts `mocko-core` and, unless disabled, `mocko-control`.
+2. Core loads File Mocks from the selected folder.
+3. Control can create UI-managed mocks, hosts, flags, and management operations.
+4. Incoming HTTP requests hit core.
+5. Core matches a mock route, renders the template, applies status, headers and delay, then returns the response.
+6. If no mock matches, core proxies the request when an upstream URL is configured.
+7. Flags can be read and written by templates, Control Panel APIs, and `@mocko/sdk`.
