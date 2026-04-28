@@ -1,26 +1,20 @@
-version: '2'
-
 services:
   redis:
-    image: 'redis:6-alpine'
+    image: redis:6-alpine
     volumes:
-      - './compose/data/redis:/data'
+      - ./data/redis:/data
 
-  mocko-ui:
-    image: 'gabrielctpinheiro/mocko-ui:1.8.0'
+  mocko:
+    build: docker-images/standalone
     ports:
-      - '8080:80'
+      - "${MOCKO_PORT:-8080}:8080"
+      - "${MOCKO_UI_PORT:-6625}:6625"
+    environment:
+      MOCKO_URL: ${MOCKO_URL:-}
+      MOCKO_TIMEOUT: ${MOCKO_TIMEOUT:-30000}
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379
     volumes:
-      - './compose/config/ui/nginx.conf:/etc/nginx/nginx.conf'
-
-  mocko-api:
-    image: 'gabrielctpinheiro/mocko-api:1.8.0'
-    volumes:
-      - './compose/config/api/.env:/home/mocko/.env'
-
-  mocko-proxy:
-    image: 'gabrielctpinheiro/mocko-proxy:1.8.0'
-    ports:
-      - '8081:8080'
-    volumes:
-      - './compose/config/proxy/.env:/home/mocko/.env'
+      - ./data/mocks:/var/mocks
+    depends_on:
+      - redis

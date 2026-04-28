@@ -1,0 +1,139 @@
+# Override the chart name used in resource names and labels.
+nameOverride: ""
+fullnameOverride: ""
+
+# Secrets for pulling images from private registries.
+imagePullSecrets: []
+
+# mocko-core is the mock server that intercepts HTTP requests and returns
+# configured responses, optionally proxying unmatched requests to a real upstream.
+core:
+  image:
+    repository: ghcr.io/mocko-app/core
+    # Defaults to the chart's appVersion if left empty.
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  # URL of the upstream API to proxy unmatched requests to.
+  # Leave empty to disable proxying (unmatched requests return 502).
+  proxyUrl: ""
+
+  # Milliseconds to wait for an upstream response before returning 504.
+  timeoutMillis: 30000
+
+  # Override CORS headers returned by the upstream. Set to false to let
+  # OPTIONS requests pass through to the upstream instead.
+  cors: true
+
+  # Mount .hcl mock files into the core pod at /var/mocks, loaded on startup.
+  # For large or versioned mock sets, consider building a custom image FROM
+  # ghcr.io/mocko-app/core with your mocks COPYed in instead.
+  fileMocks:
+    # Load files from the chart's mocks/ folder and mount them at /var/mocks/chart.
+    # Add .hcl files to the mocks/ directory alongside this chart to use this.
+    chartFolder:
+      enabled: true
+    # Mount a pre-existing ConfigMap (managed outside this chart) at /var/mocks/custom.
+    # Both chartFolder and existingConfigMap can be active at the same time.
+    existingConfigMap: ""
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  # resources:
+  #   requests:
+  #     cpu: 50m
+  #     memory: 64Mi
+  #   limits:
+  #     cpu: 500m
+  #     memory: 128Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# mocko-control is the web UI and API for managing mocks at runtime.
+# It communicates with mocko-core via a deploy secret generated automatically
+# by this chart. Disable if you only need file-based mocks with no UI.
+control:
+  enabled: true
+
+  image:
+    repository: ghcr.io/mocko-app/control
+    # Defaults to the chart's appVersion if left empty.
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  # Control handles only developer traffic; 1 replica is almost always enough.
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 6625
+
+  # resources:
+  #   requests:
+  #     cpu: 50m
+  #     memory: 128Mi
+  #   limits:
+  #     cpu: 500m
+  #     memory: 256Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Persistence configuration. Currently supports Redis, which enables
+# mock state to survive pod restarts and supports multi-replica core deployments.
+# When disabled, mocko-core runs in storeless mode — mocks created via the UI
+# are lost on restart.
+persistence:
+  redis:
+    # Set to false to run in storeless mode (no Redis, no UI mock persistence).
+    enabled: true
+
+    internal:
+      # Deploy a single-replica Redis StatefulSet as part of this chart.
+      # Disable and configure the external fields below to use your own Redis.
+      enabled: true
+
+      # Size of the PersistentVolumeClaim for Redis data.
+      storage: 1Gi
+      # StorageClass for the PVC. Leave empty to use the cluster default.
+      storageClass: ""
+
+      # resources:
+      #   requests:
+      #     cpu: 50m
+      #     memory: 128Mi
+      #   limits:
+      #     cpu: 200m
+      #     memory: 256Mi
+
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+
+    # External Redis, only used when internal.enabled is false.
+    # url takes precedence over host/port/password/database if set.
+    # Supports both redis:// and rediss:// (TLS) schemes.
+    url: ""
+    host: ""
+    port: 6379
+    password: ""
+    database: 0
+
+    # Reference an existing Secret instead of setting url/password in plain text.
+    # The secret must exist in the same namespace as this release.
+    # existingSecret:
+    #   name: "my-redis-secret"
+    #   urlKey: "redis-url"           # used if url is empty
+    #   passwordKey: "redis-password" # used if password is empty
+
+    # Key prefix for all Mocko keys in Redis. Change this if sharing a Redis
+    # instance with other services or if you're deploying multiple Mocko charts
+    # to the same Redis to avoid key collisions.
+    prefix: "mocko:"

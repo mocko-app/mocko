@@ -1,0 +1,17 @@
+Mocko is running!
+
+  Core (mock server):
+    kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "mocko.core.fullname" . }} {{ .Values.core.service.port }}:{{ .Values.core.service.port }}
+    Then visit: http://localhost:{{ .Values.core.service.port }}
+
+{{- if .Values.control.enabled }}
+
+  Control (UI):
+    kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "mocko.control.fullname" . }} {{ .Values.control.service.port }}:{{ .Values.control.service.port }}
+    Then visit: http://localhost:{{ .Values.control.service.port }}
+{{- end }}
+
+{{- if and .Values.persistence.redis.enabled .Values.persistence.redis.internal.enabled }}
+
+  Redis: running internally as {{ include "mocko.redis.fullname" . }}:6379
+{{- end }}

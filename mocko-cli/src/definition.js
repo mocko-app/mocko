@@ -32,4 +32,19 @@ module.exports.definition = {
         type: 'number',
         default: 30000,
     },
+    'no-ui': {
+        description: 'Disables the control panel UI',
+        type: 'boolean',
+        default: false,
+    },
+    r: {
+        description: 'Enables Redis mode using the provided Redis URL',
+        alias: 'redis',
+        type: 'string',
+    },
+    P: {
+        description: 'Overrides the UI port (default: 6625)',
+        alias: 'ui-port',
+        type: 'number',
+    },
 };

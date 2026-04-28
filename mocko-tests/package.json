@@ -1,0 +1,43 @@
+{
+  "name": "@mocko/tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "pretest": "npm run lint && npm run build --prefix ../mocko-core && npm run build --prefix ../mocko-control && npm run build --prefix ../mocko-sdk",
+    "test": "jest --runInBand",
+    "pretest:full": "npm run lint && npm run build --prefix ../mocko-core && npm run build --prefix ../mocko-control && npm run build --prefix ../mocko-sdk",
+    "test:full": "REDIS_TESTS_ENABLED=true jest --runInBand",
+    "test:full:fast": "REDIS_TESTS_ENABLED=true jest --runInBand",
+    "test:fast": "jest --runInBand",
+    "pretest:core": "npm run build --prefix ../mocko-core && npm run build --prefix ../mocko-sdk",
+    "test:core": "jest --runInBand",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
+  },
+  "devDependencies": {
+    "@mocko/cli": "*",
+    "@mocko/sdk": "*",
+    "@types/jest": "^28.1.8",
+    "@types/node": "^16.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "axios": "^1.14.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.2.5",
+    "ioredis": "^4.31.0",
+    "jest": "^28.0.0",
+    "prettier": "^2.3.2",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.8.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.ts"
+    ],
+    "testTimeout": 15000
+  }
+}

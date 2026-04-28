@@ -1,0 +1,78 @@
+{{- if .Values.control.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mocko.control.fullname" . }}
+  labels:
+    {{- include "mocko.control.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.control.replicas }}
+  selector:
+    matchLabels:
+      {{- include "mocko.control.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mocko.control.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: control
+          image: {{ include "mocko.control.image" . | quote }}
+          imagePullPolicy: {{ .Values.control.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.control.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 30
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            failureThreshold: 2
+          env:
+            - name: PORT
+              value: {{ .Values.control.service.port | quote }}
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: MOCKO_CORE_URL
+              value: http://{{ include "mocko.core.fullname" . }}:{{ .Values.core.service.port }}
+            - name: MOCKO_DEPLOY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mocko.fullname" . }}
+                  key: deploy-secret
+            {{- if .Values.persistence.redis.enabled }}
+            - name: REDIS_ENABLED
+              value: "true"
+            - name: REDIS_PREFIX
+              value: {{ .Values.persistence.redis.prefix | quote }}
+            {{- include "mocko.redis.envVars" . | trim | nindent 12 }}
+            {{- end }}
+          {{- with .Values.control.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.control.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.control.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.control.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

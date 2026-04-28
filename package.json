@@ -1,0 +1,21 @@
+{
+  "name": "mocko",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix ./mocko-core && npm run build --prefix ./mocko-control",
+    "test": "npm test --prefix ./mocko-tests",
+    "test:fast": "npm run test:fast --prefix ./mocko-tests",
+    "test:full": "npm run test:full --prefix ./mocko-tests",
+    "test:full:fast": "npm run test:full:fast --prefix ./mocko-tests",
+    "prestart": "npm run build",
+    "start:fast": "node ./mocko-cli/bin/main.js ./mocko-core/mocks --watch",
+    "start": "npm run start:fast"
+  },
+  "workspaces": [
+    "mocko-control",
+    "mocko-core",
+    "mocko-cli",
+    "mocko-tests",
+    "mocko-sdk"
+  ]
+}

@@ -4,6 +4,7 @@
         "removeComments": true,
         "declaration": true,
         "target": "es2019",
+        "lib": ["es2020", "dom"],
         "outDir": "./lib",
         "baseUrl": "./",
         "incremental": true

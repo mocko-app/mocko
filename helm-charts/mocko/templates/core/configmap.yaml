@@ -1,0 +1,18 @@
+{{- if .Values.core.fileMocks.chartFolder.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mocko.core.fullname" . }}-mocks
+  labels:
+    {{- include "mocko.core.labels" . | nindent 4 }}
+data:
+  {{- $files := .Files.Glob "mocks/*.hcl" }}
+  {{- if $files }}
+  {{- range $path, $content := $files }}
+  {{ base $path }}: |
+    {{- $content | toString | nindent 4 }}
+  {{- end }}
+  {{- else }}
+  .gitkeep: ""
+  {{- end }}
+{{- end }}

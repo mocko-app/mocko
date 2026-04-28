@@ -5,6 +5,10 @@
 *.launch
 .settings/
 *.sublime-workspace
-.vscode/*
-/compose/data
+data/mocks/*
+!data/mocks/.gitkeep
+data/redis/*
+!data/redis/.gitkeep
 .eslintcache
+/node_modules
+/research

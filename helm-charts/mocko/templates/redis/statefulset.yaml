@@ -1,0 +1,79 @@
+{{- if and .Values.persistence.redis.enabled .Values.persistence.redis.internal.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mocko.redis.fullname" . }}
+  labels:
+    {{- include "mocko.redis.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "mocko.redis.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mocko.redis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mocko.redis.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args:
+            - redis-server
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            - --appendonly
+            - "yes"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mocko.fullname" . }}
+                  key: redis-password
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "redis-cli -a $REDIS_PASSWORD ping | grep PONG"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 4
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "redis-cli -a $REDIS_PASSWORD ping | grep PONG"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 2
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          {{- with .Values.persistence.redis.internal.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.persistence.redis.internal.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.persistence.redis.internal.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.persistence.redis.internal.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.persistence.redis.internal.storageClass }}
+        storageClassName: {{ .Values.persistence.redis.internal.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.redis.internal.storage }}
+{{- end }}

@@ -2,6 +2,12 @@ import * as Hapi from '@hapi/hapi';
 import * as colors from 'colors/safe';
 import { LogColumn, Logger } from './logger';
 
+type HapiRequestLoggerOptions = {
+    ignoredRoutes?: string[],
+    logHost?: boolean,
+    shouldLogRequest?: (path: string) => boolean,
+};
+
 const log = new Logger()
     .column(LogColumn.timestamp().color(colors.dim))
     .column(LogColumn.text().size(5).right().color(colors.dim))
@@ -41,8 +47,16 @@ function logRequest(request: Hapi.Request, logHost: boolean, time: string) {
 export const hapiRequestLogger = {
     name: 'hapiRequestLogger',
     version: '1.0.0',
-    register: async function (server: Hapi.Server, { ignoredRoutes = [], logHost = false } = {}) {
+    register: async function (
+        server: Hapi.Server,
+        {
+            ignoredRoutes = [],
+            logHost = false,
+            shouldLogRequest,
+        }: HapiRequestLoggerOptions = {},
+    ) {
         const ignoredRoutesSet = new Set(ignoredRoutes);
+        const shouldLogPath = shouldLogRequest || ((path: string) => !ignoredRoutesSet.has(path));
 
         server.ext('onRequest', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
             request['_startAt'] = process.hrtime();
@@ -50,7 +64,7 @@ export const hapiRequestLogger = {
         });
 
         server.ext('onPreResponse', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
-            if(ignoredRoutesSet.has(request.path)) {
+            if(!shouldLogPath(request.path)) {
                 return h.continue;
             }
 
