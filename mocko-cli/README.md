@@ -1,25 +1,113 @@
-# Mocko CLI
-Mocko CLI is a [Mocko](https://cdt.one/WzuRdVq) module that allows you
-to run it in your terminal. Mocko is an HTTP Mocking utility that lets
-you create dynamic mocks and proxy your API when no mocks are defined.
+# @mocko/cli
+
+Dynamic HTTP mocking from your terminal.
+
+Mocko CLI starts the Mocko mock server and, by default, the Control Panel. Use it to create dynamic API mocks, run versioned File Mocks, proxy real APIs, and simulate stateful flows with flags.
+
+![Mocko Control Panel](https://cdn.codetunnel.net/mocko/readme-control-panel.png)
 
 ## Installation
 
-> :warning: **You need NodeJS 14 or newer installed**
-
-
-First install the Mocko CLI with npm, you might need `sudo` for Linux or Mac:
-```shell
+```sh
 npm i -g @mocko/cli
 ```
 
-Check the installation with the `--help` flag for the help screen:
-```shell
-$ mocko --help
-Usage: mocko [options] [path to mocks folder]
-Example: mocko -p 4000 mocks
+Check the installation:
 
-Options:                    
+```sh
+mocko --help
+```
+
+## Quick Start
+
+Start Mocko with the Control Panel enabled:
+
+```sh
+mocko
+```
+
+Open the Control Panel at [http://localhost:6625](http://localhost:6625). Mocked HTTP endpoints are served from [http://localhost:8080](http://localhost:8080).
+
+## Run File Mocks
+
+Create `./mocks/orders.hcl`:
+
+```hcl
+mock "GET /orders/{id}" {
+  name   = "Get order"
+  labels = ["orders", "checkout"]
+  format = "json"
+
+  body = <<EOF
+    {
+      "id": "{{request.params.id}}",
+      "status": "{{default request.query.status 'processing'}}",
+      "etaMinutes": {{random 5 30}}
+    }
+  EOF
+}
+```
+
+Run Mocko pointing to the folder:
+
+```sh
+mocko --watch ./mocks
+```
+
+Call the mock:
+
+```sh
+curl http://localhost:8080/orders/123
+```
+
+File Mocks are loaded into the mock server and shown in the Control Panel.
+
+## Proxy An API
+
+Mocko can sit in front of a real API. Requests with matching mocks are handled by Mocko; everything else is proxied.
+
+```sh
+mocko --watch ./mocks --url https://api.example.com
+```
+
+Templates can also choose when to proxy:
+
+```hcl
+mock "GET /orders/{id}" {
+  format = "json"
+
+  body = <<EOF
+    {{#is request.params.id "preview"}}
+      {
+        "id": "preview",
+        "status": "draft"
+      }
+    {{else}}
+      {{proxy}}
+    {{/is}}
+  EOF
+}
+```
+
+## Flags And Tests
+
+Flags are persisted values that mocks, the Control Panel, and automated tests can read and write. Use them to simulate multi-step flows such as balances, purchases, inventory, order status, or feature switches.
+
+For test automation, use `@mocko/sdk`:
+
+```sh
+npm install @mocko/sdk
+```
+
+![Mocko Flags](https://cdn.codetunnel.net/mocko/readme-flags.png)
+
+## Options
+
+```text
+Usage: mocko [options] [path to mocks folder]
+Example: mocko --watch ./mocks
+
+Options:
 
   -h, --help       Shows this screen
   -v, --version    Shows the current version
@@ -27,152 +115,17 @@ Options:
   -p, --port       Port to serve the mocks (8080)
   -u, --url        URL to proxy requests when no mock is defined
   -t, --timeout    Max time to wait for a response from the proxied URL in millis (30000)
+  --no-ui          Disables the Control Panel
+  -r, --redis      Enables Redis mode using the provided Redis URL
+  -P, --ui-port    Overrides the Control Panel port (6625)
 ```
 
-## Creating your first project
-Now that you have Mocko CLI installed, let's create your first Mocko project, create a
-folder with a `.hcl` file inside, a simple structure like this:
-```text
-hello-mocko
-└── first-mocks.hcl
-```
+## Documentation
 
-And, in your `.hcl` file (like our `first-mocks.hcl`), create your first mock with the
-`mock` stanza:
-
-```js
-mock "GET /hello" {
-  body = "Hello from Mocko!"
-}
-```
-
-> :information_source: **Your IDE or editor will most likely have an extension for `.hcl` syntax highlighting. It might help :)**
-
-## Using Mocko
-Now that you have Mocko CLI installed and your first project created, we're ready to begin. Inside your
-project folder, start Mocko by running the command:
-```shell
-mocko --watch .
-```
-
-And, as easy as that, your mocks are now being served on port 8080. If you want to change the port,
-you can use the `--port` flag to choose another one. Also, the `--watch` flag we've used makes Mocko
-auto reload the changes you save to your mock definitions. The `.` (dot) in the command is the folder
-that contains your mocks (or folder with folders of them), as we're inside it, we used `.` but you
-could pass any path.
-
-To see your mock being served you can use any HTTP client like [Insomnia](https://insomnia.rest/download/),
-[HTTPie](https://httpie.io/), [cURL](https://curl.se/) or, in this case as its a `GET` request, even your
-browser. Simply access [http://localhost:8080/hello](http://localhost:8080/hello) in your browser or, with
-curl:
-```shell
-$ curl http://localhost:8080/hello
-Hello from Mocko!
-```
-
-## The `mock` stanza
-The mocks are defined using HCL, you can check it's documentation [here](https://github.com/hashicorp/hcl).
-
-Our first mock was super easy to create but is too simple, let's zhuzh is up a bit =P
-
-You can have multiple mocks in a file so let's add a comment to our first one, just to
-identify it, and create a new mock:
-```python
-# Our first, simple, hello mock
-mock "GET /hello" {
-  body = "Hello from Mocko!"
-}
-
-# Mocking George, the cat
-mock "GET /cats/george" {
-  # This is how you set response status, it's optional and defaults to 201 for POST and 200 for other methods
-  status = 200
-
-  # Headers are defined in a map, don't forget your content type
-  headers {
-    Content-Type = "application/json"
-  }
-
-  # You can use multi-line strings for your body
-  body = <<EOF
-  {
-    "id": 1,
-    "name": "George"
-  }
-  EOF
-}
-```
-And now let's understand it a little better:
-
-#### Method and path
-You define the method and path right after the mock stanza. They're interpreted by
-[Hapi Call](https://hapi.dev/module/call), you can check
-[its documentation here](https://hapi.dev/module/call/api/?v=8.0.1).
-
-You can choose any method or `*` to match all. For the path, you can use specific paths like
-`/cats/george` or generic ones like `/cats/{name}`. You can even use optional parameters (`/cats/{name?}`),
-multi-segment parameters (`/cats/{name*2}`) or even catch-all parameters (`/cats/{name*}`).
-
-Specific paths will always be matched with higher priority, if you had two mocks:
-```js
-mock "GET /cats/george" { status = 204 }
-mock "GET /cats/{name}" { status = 404 }
-```
-A get to `/cats/george` would never trigger the last mock (generic) regardless of the order, only the
-first one (specific). Other calls like `/cats/alice` would trigger the latter.
-
-#### `status` parameter
-Not much to say here... You can choose any status from `200` to `599`. It defaults to `201` for `POST`
-mocks or `200` for anything else.
-
-#### `headers` parameter
-Here you can specify your headers in a map like so:
-```js
-headers {
-  Content-Type    = "application/json"
-  X-Custom-Header = "Mocko is amazing :O"
-}
-```
-
-Don't forget your `Content-Type` header =P
-
-#### `delay` parameter
-While we didn't use it yet, you could specify a `delay` parameter to add a delay to your response, you can
-choose any number in milliseconds.
-
-#### `body` parameter
-All of Mocko's magic is in this parameter... But we won't go deep here yet :X
-
-There is an entire section about templating that you can learn more about this. Don't worry, we'll remind
-you in the end of this page.
-
-## Structuring your mocks
-Your mocks don't need to be in the root of your folder, they can be inside folders in any deepness. Also,
-you can define multiple mocks in the same file. Here's a folder structure example:
-```text
-.
-├── user
-│   ├── homepage.hcl
-│   └── profile.hcl
-└── wallet
-    ├── credit
-    │   ├── credit.hcl
-    │   └── indication.hcl
-    ├── payment
-    │   ├── creditcard.hcl
-    │   └── gateway.hcl
-    └── refund.hcl
-```
-
-## Next steps
-Before moving on, how about leaving us a star on GitHub? It'll take you two clicks, first [here](https://cdt.one/fZLdEhZ) and then on star :)
-
-Now that you learned to use Mocko CLI, learned to create your mocks using HCL, structure them in a project
-and even gave us an [star on GitHub](https://cdt.one/fZLdEhZ) (right?) it's time to learn the main functionality of Mocko: templating.
-With it, you can create dynamic mocks, write logic for them so that you can simulate the more complicated
-scenarios. See you there :)
-
-<div class="d-flex justify-content-center">
-    <a class="btn btn-primary btn-lg" href="https://cdt.one/zGZtUpU" role="button">Go to Templating</a>
-</div>
-<img src="https://cdt.one/zDX75Ml.gif" style="display: none;"/>
+- [Mocko on GitHub](https://github.com/mocko-app/mocko)
+- [Getting started](https://mocko.dev/docs/getting-started/)
+- [File Mocks](https://mocko.dev/docs/file-mocks/)
+- [Templating](https://mocko.dev/docs/templating/)
+- [Flags](https://mocko.dev/docs/flags/)
+- [SDK](https://mocko.dev/docs/sdk/)
+- [Deploying](https://mocko.dev/docs/deploying/)
