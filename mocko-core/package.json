@@ -39,7 +39,7 @@
     "ioredis": "^4.28.5",
     "joi": "^17.6.0",
     "reflect-metadata": "^0.1.13",
-    "uuid": "^10.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/hapi__h2o2": "^8.3.2",
