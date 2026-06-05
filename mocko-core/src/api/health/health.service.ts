@@ -1,5 +1,7 @@
 import {Service} from "../../utils/decorators/service";
 import {RedisProvider} from "../../redis/redis.provider";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { version } = require('../../../package.json') as { version: string };
 
 @Service()
 export class HealthService {
@@ -9,11 +11,11 @@ export class HealthService {
         private readonly redisProvider: RedisProvider,
     ) { }
 
-    async healthCheck(): Promise<number> {
+    async healthCheck() {
         if(this.redisProvider.isEnabled) {
             await this.redisProvider.ping();
         }
-        return this.revision;
+        return { revision: this.revision, version };
     }
 
     bumpRevision(): void {

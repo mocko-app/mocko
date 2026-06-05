@@ -57,6 +57,10 @@ export abstract class Store {
     return readOnlyHosts.find((item) => item.slug === slug) ?? null;
   }
 
+  async getCoreVersion(): Promise<string | null> {
+    return this.coreClient.getCoreVersion();
+  }
+
   abstract deleteMock(id: string): Promise<boolean>;
   abstract clearFailure(mockId: string): Promise<void>;
   abstract listFlags(prefix: string, search?: string): Promise<FlagListResult>;

@@ -40,6 +40,17 @@ export class CoreClient {
     });
   }
 
+  async getCoreVersion(): Promise<string | null> {
+    try {
+      const response = await this.http.get<{ version?: string }>(
+        "/__mocko__/health",
+      );
+      return response.data?.version ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async deploy(definition: CoreDeployDefinition): Promise<void> {
     this.assertConfigured();
     await this.http.post<unknown>("/__mocko__/deploy", definition);

@@ -16,6 +16,7 @@ import type {
   PatchMockDto,
 } from "@/lib/types/mock-dtos";
 import type { Operation, OperationsResponse } from "@/lib/types/operation";
+import type { VersionsDto } from "@/app/api/versions/route";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 
 export type ApiErrorDto = ErrorDto;
@@ -184,6 +185,11 @@ export async function deleteFlag(key: string): Promise<void> {
   } catch (error) {
     throw toApiError(error);
   }
+}
+
+export async function getVersions(): Promise<VersionsDto> {
+  const response = await api.get<VersionsDto>("/api/versions");
+  return response.data;
 }
 
 export async function getOperations(): Promise<OperationsResponse> {

@@ -17,6 +17,40 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { useVersions } from "@/lib/frontend/hooks/resources";
+
+function VersionFooter() {
+  const { data: versions } = useVersions();
+  if (!versions) {
+    return null;
+  }
+
+  const { control, core } = versions;
+  if (!control && !core) {
+    return null;
+  }
+
+  if (control && core && control === core) {
+    return (
+      <div className="mt-auto hidden lg:flex flex-col gap-0.5 px-3 pb-1 items-center">
+        <span className="text-xs text-muted-foreground/50">v{control}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-auto hidden lg:flex flex-col gap-0.5 px-3 pb-1 items-center">
+      {control && (
+        <span className="text-xs text-muted-foreground/50">
+          Control v{control}
+        </span>
+      )}
+      {core && (
+        <span className="text-xs text-muted-foreground/50">Core v{core}</span>
+      )}
+    </div>
+  );
+}
 
 const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
@@ -132,6 +166,8 @@ export function Sidebar() {
           </TooltipContent>
         </Tooltip>
       </nav>
+
+      <VersionFooter />
     </aside>
   );
 }

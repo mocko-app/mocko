@@ -9,6 +9,7 @@ import {
   getFlags,
   toApiError,
   getOperations,
+  getVersions,
   type ApiError,
 } from "@/lib/frontend/api";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
@@ -16,6 +17,7 @@ import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type { OperationsResponse } from "@/lib/types/operation";
+import type { VersionsDto } from "@/app/api/versions/route";
 
 export function useMocks(options?: SWRConfiguration<MockDto[], ApiError>) {
   return useSWR<MockDto[], ApiError>(
@@ -144,4 +146,11 @@ export function useOperations(
       ...options,
     },
   );
+}
+
+export function useVersions() {
+  return useSWR<VersionsDto>("/api/versions", async () => getVersions(), {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 }
