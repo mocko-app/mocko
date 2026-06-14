@@ -6,7 +6,9 @@ import {
   getEffectiveRedisPrefix,
   MockoInstance,
   randomPath,
+  redisFlagFields,
   RedisTestConfig,
+  setControlFlag,
 } from '../../harness';
 
 jest.setTimeout(30000);
@@ -48,12 +50,7 @@ describeRedis('redis flags persistence', () => {
     });
     expect(createMockRes.status).toBe(201);
 
-    const putRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '"active"',
-      },
-    );
+    const putRes = await setControlFlag(control, flagKey, 'active');
     expect(putRes.status).toBe(200);
     expect((await subject.client.get(route)).data).toBe('active');
 
@@ -111,13 +108,13 @@ describeRedis('redis flags persistence', () => {
     const pipeline = redisClient.pipeline();
 
     for (let index = 0; index < 10_050; index += 1) {
-      pipeline.set(
+      pipeline.hset(
         `${effectivePrefix}flags:bulk:alpha:item-${index}`,
-        JSON.stringify(index),
+        redisFlagFields(index),
       );
-      pipeline.set(
+      pipeline.hset(
         `${effectivePrefix}flags:bulk:beta:item-${index}`,
-        JSON.stringify(index),
+        redisFlagFields(index),
       );
     }
 
@@ -159,12 +156,15 @@ describeRedis('redis flags persistence', () => {
     const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
     await redisClient
       .pipeline()
-      .set(`${effectivePrefix}flags:users:1234:status`, JSON.stringify('ok'))
-      .set(
+      .hset(`${effectivePrefix}flags:users:1234:status`, redisFlagFields('ok'))
+      .hset(
         `${effectivePrefix}flags:users:1234:meta:plan`,
-        JSON.stringify('gold'),
+        redisFlagFields('gold'),
       )
-      .set(`${effectivePrefix}flags:users:9999:status`, JSON.stringify('nope'))
+      .hset(
+        `${effectivePrefix}flags:users:9999:status`,
+        redisFlagFields('nope'),
+      )
       .exec();
     redisClient.disconnect();
 
@@ -195,8 +195,8 @@ describeRedis('redis flags persistence', () => {
     const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
     await redisClient
       .pipeline()
-      .set(`${effectivePrefix}flags:users:AbC:status`, JSON.stringify('ok'))
-      .set(`${effectivePrefix}flags:users:xyz:status`, JSON.stringify('nope'))
+      .hset(`${effectivePrefix}flags:users:AbC:status`, redisFlagFields('ok'))
+      .hset(`${effectivePrefix}flags:users:xyz:status`, redisFlagFields('nope'))
       .exec();
     redisClient.disconnect();
 
@@ -227,10 +227,10 @@ describeRedis('redis flags persistence', () => {
     const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
     await redisClient
       .pipeline()
-      .set(`${effectivePrefix}flags:users:1214:device`, JSON.stringify('ios'))
-      .set(
+      .hset(`${effectivePrefix}flags:users:1214:device`, redisFlagFields('ios'))
+      .hset(
         `${effectivePrefix}flags:users:1214:profile:phone`,
-        JSON.stringify('555-1214'),
+        redisFlagFields('555-1214'),
       )
       .exec();
     redisClient.disconnect();

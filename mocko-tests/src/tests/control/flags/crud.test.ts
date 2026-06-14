@@ -1,4 +1,4 @@
-import { createSubject, MockoInstance } from '../../../harness';
+import { createSubject, MockoInstance, setControlFlag } from '../../../harness';
 
 jest.setTimeout(30000);
 
@@ -21,12 +21,7 @@ describe('control flags crud', () => {
     expect(initialList.data.flagKeys).toBeTruthy();
     expect(typeof initialList.data.isTruncated).toBe('boolean');
 
-    const createRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '"pending"',
-      },
-    );
+    const createRes = await setControlFlag(control, flagKey, 'pending');
     expect(createRes.status).toBe(200);
     expect(createRes.data.value).toBe('"pending"');
 
@@ -36,12 +31,7 @@ describe('control flags crud', () => {
     expect(getRes.status).toBe(200);
     expect(getRes.data.value).toBe('"pending"');
 
-    const patchRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '"approved"',
-      },
-    );
+    const patchRes = await setControlFlag(control, flagKey, 'approved');
     expect(patchRes.status).toBe(200);
     expect(patchRes.data.value).toBe('"approved"');
 
@@ -62,6 +52,22 @@ describe('control flags crud', () => {
     expect(missingRes.data.code).toBe('FLAG_NOT_FOUND');
   });
 
+  it('requires a valid source when setting flags via control api', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const missingSourceRes = await control.put('/api/flags/source%3Amissing', {
+      value: '"one"',
+    });
+    expect(missingSourceRes.status).toBe(400);
+
+    const invalidSourceRes = await control.put('/api/flags/source%3Ainvalid', {
+      value: '"one"',
+      source: 'UNKNOWN',
+    });
+    expect(invalidSourceRes.status).toBe(400);
+  });
+
   it('lists nested prefixes and forwards truncation from proxy', async () => {
     subject = await createSubject(
       { '--ui': true },
@@ -71,15 +77,9 @@ describe('control flags crud', () => {
     );
     const control = subject.ensureControl();
 
-    await control.put('/api/flags/users%3Aabc%3Astatus', {
-      value: '"active"',
-    });
-    await control.put('/api/flags/users%3Aabc%3Abalance', {
-      value: '10',
-    });
-    await control.put('/api/flags/users%3Aabc%3Ameta%3Aplan', {
-      value: '"gold"',
-    });
+    await setControlFlag(control, 'users:abc:status', 'active');
+    await setControlFlag(control, 'users:abc:balance', 10);
+    await setControlFlag(control, 'users:abc:meta:plan', 'gold');
 
     const prefixList = await control.get('/api/flags?prefix=users:abc:');
     expect(prefixList.status).toBe(200);
@@ -92,9 +92,7 @@ describe('control flags crud', () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
-    await control.put('/api/flags/foo%3Abar%3Abaz', {
-      value: '"ok"',
-    });
+    await setControlFlag(control, 'foo:bar:baz', 'ok');
 
     const rootList = await control.get('/api/flags');
     expect(rootList.status).toBe(200);
@@ -122,15 +120,9 @@ describe('control flags crud', () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
-    await control.put('/api/flags/users%3A1234%3Astatus', {
-      value: '"active"',
-    });
-    await control.put('/api/flags/users%3A1234%3Ameta%3Aplan', {
-      value: '"gold"',
-    });
-    await control.put('/api/flags/users%3A9999%3Astatus', {
-      value: '"inactive"',
-    });
+    await setControlFlag(control, 'users:1234:status', 'active');
+    await setControlFlag(control, 'users:1234:meta:plan', 'gold');
+    await setControlFlag(control, 'users:9999:status', 'inactive');
 
     const rootSearch = await control.get('/api/flags?q=1234');
     expect(rootSearch.status).toBe(200);
@@ -173,12 +165,8 @@ describe('control flags crud', () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
-    await control.put('/api/flags/users%3AAbC%3Astatus', {
-      value: '"active"',
-    });
-    await control.put('/api/flags/users%3Axyz%3Astatus', {
-      value: '"inactive"',
-    });
+    await setControlFlag(control, 'users:AbC:status', 'active');
+    await setControlFlag(control, 'users:xyz:status', 'inactive');
 
     const scopedSearch = await control.get('/api/flags?prefix=users:&q=ABC');
     expect(scopedSearch.status).toBe(200);
@@ -196,12 +184,8 @@ describe('control flags crud', () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
-    await control.put('/api/flags/users%3A1214%3Adevice', {
-      value: '"ios"',
-    });
-    await control.put('/api/flags/users%3A1214%3Aprofile%3Aphone', {
-      value: '"555-1214"',
-    });
+    await setControlFlag(control, 'users:1214:device', 'ios');
+    await setControlFlag(control, 'users:1214:profile:phone', '555-1214');
 
     const res = await control.get('/api/flags?prefix=users:1214:&q=1214');
     expect(res.status).toBe(200);

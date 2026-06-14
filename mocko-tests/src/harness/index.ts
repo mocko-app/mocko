@@ -1,5 +1,6 @@
 import { MockoInstance, InstanceOptions } from './instance';
 export * from './redis';
+export * from './flags';
 
 export { MockoInstance };
 

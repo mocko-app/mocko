@@ -34,9 +34,9 @@ export const setFlag = (flagService: FlagService) => async function (key: any, v
 
     if (typeof ttlMillis !== 'undefined') {
         validateFlagExpiration(ttlMillis);
-        await flagService.setFlag(key, value ?? null, ttlMillis);
+        await flagService.setFlag(key, value ?? null, 'MOCK', ttlMillis);
     } else {
-        await flagService.setFlag(key, value ?? null);
+        await flagService.setFlag(key, value ?? null, 'MOCK');
     }
 };
 

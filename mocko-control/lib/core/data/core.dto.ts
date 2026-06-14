@@ -1,5 +1,6 @@
 type CoreMockSource = "FILE" | "DEPLOYED";
 type CoreFlagType = "PREFIX" | "FLAG";
+type CoreFlagSource = "MOCK" | "CONTROL" | "SDK";
 
 export type CoreDeployMockDefinition = {
   id?: string;
@@ -77,8 +78,12 @@ export type CoreFlagListDto = {
 
 export type CoreFlagDto = {
   value: string;
+  mockUpdatedAt?: string;
+  controlUpdatedAt?: string;
+  sdkUpdatedAt?: string;
 };
 
 export type CorePutFlagDto = {
   value: string;
+  source: CoreFlagSource;
 };

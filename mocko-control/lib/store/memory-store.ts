@@ -2,7 +2,7 @@ import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
 import { StoreNotSupportedError } from "@/lib/store/store-errors";
-import type { FlagKey, FlagType } from "@/lib/types/flag";
+import type { FlagKey, FlagSource, FlagType } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
@@ -72,12 +72,28 @@ export class MemoryStore extends Store {
       return null;
     }
 
-    return { key, value: flag.value };
+    return {
+      key,
+      value: flag.value,
+      mockUpdatedAt: flag.mockUpdatedAt,
+      controlUpdatedAt: flag.controlUpdatedAt,
+      sdkUpdatedAt: flag.sdkUpdatedAt,
+    };
   }
 
-  async setFlag(key: string, value: string): Promise<StoreFlag> {
-    const flag = await this.coreClient.putCoreFlag(key, { value });
-    return { key, value: flag.value };
+  async setFlag(
+    key: string,
+    value: string,
+    source: FlagSource,
+  ): Promise<StoreFlag> {
+    const flag = await this.coreClient.putCoreFlag(key, { value, source });
+    return {
+      key,
+      value: flag.value,
+      mockUpdatedAt: flag.mockUpdatedAt,
+      controlUpdatedAt: flag.controlUpdatedAt,
+      sdkUpdatedAt: flag.sdkUpdatedAt,
+    };
   }
 
   async deleteFlag(key: string): Promise<boolean> {

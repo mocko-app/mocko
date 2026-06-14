@@ -1,4 +1,4 @@
-import type { FlagKey, FlagType } from "@/lib/types/flag";
+import type { FlagKey, FlagSource, FlagType } from "@/lib/types/flag";
 
 export class FlagKeyDto {
   constructor(
@@ -17,9 +17,15 @@ export class FlagListDto {
 }
 
 export class FlagDto {
-  constructor(public readonly value: string) {}
+  constructor(
+    public readonly value: string,
+    public readonly mockUpdatedAt?: string,
+    public readonly controlUpdatedAt?: string,
+    public readonly sdkUpdatedAt?: string,
+  ) {}
 }
 
 export type PutFlagDto = {
   value: string;
+  source: FlagSource;
 };

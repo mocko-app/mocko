@@ -6,10 +6,19 @@ import { firstString } from "../../utils/utils";
 import { DeployService } from "../deploy/deploy.service";
 import { FlagService } from "./flag.service";
 import { FlagDto, FlagListDto } from "./data/flag.dto";
+import { FLAG_SOURCES, FlagSource } from "./flag.repository";
 
 const setFlagSchema = Joi.object({
     value: Joi.string().required(),
+    source: Joi.string().valid(...FLAG_SOURCES).required(),
+    ttl: Joi.number().positive().optional(),
 }).required();
+
+type SetFlagPayload = {
+    value: string;
+    source: FlagSource;
+    ttl?: number;
+};
 
 @Provider()
 export class FlagController {
@@ -30,21 +39,25 @@ export class FlagController {
         this.deployService.authorizeFlags(request.headers.authorization);
         const key = decodeURIComponent(firstString(request.params['key']));
         this.assertValidKey(key);
-        const { value } = this.parseSetPayload(request.payload);
-        await this.flagService.setFlag(key, this.parseApiValue(value));
-        return FlagDto.of(value);
+        const { value, source, ttl } = this.parseSetPayload(request.payload);
+        const flag = await this.flagService.setFlag(
+            key,
+            this.parseApiValue(value),
+            source,
+            this.parseApiTtlMillis(ttl),
+        );
+        return FlagDto.of(value, flag);
     }
 
     async getFlag(request: Hapi.Request): Promise<FlagDto> {
         this.deployService.authorizeFlags(request.headers.authorization);
         const key = decodeURIComponent(firstString(request.params['key']));
-        const exists = await this.flagService.hasFlag(key);
-        if(!exists) {
+        const flag = await this.flagService.getFlagDetails(key);
+        if(!flag) {
             throw Boom.notFound(`Flag "${key}" was not found`);
         }
 
-        const flag = await this.flagService.getFlag(key);
-        return FlagDto.ofJson(flag);
+        return FlagDto.ofFlag(flag);
     }
 
     async deleteFlag(request: Hapi.Request, h: Hapi.ResponseToolkit) {
@@ -54,7 +67,7 @@ export class FlagController {
         return h.response().code(204);
     }
 
-    private parseSetPayload(payload: unknown): { value: string } {
+    private parseSetPayload(payload: unknown): SetFlagPayload {
         const validation = setFlagSchema.validate(payload, {
             abortEarly: false,
             stripUnknown: true,
@@ -64,6 +77,10 @@ export class FlagController {
         }
 
         return validation.value;
+    }
+
+    private parseApiTtlMillis(ttl: number | undefined): number | undefined {
+        return typeof ttl === 'undefined' ? undefined : ttl * 1000;
     }
 
     private parseApiValue(value: string): any {

@@ -1,3 +1,5 @@
+import { Flag } from "../flag.repository";
+
 type FlagType = 'PREFIX' | 'FLAG';
 
 export class FlagKeyDto {
@@ -32,13 +34,26 @@ export class FlagListDto {
 export class FlagDto {
     private constructor(
         public readonly value: string,
+        public readonly mockUpdatedAt?: string,
+        public readonly controlUpdatedAt?: string,
+        public readonly sdkUpdatedAt?: string,
     ) { }
 
-    static of(value: string): FlagDto {
-        return new FlagDto(value);
+    static of(value: string, flag?: Partial<Flag>): FlagDto {
+        return new FlagDto(
+            value,
+            flag?.mockUpdatedAt,
+            flag?.controlUpdatedAt,
+            flag?.sdkUpdatedAt,
+        );
     }
 
-    static ofJson(value: any): FlagDto {
-        return new FlagDto(JSON.stringify(value));
+    static ofFlag(flag: Flag): FlagDto {
+        return new FlagDto(
+            JSON.stringify(flag.value),
+            flag.mockUpdatedAt,
+            flag.controlUpdatedAt,
+            flag.sdkUpdatedAt,
+        );
     }
 }

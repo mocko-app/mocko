@@ -1,9 +1,10 @@
 import {
   createRedisSubject,
   describeRedis,
+  flagPayload,
+  flushRedis,
   MockoInstance,
   RedisTestConfig,
-  flushRedis,
 } from '../../harness';
 
 jest.setTimeout(45000);
@@ -38,11 +39,11 @@ describeRedis('redis management operations', () => {
     const recentA = `${prefix}:recent:a`;
     const recentB = `${prefix}:recent:b`;
 
-    await putFlag(subject, oldA, '"old-a"');
-    await putFlag(subject, oldB, '"old-b"');
+    await putFlag(subject, oldA, 'old-a');
+    await putFlag(subject, oldB, 'old-b');
     await sleep(3100);
-    await putFlag(subject, recentA, '"recent-a"');
-    await putFlag(subject, recentB, '"recent-b"');
+    await putFlag(subject, recentA, 'recent-a');
+    await putFlag(subject, recentB, 'recent-b');
 
     const createRes = await control.post('/api/operations', {
       type: 'STALE_FLAGS',
@@ -87,7 +88,7 @@ describeRedis('redis management operations', () => {
     const control = subject.ensureControl();
     const flagKey = `${randomFlagPrefix()}:cancel`;
 
-    await putFlag(subject, flagKey, '"stale"');
+    await putFlag(subject, flagKey, 'stale');
     await sleep(3100);
 
     const createRes = await control.post('/api/operations', {
@@ -122,7 +123,7 @@ describeRedis('redis management operations', () => {
     const control = subject.ensureControl();
     const flagKey = `${randomFlagPrefix()}:done`;
 
-    await putFlag(subject, flagKey, '"stale"');
+    await putFlag(subject, flagKey, 'stale');
     await sleep(3100);
 
     const createRes = await control.post('/api/operations', {
@@ -166,9 +167,7 @@ describeRedis('redis management operations', () => {
 async function putFlag(subject: MockoInstance, key: string, value: string) {
   return await subject
     .ensureControl()
-    .put(`/api/flags/${encodeURIComponent(key)}`, {
-      value,
-    });
+    .put(`/api/flags/${encodeURIComponent(key)}`, flagPayload(value));
 }
 
 async function getFlag(subject: MockoInstance, key: string) {

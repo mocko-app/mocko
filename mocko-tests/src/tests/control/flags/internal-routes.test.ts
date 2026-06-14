@@ -1,4 +1,4 @@
-import { createSubject, MockoInstance } from '../../../harness';
+import { createSubject, MockoInstance, setCoreFlag } from '../../../harness';
 
 describe('proxy __mocko__ flags routes', () => {
   let subject: MockoInstance;
@@ -38,11 +38,10 @@ describe('proxy __mocko__ flags routes', () => {
   it('supports full lifecycle in default deploy auth mode', async () => {
     subject = await createSubject();
 
-    const createRes = await subject.client.put(
-      '/__mocko__/flags/internal%3Atest%3Aflag',
-      {
-        value: '"one"',
-      },
+    const createRes = await setCoreFlag(
+      subject.client,
+      'internal:test:flag',
+      'one',
     );
     expect(createRes.status).toBe(200);
 
@@ -58,11 +57,10 @@ describe('proxy __mocko__ flags routes', () => {
     expect(getRes.status).toBe(200);
     expect(getRes.data.value).toBe('"one"');
 
-    const patchRes = await subject.client.put(
-      '/__mocko__/flags/internal%3Atest%3Aflag',
-      {
-        value: '"two"',
-      },
+    const patchRes = await setCoreFlag(
+      subject.client,
+      'internal:test:flag',
+      'two',
     );
     expect(patchRes.status).toBe(200);
     expect(patchRes.data.value).toBe('"two"');
@@ -77,18 +75,33 @@ describe('proxy __mocko__ flags routes', () => {
     expect(idempotentDeleteRes.status).toBe(204);
   });
 
+  it('requires a valid source when setting flags on __mocko__ routes', async () => {
+    subject = await createSubject();
+
+    const missingSourceRes = await subject.client.put(
+      '/__mocko__/flags/source%3Amissing',
+      {
+        value: '"one"',
+      },
+    );
+    expect(missingSourceRes.status).toBe(400);
+
+    const invalidSourceRes = await subject.client.put(
+      '/__mocko__/flags/source%3Ainvalid',
+      {
+        value: '"one"',
+        source: 'UNKNOWN',
+      },
+    );
+    expect(invalidSourceRes.status).toBe(400);
+  });
+
   it('supports scoped search and returns prefix counts on __mocko__ routes', async () => {
     subject = await createSubject();
 
-    await subject.client.put('/__mocko__/flags/internal%3Atest%3Aone', {
-      value: '"one"',
-    });
-    await subject.client.put('/__mocko__/flags/internal%3Atest%3Atwo', {
-      value: '"two"',
-    });
-    await subject.client.put('/__mocko__/flags/internal%3Aother%3Aone', {
-      value: '"three"',
-    });
+    await setCoreFlag(subject.client, 'internal:test:one', 'one');
+    await setCoreFlag(subject.client, 'internal:test:two', 'two');
+    await setCoreFlag(subject.client, 'internal:other:one', 'three');
 
     const searchRes = await subject.client.get(
       '/__mocko__/flags?prefix=internal:&q=test',
