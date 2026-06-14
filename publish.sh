@@ -20,12 +20,15 @@ log() {
 
 publish_package() {
   local package_dir="$1"
+  local package_name
 
   log "Publishing ${package_dir} with version ${VERSION}"
   pushd "${ROOT_DIR}/${package_dir}" >/dev/null
   npm version "${VERSION}" --no-git-tag-version --allow-same-version
   npm install
-  npm publish
+  npm publish --tag beta
+  package_name=$(node -p "require('./package.json').name")
+  npm dist-tag add "${package_name}@${VERSION}" alpha
   popd >/dev/null
 }
 
@@ -44,15 +47,15 @@ publish_docker_image() {
 }
 
 log "Logging in to npm"
-npm login
+#npm login
 
 log "Installing root dependencies"
 pushd "${ROOT_DIR}" >/dev/null
-npm install
+#npm install
 popd >/dev/null
 
-publish_package "mocko-core"
-publish_package "mocko-control"
+#publish_package "mocko-core"
+#publish_package "mocko-control"
 
 publish_docker_image "${CORE_IMAGE}" "mocko-core"
 publish_docker_image "${CONTROL_IMAGE}" "mocko-control"
@@ -63,7 +66,8 @@ npm pkg set "dependencies.@mocko/core=${VERSION}" "dependencies.@mocko/control=$
 npm install
 npm version "${VERSION}" --no-git-tag-version --allow-same-version
 npm install
-npm publish
+npm publish --tag beta
+npm dist-tag add "@mocko/cli@${VERSION}" alpha
 popd >/dev/null
 
 log "Updating standalone Dockerfile"
