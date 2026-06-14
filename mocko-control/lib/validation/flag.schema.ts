@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { FLAG_SOURCES } from "@/lib/types/flag";
 
 export const putFlagSchema = z.object({
   value: z.string(),
+  source: z.enum(FLAG_SOURCES),
 });
 
 export type PutFlagInput = z.infer<typeof putFlagSchema>;

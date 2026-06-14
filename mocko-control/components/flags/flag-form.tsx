@@ -141,7 +141,7 @@ export function FlagForm(props: FlagFormProps) {
 
     try {
       setIsSubmitting(true);
-      await putFlag(targetKey, { value });
+      await putFlag(targetKey, value);
       await revalidateFlagCaches();
       if (isCreate) {
         router.push(`/flags/${encodeURIComponent(targetKey)}`);

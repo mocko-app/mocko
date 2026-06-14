@@ -4,7 +4,7 @@ import type {
   ParsingError,
   ValidationErrors,
 } from "@/lib/types/error-dtos";
-import type { FlagDto, FlagListDto, PutFlagDto } from "@/lib/types/flag-dtos";
+import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type {
   CreateHostDto,
   HostDto,
@@ -162,16 +162,13 @@ export async function getFlag(key: string): Promise<FlagDto> {
   }
 }
 
-export async function putFlag(
-  key: string,
-  payload: PutFlagDto,
-): Promise<FlagDto> {
+export async function putFlag(key: string, value: string): Promise<FlagDto> {
   try {
     const encodedKey = encodeURIComponent(key);
-    const response = await api.put<FlagDto>(
-      `/api/flags/${encodedKey}`,
-      payload,
-    );
+    const response = await api.put<FlagDto>(`/api/flags/${encodedKey}`, {
+      value,
+      source: "CONTROL",
+    });
     return response.data;
   } catch (error) {
     throw toApiError(error);

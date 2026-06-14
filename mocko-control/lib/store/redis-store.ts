@@ -2,7 +2,7 @@ import Redis, { type Redis as RedisClient, type RedisOptions } from "ioredis";
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
-import type { FlagKey } from "@/lib/types/flag";
+import type { FlagKey, FlagSource } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
@@ -29,6 +29,13 @@ const OPERATIONS_BATCH_SIZE = 1_000;
 type GroupCounts = {
   total: number;
   matches: number;
+};
+
+type RedisFlagFields = {
+  value?: string;
+  mockUpdatedAt?: string;
+  controlUpdatedAt?: string;
+  sdkUpdatedAt?: string;
 };
 
 export class RedisStore extends Store {
@@ -196,18 +203,24 @@ export class RedisStore extends Store {
   }
 
   async getFlag(key: string): Promise<StoreFlag | null> {
-    const value = await this.redis.get(`${FLAG_PREFIX}${key}`);
-    if (value === null) {
-      return null;
-    }
-
-    return { key, value };
+    const payload = await this.redis.hgetall(`${FLAG_PREFIX}${key}`);
+    return this.deserializeFlag(key, payload);
   }
 
-  async setFlag(key: string, value: string): Promise<StoreFlag> {
+  async setFlag(
+    key: string,
+    value: string,
+    source: FlagSource,
+  ): Promise<StoreFlag> {
     const normalizedValue = JSON.stringify(JSON.parse(value));
-    await this.redis.set(`${FLAG_PREFIX}${key}`, normalizedValue);
-    return { key, value: normalizedValue };
+    const fields = this.serializeFlag(normalizedValue, source);
+    await this.redis.hset(`${FLAG_PREFIX}${key}`, fields);
+    const flag = await this.getFlag(key);
+    if (!flag) {
+      throw new Error(`Flag "${key}" was not found after being written`);
+    }
+
+    return flag;
   }
 
   async deleteFlag(key: string): Promise<boolean> {
@@ -415,6 +428,46 @@ export class RedisStore extends Store {
     }
 
     return prefix.endsWith(":") ? prefix : `${prefix}:`;
+  }
+
+  private serializeFlag(
+    value: string,
+    source: FlagSource,
+  ): Record<string, string> {
+    return {
+      value,
+      [this.updatedAtField(source)]: new Date().toISOString(),
+    };
+  }
+
+  private deserializeFlag(
+    key: string,
+    payload: RedisFlagFields,
+  ): StoreFlag | null {
+    if (typeof payload.value === "undefined") {
+      return null;
+    }
+
+    return {
+      key,
+      value: payload.value,
+      mockUpdatedAt: payload.mockUpdatedAt,
+      controlUpdatedAt: payload.controlUpdatedAt,
+      sdkUpdatedAt: payload.sdkUpdatedAt,
+    };
+  }
+
+  private updatedAtField(
+    source: FlagSource,
+  ): "mockUpdatedAt" | "controlUpdatedAt" | "sdkUpdatedAt" {
+    switch (source) {
+      case "MOCK":
+        return "mockUpdatedAt";
+      case "CONTROL":
+        return "controlUpdatedAt";
+      case "SDK":
+        return "sdkUpdatedAt";
+    }
   }
 
   private async findStaleKeys(

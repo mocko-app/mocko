@@ -2,7 +2,7 @@ import { RedisProvider } from "../../redis/redis.provider";
 import {Service} from "../../utils/decorators/service";
 import { FlagMemoryRepository } from "./flag.memory-repository";
 import { FlagRedisRepository } from "./flag.redis-repository";
-import { FlagRepository } from "./flag.repository";
+import { Flag, FlagRepository, FlagSource } from "./flag.repository";
 import { configProvider } from "../../config/config.service";
 import { FlagKeyDto, FlagListDto } from "./data/flag.dto";
 
@@ -28,11 +28,16 @@ export class FlagService {
         }
     }
 
-    async setFlag(key: string, value: any, ttlMillis?: number): Promise<void> {
-        await this.repository.set(key, value, ttlMillis);
+    async setFlag(key: string, value: any, source: FlagSource, ttlMillis?: number): Promise<Flag> {
+        return await this.repository.set(key, value, source, ttlMillis);
     }
 
     async getFlag(key: string): Promise<any> {
+        const flag = await this.repository.get(key);
+        return flag?.value ?? null;
+    }
+
+    async getFlagDetails(key: string): Promise<Flag | null> {
         return await this.repository.get(key);
     }
 

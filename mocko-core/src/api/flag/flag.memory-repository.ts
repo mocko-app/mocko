@@ -1,16 +1,22 @@
 import {Service} from "../../utils/decorators/service";
-import { FlagRepository } from "./flag.repository";
+import { Flag, FlagRepository, FlagSource } from "./flag.repository";
 
 @Service()
 export class FlagMemoryRepository implements FlagRepository {
     private readonly flags: Map<string, any> = new Map();
 
-    async set(key: string, value: any, _ttlMillis?: number): Promise<void> {
+    async set(key: string, value: any, _source: FlagSource, _ttlMillis?: number): Promise<Flag> {
         this.flags.set(key, value);
+        return { value };
     }
 
-    async get(key: string): Promise<any> {
-        return this.flags.get(key);
+    async get(key: string): Promise<Flag | null> {
+        if(!this.flags.has(key)) {
+            return null;
+        }
+
+        const value = this.flags.get(key);
+        return { value };
     }
 
     async del(key: string): Promise<void> {

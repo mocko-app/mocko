@@ -6,6 +6,7 @@ type FlagDto = {
 
 type SetFlagPayload = {
   value: string;
+  source: 'SDK';
   ttl?: number;
 };
 
@@ -44,6 +45,7 @@ export class MockoTransport {
   ): Promise<void> {
     const payload: SetFlagPayload = {
       value: this.serializeValue(value, key),
+      source: 'SDK',
       ttl,
     };
 

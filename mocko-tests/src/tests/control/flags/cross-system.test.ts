@@ -1,4 +1,9 @@
-import { createSubject, MockoInstance, randomPath } from '../../../harness';
+import {
+  createSubject,
+  MockoInstance,
+  randomPath,
+  setControlFlag,
+} from '../../../harness';
 
 describe('control/proxy flags consistency', () => {
   let subject: MockoInstance;
@@ -174,12 +179,7 @@ describe('control/proxy flags consistency', () => {
       }
     `);
 
-    const createRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '"foo"',
-      },
-    );
+    const createRes = await setControlFlag(control, flagKey, 'foo');
     expect(createRes.status).toBe(200);
 
     let listRes = await control.get('/api/flags');
@@ -226,12 +226,7 @@ describe('control/proxy flags consistency', () => {
       }
     `);
 
-    const createRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '42',
-      },
-    );
+    const createRes = await setControlFlag(control, flagKey, 42);
     expect(createRes.status).toBe(200);
 
     let listRes = await control.get('/api/flags');
@@ -278,12 +273,7 @@ describe('control/proxy flags consistency', () => {
       }
     `);
 
-    const createRes = await control.put(
-      `/api/flags/${encodeURIComponent(flagKey)}`,
-      {
-        value: '{"value":42}',
-      },
-    );
+    const createRes = await setControlFlag(control, flagKey, { value: 42 });
     expect(createRes.status).toBe(200);
 
     let listRes = await control.get('/api/flags');
@@ -316,5 +306,35 @@ describe('control/proxy flags consistency', () => {
     const subjectGetRes = await subject.client.get(getPath);
     expect(subjectGetRes.status).toBe(200);
     expect(subjectGetRes.data).toBe('num: 42');
+  });
+
+  it('should keep null flags as existing when written by mocks', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+    const setPath = randomPath();
+    const hasPath = randomPath();
+    const flagKey = 'mock:flow:null';
+
+    await subject.createMock(`
+      mock "PUT ${setPath}" {
+        body = "{{setFlag '${flagKey}' request.body.value}}"
+      }
+      mock "GET ${hasPath}" {
+        body = "{{#hasFlag '${flagKey}'}}yes{{else}}no{{/hasFlag}}"
+      }
+    `);
+
+    const writeRes = await subject.client.put(setPath, { value: null });
+    expect(writeRes.status).toBe(200);
+
+    const controlGetRes = await control.get(
+      `/api/flags/${encodeURIComponent(flagKey)}`,
+    );
+    expect(controlGetRes.status).toBe(200);
+    expect(controlGetRes.data.value).toBe('null');
+
+    const hasRes = await subject.client.get(hasPath);
+    expect(hasRes.status).toBe(200);
+    expect(hasRes.data).toBe('yes');
   });
 });

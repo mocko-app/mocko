@@ -1,6 +1,6 @@
 import { toReadOnlyDetailsMock, toReadOnlyMock } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
-import type { FlagKey } from "@/lib/types/flag";
+import type { FlagKey, FlagSource } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock, MockAnnotation } from "@/lib/types/mock";
@@ -9,6 +9,9 @@ import type { Operation, OperationUpdate } from "@/lib/types/operation";
 export type StoreFlag = {
   key: string;
   value: string;
+  mockUpdatedAt?: string;
+  controlUpdatedAt?: string;
+  sdkUpdatedAt?: string;
 };
 
 export type FlagListResult = {
@@ -65,7 +68,11 @@ export abstract class Store {
   abstract clearFailure(mockId: string): Promise<void>;
   abstract listFlags(prefix: string, search?: string): Promise<FlagListResult>;
   abstract getFlag(key: string): Promise<StoreFlag | null>;
-  abstract setFlag(key: string, value: string): Promise<StoreFlag>;
+  abstract setFlag(
+    key: string,
+    value: string,
+    source: FlagSource,
+  ): Promise<StoreFlag>;
   abstract deleteFlag(key: string): Promise<boolean>;
   abstract deleteHost(slug: string): Promise<boolean>;
   abstract deploy(): Promise<void>;

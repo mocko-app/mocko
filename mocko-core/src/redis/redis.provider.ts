@@ -65,6 +65,22 @@ export class RedisProvider {
         }
     }
 
+    async hget(key: string, field: string): Promise<string | null> {
+        return await this.connector.hget(key, field);
+    }
+
+    async hgetall(key: string): Promise<Record<string, string>> {
+        return await this.connector.hgetall(key);
+    }
+
+    async hset(key: string, fields: Record<string, string>): Promise<void> {
+        await this.connector.hset(key, fields);
+    }
+
+    multi(): Redis.Pipeline {
+        return this.connector.multi();
+    }
+
     async publish(channel: string, message: string): Promise<void> {
         if(!this.isEnabled) {
             return;

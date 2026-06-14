@@ -18,13 +18,23 @@ export class FlagService {
       throw HttpResponseError.flagNotFound(key);
     }
 
-    return new FlagDto(flag.value);
+    return new FlagDto(
+      flag.value,
+      flag.mockUpdatedAt,
+      flag.controlUpdatedAt,
+      flag.sdkUpdatedAt,
+    );
   }
 
   async setFlag(key: string, input: PutFlagInput): Promise<FlagDto> {
     this.assertValueIsValidJson(input.value);
-    const flag = await this.store.setFlag(key, input.value);
-    return new FlagDto(flag.value);
+    const flag = await this.store.setFlag(key, input.value, input.source);
+    return new FlagDto(
+      flag.value,
+      flag.mockUpdatedAt,
+      flag.controlUpdatedAt,
+      flag.sdkUpdatedAt,
+    );
   }
 
   async deleteFlag(key: string): Promise<void> {
