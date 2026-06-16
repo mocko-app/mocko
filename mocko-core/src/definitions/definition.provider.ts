@@ -181,9 +181,7 @@ export class DefinitionProvider {
         const definition = definitionFromConfig(data, (e) =>
             this.logger.warn(`Invalid mock on file '${path}': ${e.message}`),
         );
-        definition.mocks = definition.mocks.map((mock) =>
-            this.withFileMetadata(path, mock),
-        );
+        definition.mocks = this.withFileMetadata(path, definition.mocks);
         return definition;
     }
 
@@ -194,17 +192,37 @@ export class DefinitionProvider {
         }));
     }
 
-    private withFileMetadata(filePath: string, mock: Mock): Mock {
+    private withFileMetadata(filePath: string, mocks: Mock[]): Mock[] {
         const normalizedFilePath = relative(MOCKS_DIR, filePath)
             .replace(/\\/g, '/');
-        const idSeed = `${normalizedFilePath}:${mock.method}:${mock.path}`;
+        const seeds = mocks.map((mock) => this.fileIdSeed(normalizedFilePath, mock));
+        const idSeeds = this.disambiguateSeeds(seeds);
 
-        return {
+        return mocks.map((mock, index) => ({
             ...mock,
-            id: mock.id || uuidv5(idSeed, FILE_ID_NAMESPACE),
+            id: mock.id || uuidv5(idSeeds[index], FILE_ID_NAMESPACE),
             name: mock.name?.trim() || normalizedFilePath,
             filePath: normalizedFilePath,
             source: 'FILE',
-        };
+        }));
+    }
+
+    private fileIdSeed(normalizedFilePath: string, mock: Mock): string {
+        const base = `${normalizedFilePath}:${mock.method}:${mock.path}`;
+        return mock.host ? `${base}:${mock.host}` : base;
+    }
+
+    private disambiguateSeeds(seeds: string[]): string[] {
+        const counts = new Map<string, number>();
+        for (const seed of seeds) {
+            counts.set(seed, (counts.get(seed) || 0) + 1);
+        }
+
+        const occurrences = new Map<string, number>();
+        return seeds.map((seed) => {
+            const occurrence = occurrences.get(seed) || 0;
+            occurrences.set(seed, occurrence + 1);
+            return (counts.get(seed) || 0) > 1 ? `${seed}#${occurrence}` : seed;
+        });
     }
 }

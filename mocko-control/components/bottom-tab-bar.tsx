@@ -29,7 +29,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 md:hidden flex border-t border-[#1c1c1e] bg-background"
+      className="fixed bottom-0 left-0 right-0 z-50 h-16 md:hidden flex border-t border-[#1c1c1e] bg-background"
       aria-label="Main navigation"
     >
       {navItems.map(({ label, href, icon: Icon, external }) => {
@@ -43,7 +43,7 @@ export function BottomTabBar() {
             href={href}
             {...props}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-3 text-xs transition-colors",
+              "flex flex-1 flex-col items-center justify-center gap-1 text-xs transition-colors",
               active ? "text-primary" : "text-muted-foreground",
             )}
           >
