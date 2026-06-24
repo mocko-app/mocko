@@ -90,9 +90,6 @@ popd >/dev/null
 log "Updating standalone Dockerfile"
 sed -i "s/@mocko\/cli@[^ ]*/@mocko\/cli@${VERSION}/" "${ROOT_DIR}/docker-images/standalone/Dockerfile"
 
-log "Updating Helm chart appVersion"
-sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT_DIR}/helm-charts/mocko/Chart.yaml"
-
 log "Waiting for npm distribution before building standalone image"
 sleep 60
 publish_docker_image "${STANDALONE_IMAGE}" "docker-images/standalone"

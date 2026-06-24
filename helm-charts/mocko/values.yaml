@@ -12,7 +12,7 @@ core:
     repository: ghcr.io/mocko-app/core
     # Defaults to the chart's appVersion if left empty.
     tag: ""
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   replicas: 1
 
@@ -65,7 +65,7 @@ control:
     repository: ghcr.io/mocko-app/control
     # Defaults to the chart's appVersion if left empty.
     tag: ""
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   # Control handles only developer traffic; 1 replica is almost always enough.
   replicas: 1
