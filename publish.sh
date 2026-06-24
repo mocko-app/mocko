@@ -13,6 +13,16 @@ CORE_IMAGE="${CORE_IMAGE:-ghcr.io/mocko-app/core}"
 CONTROL_IMAGE="${CONTROL_IMAGE:-ghcr.io/mocko-app/control}"
 STANDALONE_IMAGE="${STANDALONE_IMAGE:-ghcr.io/mocko-app/standalone}"
 
+if [[ ! "${VERSION}" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)([-+].*)?$ ]]; then
+  echo "Invalid version: ${VERSION}"
+  exit 1
+fi
+
+MAJOR_VERSION="${BASH_REMATCH[1]}"
+MINOR_VERSION="${BASH_REMATCH[2]}"
+MAJOR_MINOR_VERSION="${MAJOR_VERSION}.${MINOR_VERSION}"
+DOCKER_TAGS=("${VERSION}" "${MAJOR_MINOR_VERSION}" "${MAJOR_VERSION}" "latest")
+
 log() {
   echo
   echo "==> $*"
@@ -35,15 +45,22 @@ publish_package() {
 publish_docker_image() {
   local image="$1"
   local context_dir="$2"
-  local image_tag="${image}:${VERSION}"
+  local tag
+  local image_tags=()
 
-  log "Building Docker image ${image_tag}"
+  for tag in "${DOCKER_TAGS[@]}"; do
+    image_tags+=("-t" "${image}:${tag}")
+  done
+
+  log "Building Docker image ${image}:${VERSION}"
   docker build \
-    -t "${image_tag}" \
+    "${image_tags[@]}" \
     "${ROOT_DIR}/${context_dir}"
 
-  log "Pushing Docker image ${image_tag}"
-  docker push "${image_tag}"
+  for tag in "${DOCKER_TAGS[@]}"; do
+    log "Pushing Docker image ${image}:${tag}"
+    docker push "${image}:${tag}"
+  done
 }
 
 log "Logging in to npm"
