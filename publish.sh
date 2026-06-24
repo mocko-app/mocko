@@ -64,15 +64,15 @@ publish_docker_image() {
 }
 
 log "Logging in to npm"
-#npm login
+npm login
 
 log "Installing root dependencies"
 pushd "${ROOT_DIR}" >/dev/null
-#npm install
+npm install
 popd >/dev/null
 
-#publish_package "mocko-core"
-#publish_package "mocko-control"
+publish_package "mocko-core"
+publish_package "mocko-control"
 
 publish_docker_image "${CORE_IMAGE}" "mocko-core"
 publish_docker_image "${CONTROL_IMAGE}" "mocko-control"
