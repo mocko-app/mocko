@@ -3,7 +3,9 @@ FROM node:24-alpine
 ENV MOCKO_URL= \
     MOCKO_TIMEOUT=30000
 
-RUN npm i -g @mocko/cli@2.0.0-beta.5 && \
+RUN npm i -g @mocko/cli@2.0.0-beta.7 --omit=dev --omit=optional --no-audit --no-fund && \
+    npm cache clean --force && \
+    rm -rf /tmp/* && \
     adduser -D -u 10001 mocko && \
     mkdir -p /var/mocks && chown -R mocko:mocko /var/mocks
 
