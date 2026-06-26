@@ -38,24 +38,49 @@ export class OperationService {
   async createOperation(input: CreateOperationInput): Promise<Operation> {
     this.assertManagementSupported();
 
-    const operation: Operation = {
+    const baseOperation = {
       id: randomUUID(),
-      type: "STALE_FLAGS",
-      status: "SCANNING",
+      status: "SCANNING" as const,
       createdAt: new Date().toISOString(),
-      staleFlagsData: {
-        thresholdSeconds: input.staleFlagsData.thresholdSeconds,
-        scannedCount: 0,
-      },
     };
 
+    const operation: Operation =
+      input.type === "STALE_FLAGS"
+        ? {
+            ...baseOperation,
+            type: "STALE_FLAGS",
+            staleFlagsData: {
+              thresholdSeconds: input.staleFlagsData.thresholdSeconds,
+              scannedCount: 0,
+            },
+          }
+        : {
+            ...baseOperation,
+            type: "MATCHING_FLAGS",
+            matchingFlagsData: {
+              mode: input.matchingFlagsData.mode,
+              pattern: input.matchingFlagsData.pattern,
+              scannedCount: 0,
+            },
+          };
+
     await this.store.createOperation(operation);
-    this.runBackground(operation.id, () =>
-      this.store.scanStaleFlagsForManagement(
-        operation.id,
-        input.staleFlagsData.thresholdSeconds,
-      ),
-    );
+    if (input.type === "STALE_FLAGS") {
+      this.runBackground(operation.id, () =>
+        this.store.scanStaleFlagsForManagement(
+          operation.id,
+          input.staleFlagsData.thresholdSeconds,
+        ),
+      );
+    } else {
+      this.runBackground(operation.id, () =>
+        this.store.scanMatchingFlagsForManagement(
+          operation.id,
+          input.matchingFlagsData.mode,
+          input.matchingFlagsData.pattern,
+        ),
+      );
+    }
 
     return operation;
   }

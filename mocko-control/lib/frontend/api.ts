@@ -15,7 +15,11 @@ import type {
   MockDetailsDto,
   PatchMockDto,
 } from "@/lib/types/mock-dtos";
-import type { Operation, OperationsResponse } from "@/lib/types/operation";
+import type {
+  MatchingFlagsMode,
+  Operation,
+  OperationsResponse,
+} from "@/lib/types/operation";
 import type { VersionsDto } from "@/app/api/versions/route";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 
@@ -198,14 +202,21 @@ export async function getOperations(): Promise<OperationsResponse> {
   }
 }
 
+export type CreateOperationPayload =
+  | {
+      type: "STALE_FLAGS";
+      staleFlagsData: { thresholdSeconds: number };
+    }
+  | {
+      type: "MATCHING_FLAGS";
+      matchingFlagsData: { mode: MatchingFlagsMode; pattern: string };
+    };
+
 export async function createOperation(
-  thresholdSeconds: number,
+  payload: CreateOperationPayload,
 ): Promise<Operation> {
   try {
-    const response = await api.post<Operation>("/api/operations", {
-      type: "STALE_FLAGS",
-      staleFlagsData: { thresholdSeconds },
-    });
+    const response = await api.post<Operation>("/api/operations", payload);
     return response.data;
   } catch (error) {
     throw toApiError(error);

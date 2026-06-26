@@ -6,7 +6,11 @@ import type { FlagKey, FlagSource, FlagType } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
-import type { Operation, OperationUpdate } from "@/lib/types/operation";
+import type {
+  MatchingFlagsMode,
+  Operation,
+  OperationUpdate,
+} from "@/lib/types/operation";
 
 export class MemoryStore extends Store {
   readonly isManagementSupported = false;
@@ -159,6 +163,17 @@ export class MemoryStore extends Store {
   ): Promise<void> {
     void _operationId;
     void _thresholdSeconds;
+    throw new StoreNotSupportedError();
+  }
+
+  async scanMatchingFlagsForManagement(
+    _operationId: string,
+    _mode: MatchingFlagsMode,
+    _pattern: string,
+  ): Promise<void> {
+    void _operationId;
+    void _mode;
+    void _pattern;
     throw new StoreNotSupportedError();
   }
 

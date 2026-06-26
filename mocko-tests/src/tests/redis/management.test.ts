@@ -79,6 +79,164 @@ describeRedis('redis management operations', () => {
     expect((await getFlag(subject, recentB)).status).toBe(200);
   });
 
+  it('scans matching flags in prefix, contains, and regex modes', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const prefix = randomFlagPrefix();
+    await putFlag(subject, `${prefix}:payments:eu:on`, 'payments-eu');
+    await putFlag(subject, `${prefix}:payments:us:on`, 'payments-us');
+    await putFlag(subject, `${prefix}:legacy:eu:on`, 'legacy-eu');
+    await putFlag(subject, `${prefix}:other:br:on`, 'other-br');
+
+    await expectMatchingScan(subject, {
+      mode: 'PREFIX',
+      pattern: `${prefix}:payments:`,
+      scannedCount: 4,
+      matchedCount: 2,
+    });
+    await expectMatchingScan(subject, {
+      mode: 'CONTAINS',
+      pattern: ':eu:',
+      scannedCount: 4,
+      matchedCount: 2,
+    });
+    await expectMatchingScan(subject, {
+      mode: 'REGEX',
+      pattern: 'legacy:.*:on$',
+      scannedCount: 4,
+      matchedCount: 1,
+    });
+  });
+
+  it('treats prefix and contains patterns as literal text', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const prefix = randomFlagPrefix();
+    await putFlag(subject, `${prefix}.eu:enabled`, 'prefix-hit');
+    await putFlag(subject, `${prefix}Xeu:enabled`, 'prefix-miss');
+    await putFlag(subject, `${prefix}:zone.eu:enabled`, 'contains-hit');
+    await putFlag(subject, `${prefix}:zoneXeu:enabled`, 'contains-miss');
+
+    await expectMatchingScan(subject, {
+      mode: 'PREFIX',
+      pattern: `${prefix}.eu`,
+      scannedCount: 4,
+      matchedCount: 1,
+    });
+    await expectMatchingScan(subject, {
+      mode: 'CONTAINS',
+      pattern: '.eu',
+      scannedCount: 4,
+      matchedCount: 2,
+    });
+  });
+
+  it('accepts match-all patterns and reports zero-match scans as ready', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const prefix = randomFlagPrefix();
+    await putFlag(subject, `${prefix}:a`, 'a');
+    await putFlag(subject, `${prefix}:b`, 'b');
+
+    await expectMatchingScan(subject, {
+      mode: 'REGEX',
+      pattern: '.*',
+      scannedCount: 2,
+      matchedCount: 2,
+    });
+    await expectMatchingScan(subject, {
+      mode: 'PREFIX',
+      pattern: `${prefix}:missing`,
+      scannedCount: 2,
+      matchedCount: 0,
+    });
+  });
+
+  it('rejects empty matching patterns and invalid regex before scanning', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const control = subject.ensureControl();
+
+    const emptyPatternRes = await control.post('/api/operations', {
+      type: 'MATCHING_FLAGS',
+      matchingFlagsData: { mode: 'PREFIX', pattern: '' },
+    });
+    expect(emptyPatternRes.status).toBe(400);
+
+    const invalidRegexRes = await control.post('/api/operations', {
+      type: 'MATCHING_FLAGS',
+      matchingFlagsData: { mode: 'REGEX', pattern: '[' },
+    });
+    expect(invalidRegexRes.status).toBe(400);
+    expect(JSON.stringify(invalidRegexRes.data.errors)).toContain(
+      'Invalid regular expression',
+    );
+
+    const operationsRes = await control.get('/api/operations');
+    expect(operationsRes.status).toBe(200);
+    expect(operationsRes.data.operations).toHaveLength(0);
+  });
+
+  it('purges only matched flags from a matching operation', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+    }));
+
+    const control = subject.ensureControl();
+    const prefix = randomFlagPrefix();
+    const deleteA = `${prefix}:delete:a`;
+    const deleteB = `${prefix}:delete:b`;
+    const keep = `${prefix}:keep:a`;
+
+    await putFlag(subject, deleteA, 'delete-a');
+    await putFlag(subject, deleteB, 'delete-b');
+    await putFlag(subject, keep, 'keep');
+
+    const createRes = await control.post('/api/operations', {
+      type: 'MATCHING_FLAGS',
+      matchingFlagsData: { mode: 'PREFIX', pattern: `${prefix}:delete:` },
+    });
+    expect(createRes.status).toBe(201);
+
+    const readyOperation = await waitForOperation(
+      subject,
+      createRes.data.id,
+      'READY',
+    );
+    expect(readyOperation.matchingFlagsData.scannedCount).toBe(3);
+    expect(readyOperation.matchingFlagsData.matchedCount).toBe(2);
+
+    const executeRes = await control.patch(
+      `/api/operations/${createRes.data.id}`,
+      { status: 'EXECUTING' },
+    );
+    expect(executeRes.status).toBe(200);
+
+    const doneOperation = await waitForOperation(
+      subject,
+      createRes.data.id,
+      'DONE',
+    );
+    expect(doneOperation.matchingFlagsData.purgedCount).toBe(2);
+
+    expect((await getFlag(subject, deleteA)).status).toBe(404);
+    expect((await getFlag(subject, deleteB)).status).toBe(404);
+    expect((await getFlag(subject, keep)).status).toBe(200);
+  });
+
   it('cancels a READY operation without purging stale flags', async () => {
     ({ subject, redis } = await createRedisSubject({
       options: { '--ui': true, '--watch': false },
@@ -197,4 +355,39 @@ async function waitForOperation(
 
 function randomFlagPrefix(): string {
   return `management:${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function expectMatchingScan(
+  subject: MockoInstance,
+  expected: {
+    mode: 'PREFIX' | 'CONTAINS' | 'REGEX';
+    pattern: string;
+    scannedCount: number;
+    matchedCount: number;
+  },
+) {
+  const createRes = await subject.ensureControl().post('/api/operations', {
+    type: 'MATCHING_FLAGS',
+    matchingFlagsData: {
+      mode: expected.mode,
+      pattern: expected.pattern,
+    },
+  });
+  expect(createRes.status).toBe(201);
+  expect(createRes.data.status).toBe('SCANNING');
+
+  const readyOperation = await waitForOperation(
+    subject,
+    createRes.data.id,
+    'READY',
+  );
+  expect(readyOperation.type).toBe('MATCHING_FLAGS');
+  expect(readyOperation.matchingFlagsData.mode).toBe(expected.mode);
+  expect(readyOperation.matchingFlagsData.pattern).toBe(expected.pattern);
+  expect(readyOperation.matchingFlagsData.scannedCount).toBe(
+    expected.scannedCount,
+  );
+  expect(readyOperation.matchingFlagsData.matchedCount).toBe(
+    expected.matchedCount,
+  );
 }
