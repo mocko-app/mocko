@@ -4,7 +4,11 @@ import type { FlagKey, FlagSource } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock, MockAnnotation } from "@/lib/types/mock";
-import type { Operation, OperationUpdate } from "@/lib/types/operation";
+import type {
+  MatchingFlagsMode,
+  Operation,
+  OperationUpdate,
+} from "@/lib/types/operation";
 
 export type StoreFlag = {
   key: string;
@@ -91,6 +95,11 @@ export abstract class Store {
   abstract scanStaleFlagsForManagement(
     operationId: string,
     thresholdSeconds: number,
+  ): Promise<void>;
+  abstract scanMatchingFlagsForManagement(
+    operationId: string,
+    mode: MatchingFlagsMode,
+    pattern: string,
   ): Promise<void>;
   abstract purgeStaleFlagsForManagement(operationId: string): Promise<void>;
 

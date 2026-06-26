@@ -5,7 +5,9 @@ export type OperationStatus =
   | "DONE"
   | "FAILED";
 
-export type OperationType = "STALE_FLAGS";
+export type OperationType = "STALE_FLAGS" | "MATCHING_FLAGS";
+
+export type MatchingFlagsMode = "PREFIX" | "CONTAINS" | "REGEX";
 
 export type OperationBase = {
   id: string;
@@ -22,13 +24,29 @@ export type StaleFlagsData = {
   purgedCount?: number;
 };
 
-export type Operation = OperationBase & {
+export type MatchingFlagsData = {
+  mode: MatchingFlagsMode;
+  pattern: string;
+  scannedCount?: number;
+  matchedCount?: number;
+  purgedCount?: number;
+};
+
+export type StaleFlagsOperation = OperationBase & {
   type: "STALE_FLAGS";
   staleFlagsData: StaleFlagsData;
 };
 
+export type MatchingFlagsOperation = OperationBase & {
+  type: "MATCHING_FLAGS";
+  matchingFlagsData: MatchingFlagsData;
+};
+
+export type Operation = StaleFlagsOperation | MatchingFlagsOperation;
+
 export type OperationUpdate = Partial<OperationBase> & {
   staleFlagsData?: Partial<StaleFlagsData>;
+  matchingFlagsData?: Partial<MatchingFlagsData>;
 };
 
 export type OperationsResponse = {

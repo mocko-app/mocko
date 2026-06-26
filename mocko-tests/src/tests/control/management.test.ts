@@ -26,5 +26,13 @@ describe('control management operations', () => {
       staleFlagsData: { thresholdSeconds: 2 },
     });
     expect(postRes.status).toBe(422);
+
+    const matchingPostRes = await subject
+      .ensureControl()
+      .post('/api/operations', {
+        type: 'MATCHING_FLAGS',
+        matchingFlagsData: { mode: 'PREFIX', pattern: 'payments:' },
+      });
+    expect(matchingPostRes.status).toBe(422);
   });
 });

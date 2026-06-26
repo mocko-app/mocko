@@ -1,85 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRightIcon, TimerIcon } from "lucide-react";
-import { toast } from "sonner";
 import { ListPageHeader } from "@/components/list-page-header";
 import { Callout } from "@/components/callout";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { MatchingFlagsDialog } from "@/components/management/matching-flags-dialog";
+import { OperationsCatalog } from "@/components/management/operations-catalog";
 import { RunCard } from "@/components/management/run-card";
-import {
-  createOperation,
-  deleteOperation,
-  executeOperation,
-} from "@/lib/frontend/api";
+import { StaleFlagsDialog } from "@/components/management/stale-flags-dialog";
+import { useManagementActions } from "@/lib/frontend/hooks/use-management-actions";
 import { useOperations } from "@/lib/frontend/hooks/resources";
-
-const SECONDS_PER_DAY = 86_400;
 
 export default function ManagementPage() {
   const { data, error, isLoading, mutate } = useOperations();
-  const [startOpen, setStartOpen] = useState(false);
-  const [thresholdDays, setThresholdDays] = useState("60");
-  const [isStarting, setIsStarting] = useState(false);
+  const [staleStartOpen, setStaleStartOpen] = useState(false);
+  const [matchingStartOpen, setMatchingStartOpen] = useState(false);
+  const { isStarting, remove, purge, startStaleFlags, startMatchingFlags } =
+    useManagementActions({
+      onChanged: async () => {
+        await mutate();
+      },
+    });
 
   const managementSupported = data?.managementSupported ?? true;
   const sentinelAgeSeconds = data?.sentinelAgeSeconds ?? null;
-  const thresholdSeconds = Number(thresholdDays) * SECONDS_PER_DAY;
-  const showSentinelWarning =
-    sentinelAgeSeconds !== null &&
-    Number.isInteger(Number(thresholdDays)) &&
-    thresholdSeconds > sentinelAgeSeconds;
   const operations = data?.operations ?? [];
-
-  async function handleRemove(id: string) {
-    try {
-      await deleteOperation(id);
-      await mutate();
-    } catch (removeError) {
-      console.error("Failed to remove operation", removeError);
-      toast.error("Failed to remove operation");
-    }
-  }
-
-  async function handlePurge(id: string) {
-    try {
-      await executeOperation(id);
-      await mutate();
-    } catch (purgeError) {
-      console.error("Failed to start purge", purgeError);
-      toast.error("Failed to start purge");
-    }
-  }
-
-  async function handleStart() {
-    if (!isValidThresholdDays(thresholdDays)) {
-      return;
-    }
-
-    setIsStarting(true);
-    try {
-      await createOperation(Number(thresholdDays) * SECONDS_PER_DAY);
-      await mutate();
-      setStartOpen(false);
-    } catch (startError) {
-      console.error("Failed to start operation", startError);
-      toast.error("Failed to start operation");
-    } finally {
-      setIsStarting(false);
-    }
-  }
 
   return (
     <div>
@@ -116,14 +60,10 @@ export default function ManagementPage() {
             !managementSupported ? "pointer-events-none opacity-40" : undefined
           }
         >
-          <OperationCard
-            icon={
-              <TimerIcon className="size-5 text-primary" aria-hidden="true" />
-            }
-            name="Stale Flags"
-            description="Scan and remove flags that have not been read or written within a configurable number of days."
-            onStart={() => setStartOpen(true)}
+          <OperationsCatalog
             disabled={!managementSupported}
+            onStartStaleFlags={() => setStaleStartOpen(true)}
+            onStartMatchingFlags={() => setMatchingStartOpen(true)}
           />
         </div>
       </section>
@@ -154,9 +94,9 @@ export default function ManagementPage() {
               <div key={operation.id} role="listitem">
                 <RunCard
                   operation={operation}
-                  onRemove={handleRemove}
-                  onCancel={handleRemove}
-                  onPurge={handlePurge}
+                  onRemove={remove}
+                  onCancel={remove}
+                  onPurge={purge}
                 />
               </div>
             ))}
@@ -164,90 +104,30 @@ export default function ManagementPage() {
         )}
       </section>
 
-      <Dialog open={startOpen} onOpenChange={(o) => !o && setStartOpen(false)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Stale Flags</DialogTitle>
-            <DialogDescription>
-              Flags not read or written within the threshold will be identified
-              for removal.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="threshold-days">Threshold (days)</Label>
-            <Input
-              id="threshold-days"
-              type="number"
-              min={1}
-              value={thresholdDays}
-              onChange={(e) => setThresholdDays(e.target.value)}
-              placeholder="60"
-            />
-            <p className="text-xs text-muted-foreground">
-              Flags idle for longer than this will be included in the scan.
-            </p>
-            {showSentinelWarning && (
-              <Callout
-                title="Threshold exceeds Redis age"
-                message="Redis has not been observed long enough to prove that flags are older than this threshold."
-              />
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStartOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleStart}
-              disabled={!isValidThresholdDays(thresholdDays) || isStarting}
-            >
-              Start scan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <StaleFlagsDialog
+        open={staleStartOpen}
+        sentinelAgeSeconds={sentinelAgeSeconds}
+        isStarting={isStarting}
+        onOpenChange={setStaleStartOpen}
+        onStart={async (thresholdSeconds) => {
+          const started = await startStaleFlags(thresholdSeconds);
+          if (started) {
+            setStaleStartOpen(false);
+          }
+        }}
+      />
+
+      <MatchingFlagsDialog
+        open={matchingStartOpen}
+        isStarting={isStarting}
+        onOpenChange={setMatchingStartOpen}
+        onStart={async (mode, pattern) => {
+          const started = await startMatchingFlags(mode, pattern);
+          if (started) {
+            setMatchingStartOpen(false);
+          }
+        }}
+      />
     </div>
   );
-}
-
-type OperationCardProps = {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  onStart: () => void;
-  disabled: boolean;
-};
-
-function OperationCard({
-  icon,
-  name,
-  description,
-  onStart,
-  disabled,
-}: OperationCardProps) {
-  return (
-    <Card>
-      <CardContent className="flex items-start gap-4">
-        <div className="mt-0.5 shrink-0">{icon}</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-foreground">{name}</p>
-            <Badge variant="outline">Beta</Badge>
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-        </div>
-        <div className="shrink-0">
-          <Button size="sm" onClick={onStart} disabled={disabled}>
-            Start
-            <ArrowRightIcon aria-hidden="true" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function isValidThresholdDays(value: string): boolean {
-  const parsed = Number(value);
-  return Boolean(value) && Number.isInteger(parsed) && parsed >= 1;
 }

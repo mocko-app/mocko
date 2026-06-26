@@ -7,6 +7,8 @@ import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
 import type {
+  MatchingFlagsData,
+  MatchingFlagsMode,
   Operation,
   OperationStatus,
   OperationUpdate,
@@ -21,7 +23,7 @@ const FAILURE_PREFIX = "mock_failure:";
 const RELOAD_CHANNEL = "mocko:deploy";
 const MANAGEMENT_OPERATIONS_PREFIX = "management:operations:";
 const MANAGEMENT_OPERATIONS_INDEX_KEY = "management:operations:index";
-const MANAGEMENT_STALE_FLAG_KEYS_PREFIX = "management:stale-flag-keys:";
+const MANAGEMENT_FLAG_KEYS_PREFIX = "management:flag-keys:";
 const MANAGEMENT_SENTINEL_KEY = "management:sentinel";
 const REDIS_SCAN_COUNT = 10_000;
 const PROGRESS_UPDATE_INTERVAL_MS = 1_000;
@@ -273,7 +275,7 @@ export class RedisStore extends Store {
 
     await this.redis.hset(this.operationKey(id), flatFields);
     if (fields.status === "FAILED" || fields.status === "DONE") {
-      await this.redis.del(this.staleFlagKeysKey(id));
+      await this.redis.del(this.managementFlagKeysKey(id));
     }
   }
 
@@ -306,7 +308,7 @@ export class RedisStore extends Store {
   async deleteOperation(id: string): Promise<boolean> {
     const deleted = await this.redis.del(
       this.operationKey(id),
-      this.staleFlagKeysKey(id),
+      this.managementFlagKeysKey(id),
     );
     const removedFromIndex = await this.redis.zrem(
       MANAGEMENT_OPERATIONS_INDEX_KEY,
@@ -329,7 +331,7 @@ export class RedisStore extends Store {
     let scannedCount = 0;
     let staleFlags = 0;
     let lastProgressUpdateAt = Date.now();
-    const listKey = this.staleFlagKeysKey(operationId);
+    const listKey = this.managementFlagKeysKey(operationId);
 
     await this.redis.del(listKey);
 
@@ -351,7 +353,7 @@ export class RedisStore extends Store {
       scannedCount += keys.length;
       staleFlags += staleKeys.length;
 
-      await this.appendStaleKeys(listKey, staleKeys);
+      await this.appendMatchedKeys(listKey, staleKeys);
 
       const shouldUpdateProgress =
         Date.now() - lastProgressUpdateAt >= PROGRESS_UPDATE_INTERVAL_MS;
@@ -369,9 +371,60 @@ export class RedisStore extends Store {
     });
   }
 
+  async scanMatchingFlagsForManagement(
+    operationId: string,
+    mode: MatchingFlagsMode,
+    pattern: string,
+  ): Promise<void> {
+    let cursor = "0";
+    let scannedCount = 0;
+    let matchedCount = 0;
+    let lastProgressUpdateAt = Date.now();
+    const listKey = this.managementFlagKeysKey(operationId);
+    const matches = this.createFlagMatcher(mode, pattern);
+
+    await this.redis.del(listKey);
+
+    do {
+      const [nextCursor, keys] = await this.redis.scan(
+        cursor,
+        "MATCH",
+        `${this.redisPrefix}${FLAG_PREFIX}*`,
+        "COUNT",
+        REDIS_SCAN_COUNT,
+      );
+      cursor = nextCursor;
+
+      if (keys.length === 0) {
+        continue;
+      }
+
+      const matchedKeys = this.findMatchingFlagKeys(keys, matches);
+      scannedCount += keys.length;
+      matchedCount += matchedKeys.length;
+
+      await this.appendMatchedKeys(listKey, matchedKeys);
+
+      const shouldUpdateProgress =
+        Date.now() - lastProgressUpdateAt >= PROGRESS_UPDATE_INTERVAL_MS;
+      if (shouldUpdateProgress) {
+        lastProgressUpdateAt = Date.now();
+        await this.updateOperation(operationId, {
+          matchingFlagsData: { scannedCount },
+        });
+      }
+    } while (cursor !== "0");
+
+    await this.updateOperation(operationId, {
+      status: "READY",
+      matchingFlagsData: { scannedCount, matchedCount },
+    });
+  }
+
   async purgeStaleFlagsForManagement(operationId: string): Promise<void> {
     let purgedCount = 0;
-    const listKey = this.staleFlagKeysKey(operationId);
+    const listKey = this.managementFlagKeysKey(operationId);
+    const operation = await this.getOperation(operationId);
 
     while (true) {
       const popped = await this.redis.lpop(listKey, OPERATIONS_BATCH_SIZE);
@@ -389,11 +442,19 @@ export class RedisStore extends Store {
     }
 
     await this.redis.del(listKey);
-    await this.updateOperation(operationId, {
-      status: "DONE",
-      completedAt: new Date().toISOString(),
-      staleFlagsData: { purgedCount },
-    });
+    const update: OperationUpdate =
+      operation?.type === "MATCHING_FLAGS"
+        ? {
+            status: "DONE",
+            completedAt: new Date().toISOString(),
+            matchingFlagsData: { purgedCount },
+          }
+        : {
+            status: "DONE",
+            completedAt: new Date().toISOString(),
+            staleFlagsData: { purgedCount },
+          };
+    await this.updateOperation(operationId, update);
   }
 
   private async readOwnMocks(): Promise<Mock[]> {
@@ -494,7 +555,32 @@ export class RedisStore extends Store {
     return staleKeys;
   }
 
-  private async appendStaleKeys(
+  private findMatchingFlagKeys(
+    keys: string[],
+    matches: (key: string) => boolean,
+  ): string[] {
+    return keys.filter((key) => {
+      const relativeKey = this.toRelativeFlagKey(key);
+      return relativeKey ? matches(relativeKey) : false;
+    });
+  }
+
+  private createFlagMatcher(
+    mode: MatchingFlagsMode,
+    pattern: string,
+  ): (key: string) => boolean {
+    if (mode === "PREFIX") {
+      return (key) => key.startsWith(pattern);
+    }
+    if (mode === "CONTAINS") {
+      return (key) => key.includes(pattern);
+    }
+
+    const regex = new RegExp(pattern);
+    return (key) => regex.test(key);
+  }
+
+  private async appendMatchedKeys(
     listKey: string,
     keys: string[],
   ): Promise<void> {
@@ -524,8 +610,17 @@ export class RedisStore extends Store {
     return `${MANAGEMENT_OPERATIONS_PREFIX}${id}`;
   }
 
-  private staleFlagKeysKey(id: string): string {
-    return `${MANAGEMENT_STALE_FLAG_KEYS_PREFIX}${id}`;
+  private managementFlagKeysKey(id: string): string {
+    return `${MANAGEMENT_FLAG_KEYS_PREFIX}${id}`;
+  }
+
+  private toRelativeFlagKey(key: string): string | null {
+    const flagPrefix = `${this.redisPrefix}${FLAG_PREFIX}`;
+    if (!key.startsWith(flagPrefix)) {
+      return null;
+    }
+
+    return key.slice(flagPrefix.length);
   }
 
   private toRelativeRedisKey(key: string): string | null {
@@ -543,7 +638,9 @@ export class RedisStore extends Store {
       status: op.status,
       createdAt: op.createdAt,
       ...(op.completedAt ? { completedAt: op.completedAt } : {}),
-      ...this.serializeStaleFlagsData(op.staleFlagsData),
+      ...(op.type === "STALE_FLAGS"
+        ? this.serializeStaleFlagsData(op.staleFlagsData)
+        : this.serializeMatchingFlagsData(op.matchingFlagsData)),
     };
   }
 
@@ -562,6 +659,7 @@ export class RedisStore extends Store {
     return {
       ...payload,
       ...this.serializeStaleFlagsData(fields.staleFlagsData ?? {}),
+      ...this.serializeMatchingFlagsData(fields.matchingFlagsData ?? {}),
     };
   }
 
@@ -577,34 +675,74 @@ export class RedisStore extends Store {
     return payload;
   }
 
+  private serializeMatchingFlagsData(
+    data: Partial<MatchingFlagsData>,
+  ): Record<string, string> {
+    const payload: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        payload[`matchingFlagsData.${key}`] = String(value);
+      }
+    }
+    return payload;
+  }
+
   private deserializeOperation(
     payload: Record<string, string>,
   ): Operation | null {
-    if (Object.keys(payload).length === 0 || payload.type !== "STALE_FLAGS") {
+    if (Object.keys(payload).length === 0) {
       return null;
     }
 
-    return {
+    const baseOperation = {
       id: payload.id,
-      type: "STALE_FLAGS",
       status: payload.status as OperationStatus,
       createdAt: payload.createdAt,
       completedAt: payload.completedAt || undefined,
-      staleFlagsData: {
-        thresholdSeconds: this.parseNumber(
-          payload["staleFlagsData.thresholdSeconds"],
-        ),
-        scannedCount: this.parseOptionalNumber(
-          payload["staleFlagsData.scannedCount"],
-        ),
-        staleFlags: this.parseOptionalNumber(
-          payload["staleFlagsData.staleFlags"],
-        ),
-        purgedCount: this.parseOptionalNumber(
-          payload["staleFlagsData.purgedCount"],
-        ),
-      },
     };
+
+    if (payload.type === "STALE_FLAGS") {
+      return {
+        ...baseOperation,
+        type: "STALE_FLAGS",
+        staleFlagsData: {
+          thresholdSeconds: this.parseNumber(
+            payload["staleFlagsData.thresholdSeconds"],
+          ),
+          scannedCount: this.parseOptionalNumber(
+            payload["staleFlagsData.scannedCount"],
+          ),
+          staleFlags: this.parseOptionalNumber(
+            payload["staleFlagsData.staleFlags"],
+          ),
+          purgedCount: this.parseOptionalNumber(
+            payload["staleFlagsData.purgedCount"],
+          ),
+        },
+      };
+    }
+
+    if (payload.type === "MATCHING_FLAGS") {
+      return {
+        ...baseOperation,
+        type: "MATCHING_FLAGS",
+        matchingFlagsData: {
+          mode: payload["matchingFlagsData.mode"] as MatchingFlagsMode,
+          pattern: payload["matchingFlagsData.pattern"] ?? "",
+          scannedCount: this.parseOptionalNumber(
+            payload["matchingFlagsData.scannedCount"],
+          ),
+          matchedCount: this.parseOptionalNumber(
+            payload["matchingFlagsData.matchedCount"],
+          ),
+          purgedCount: this.parseOptionalNumber(
+            payload["matchingFlagsData.purgedCount"],
+          ),
+        },
+      };
+    }
+
+    return null;
   }
 
   private parseNumber(value: string | undefined): number {
