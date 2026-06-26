@@ -2,7 +2,7 @@ FROM node:24-alpine AS builder
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build
 
@@ -11,7 +11,7 @@ FROM node:24-alpine
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev && \
+RUN npm install --omit=dev --no-audit --no-fund && \
     adduser -D -u 10001 mocko && \
     mkdir -p /var/mocks && \
     chown -R mocko:mocko /app /var/mocks

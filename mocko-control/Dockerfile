@@ -2,7 +2,7 @@ FROM node:24-alpine AS builder
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
@@ -11,10 +11,9 @@ FROM node:24-alpine
 
 RUN adduser -D -u 10001 mocko
 WORKDIR /app
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-RUN chown -R mocko:mocko /app
+COPY --chown=mocko:mocko --from=builder /app/.next/standalone ./
+COPY --chown=mocko:mocko --from=builder /app/.next/static ./.next/static
+COPY --chown=mocko:mocko --from=builder /app/public ./public
 
 USER mocko
 ENV PORT=6625
