@@ -37,7 +37,7 @@
     "hcl-parser": "^0.1.1",
     "inversify": "^5.1.1",
     "ioredis": "^4.28.5",
-    "joi": "^17.6.0",
+    "joi": "^18.2.3",
     "reflect-metadata": "^0.1.13",
     "uuid": "^14.0.0"
   },
