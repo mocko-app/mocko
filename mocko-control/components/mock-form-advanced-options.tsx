@@ -20,7 +20,6 @@ type MockFormAdvancedOptionsProps = {
   headers: { key: string; value: string }[];
   hostSlug: string;
   isReadOnly?: boolean;
-  isSubmitting?: boolean;
   lockedHeaders: { key: string; value: string }[];
   onDelayChange: (delay: string) => void;
   onHeadersChange: (headers: { key: string; value: string }[]) => void;
@@ -34,7 +33,6 @@ export function MockFormAdvancedOptions({
   headers,
   hostSlug,
   isReadOnly = false,
-  isSubmitting = false,
   lockedHeaders,
   onDelayChange,
   onHeadersChange,
@@ -54,7 +52,11 @@ export function MockFormAdvancedOptions({
       onOpenChange={setAdvancedOpen}
       className="flex flex-col gap-2"
     >
-      <CollapsibleTrigger className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground">
+      <CollapsibleTrigger
+        render={<span />}
+        nativeButton={false}
+        className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground"
+      >
         <ChevronDownIcon
           className={cn(
             "size-4 transition-transform",
@@ -71,13 +73,11 @@ export function MockFormAdvancedOptions({
             headers={headers}
             onChange={onHeadersChange}
             lockedHeaders={lockedHeaders}
-            readOnly={isReadOnly}
           />
         </div>
         <MockFormHostField
           hostSlug={hostSlug}
           isReadOnly={isReadOnly}
-          isSubmitting={isSubmitting}
           onHostSlugChange={onHostSlugChange}
         />
         <div className="flex w-full max-w-48 flex-col gap-1.5">
@@ -91,7 +91,6 @@ export function MockFormAdvancedOptions({
             onChange={(e) => onDelayChange(e.target.value)}
             placeholder="Optional"
             aria-invalid={Boolean(delayHasError)}
-            readOnly={isReadOnly}
           />
           {delayError && (
             <p className="text-xs text-destructive">{delayError}</p>

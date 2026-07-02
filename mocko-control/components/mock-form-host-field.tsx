@@ -44,14 +44,12 @@ function getSelectedHostLabel(
 type MockFormHostFieldProps = {
   hostSlug: string;
   isReadOnly?: boolean;
-  isSubmitting?: boolean;
   onHostSlugChange: (hostSlug: string) => void;
 };
 
 export function MockFormHostField({
   hostSlug,
   isReadOnly = false,
-  isSubmitting = false,
   onHostSlugChange,
 }: MockFormHostFieldProps) {
   const { data: hostOptions = [] } = useHosts({
@@ -112,7 +110,6 @@ export function MockFormHostField({
       {label}
       <Select
         value={hostSlug || ANY_HOST_VALUE}
-        disabled={isReadOnly || isSubmitting}
         onValueChange={(value) =>
           onHostSlugChange(value === ANY_HOST_VALUE ? "" : (value ?? ""))
         }
