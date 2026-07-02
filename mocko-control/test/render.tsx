@@ -7,7 +7,6 @@ export type RenderWithProvidersResult = RenderResult & {
   user: UserEvent;
 };
 
-
 export function renderWithProviders(
   ui: React.ReactElement,
 ): RenderWithProvidersResult {
