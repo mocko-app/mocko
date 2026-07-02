@@ -2,6 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { server } from "./msw";
+import { resetRoute } from "./navigation";
 
 // jsdom lacks a few browser APIs used by Base UI, sonner and next-themes.
 class ResizeObserverStub {
@@ -27,28 +28,33 @@ Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.setPointerCapture ??= () => {};
 Element.prototype.releasePointerCapture ??= () => {};
 
-vi.mock("next/navigation", () => {
-  const router = {
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  };
+// Route state lives in test/navigation.ts; push/replace update it so
+// URL-as-state pages (flags prefix/search) re-render like in the browser.
+vi.mock("next/navigation", async () => {
+  const { useSyncExternalStore } = await import("react");
+  const { getRoute, router, subscribeToRoute } = await import("./navigation");
+
+  function useRoute() {
+    return useSyncExternalStore(subscribeToRoute, getRoute, getRoute);
+  }
 
   return {
     useRouter: () => router,
-    usePathname: () => "/mocks",
-    useSearchParams: () => new URLSearchParams(),
+    usePathname: () => useRoute().pathname,
+    useParams: () => useRoute().params,
+    useSearchParams: () => new URLSearchParams(useRoute().search),
   };
 });
+
+// Monaco cannot run in jsdom; the stub renders a plain textarea.
+vi.mock("@monaco-editor/react", () => import("./monaco-stub"));
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 
 afterEach(() => {
   server.resetHandlers();
   cleanup();
+  resetRoute();
 });
 
 afterAll(() => server.close());

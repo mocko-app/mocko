@@ -23,5 +23,7 @@ What does not belong here:
 Conventions:
 
 - Test files are colocated: `app/mocks/page.test.tsx` next to `app/mocks/page.tsx`.
-- The backend is mocked at the HTTP layer with MSW, never mock `lib/frontend/api` or SWR hooks. Handlers and fixtures are typed against the real DTOs in `lib/types/*`, so contract drift fails the type check. Use the helpers in `test/`: `renderWithProviders` (fresh SWR cache + Toaster), `givenApi`/`givenApiError` (MSW handlers), `aMock` (fixtures).
-- MSW rejects unhandled requests (`onUnhandledRequest: "error"`); register handlers for every endpoint the component touches.
+- The backend is mocked at the HTTP layer with MSW, never mock `lib/frontend/api` or SWR hooks. Handlers and fixtures are typed against the real DTOs in `lib/types/*`, so contract drift fails the type check. Use the helpers in `test/`: `renderWithProviders` (fresh SWR cache + Toaster), `givenApi`/`givenApiError` (MSW handlers for all GET resources; mutable state), fixtures (`aMock`, `aMockDetails`, `aHost`, `aFlagKey`, `aStaleFlagsOperation`, `aMatchingFlagsOperation`), and `givenRoute`/`router` from `test/navigation` (route params/search per test, router spies for asserting redirects). `router.push`/`replace` update the mocked route state, so URL-as-state pages re-render like in the browser.
+- MSW rejects unhandled requests (`onUnhandledRequest: "error"`); register handlers for every endpoint the component touches. Mutation handlers (POST/PATCH/PUT/DELETE) are registered per test with `server.use` to capture payloads.
+- Monaco is stubbed as a textarea named "Code editor" (`test/monaco-stub.tsx`).
+- Number inputs with `min`/`max` block form submission natively (in jsdom too); for out-of-range values assert that no request was sent instead of expecting the app's inline error text.
