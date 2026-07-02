@@ -1,9 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
+import { toast } from "sonner";
 import { Callout } from "@/components/callout";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { MockForm } from "@/components/mock-form";
-import { ApiError } from "@/lib/frontend/api";
+import { ApiError, deleteMock, patchMock } from "@/lib/frontend/api";
 import { useMock } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
@@ -22,8 +27,11 @@ function EditMissingState() {
 }
 
 export default function EditMockPage() {
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
   const id = useParam("id");
-  const { data, error, isLoading } = useMock(id);
+  const { data, error, isLoading, mutate: mutateMock } = useMock(id);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   if (!id) {
     return <EditMissingState />;
@@ -52,5 +60,64 @@ export default function EditMockPage() {
     );
   }
 
-  return <MockForm mode="edit" initial={data} />;
+  async function handleDeleteConfirm() {
+    if (!data) {
+      return;
+    }
+
+    try {
+      await deleteMock(data.id);
+      await mutate("/api/mocks");
+      router.push("/mocks");
+    } catch (error) {
+      console.error("Failed to delete mock", error);
+      toast.error("Failed to delete mock");
+    }
+  }
+
+  async function handleToggleEnabled(enabled: boolean) {
+    if (!data) {
+      return;
+    }
+
+    try {
+      const updatedMock = await patchMock(data.id, { isEnabled: enabled });
+      await mutateMock(updatedMock, { revalidate: false });
+      await mutate("/api/mocks");
+    } catch (error) {
+      if (enabled) {
+        console.error("Failed to enable mock", error);
+        toast.error("Failed to enable mock");
+      } else {
+        console.error("Failed to disable mock", error);
+        toast.error("Failed to disable mock");
+      }
+    }
+  }
+
+  return (
+    <>
+      <MockForm
+        mode="edit"
+        initial={data}
+        onDelete={() => setIsConfirmingDelete(true)}
+        onToggleEnabled={handleToggleEnabled}
+      />
+      {isConfirmingDelete && (
+        <ConfirmDeleteDialog
+          open={true}
+          title="Delete mock"
+          itemLabel={data.name}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setIsConfirmingDelete(false)}
+          onDontAskAgain={() => {}}
+          showDontAskAgain={false}
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground">{data.name}</span>? This
+          action cannot be undone.
+        </ConfirmDeleteDialog>
+      )}
+    </>
+  );
 }

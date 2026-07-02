@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
+import { MockActionsMenu } from "@/components/mock-actions-menu";
 import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
 import { BodyEditor } from "@/components/monaco-editor";
 import {
@@ -31,6 +32,8 @@ import { cn } from "@/lib/utils";
 type MockFormProps = {
   initial?: MockDetailsDto;
   mode: "create" | "edit";
+  onDelete?: () => void;
+  onToggleEnabled?: (enabled: boolean) => void;
 };
 
 function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
@@ -46,16 +49,26 @@ function getFormTitle(mode: MockFormProps["mode"], isReadOnly: boolean) {
 const MockFormHeader: React.FC<{
   title: string;
   isReadOnly: boolean;
-}> = ({ title, isReadOnly }) => {
+  isDisabled: boolean;
+  actions?: React.ReactNode;
+}> = ({ title, isReadOnly, isDisabled, actions }) => {
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        {isReadOnly && (
-          <Badge variant="annotationReadOnly" className="text-xs">
-            Read Only
-          </Badge>
-        )}
+      <div className="flex items-center gap-1">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">{title}</h1>
+          {isReadOnly && (
+            <Badge variant="annotationReadOnly" className="text-xs">
+              Read Only
+            </Badge>
+          )}
+          {isDisabled && (
+            <Badge variant="annotationDisabled" className="text-xs">
+              Disabled
+            </Badge>
+          )}
+        </div>
+        {actions}
       </div>
       <Button
         variant="ghost"
@@ -69,7 +82,12 @@ const MockFormHeader: React.FC<{
   );
 };
 
-export function MockForm({ initial, mode }: MockFormProps) {
+export function MockForm({
+  initial,
+  mode,
+  onDelete,
+  onToggleEnabled,
+}: MockFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const isTemporary = initial?.annotations.includes("TEMPORARY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
@@ -96,12 +114,47 @@ export function MockForm({ initial, mode }: MockFormProps) {
       onSubmit={handleSubmit}
       aria-label={title}
     >
-      <MockFormHeader isReadOnly={isReadOnly} title={title} />
-      {isReadOnly && (
+      <MockFormHeader
+        isReadOnly={isReadOnly}
+        isDisabled={mode === "edit" && initial ? !initial.isEnabled : false}
+        title={title}
+        actions={
+          mode === "edit" &&
+          initial && (
+            <MockActionsMenu
+              mock={initial}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label={`Actions for ${initial.name}`}
+                />
+              }
+              onDelete={() => onDelete?.()}
+              onToggleEnabled={(_, enabled) => onToggleEnabled?.(enabled)}
+            />
+          )
+        }
+      />
+      {isReadOnly && initial && (
         <Callout
           variant="info"
           title="Read-only mock"
-          message="This mock was loaded from a file. To edit it, update the mock file and let Mocko reload it."
+          message="This mock is loaded from a file and can't be edited in the UI. Edit the file, or duplicate this mock to override it. The copy takes priority."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={
+                <Link
+                  href={`/mocks/new?from=${encodeURIComponent(initial.id)}`}
+                />
+              }
+            >
+              Duplicate
+            </Button>
+          }
         />
       )}
       {isTemporary && (

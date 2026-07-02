@@ -4,9 +4,15 @@ type CalloutProps = {
   title: string;
   message: string;
   variant?: "warning" | "info";
+  action?: React.ReactNode;
 };
 
-export function Callout({ title, message, variant = "warning" }: CalloutProps) {
+export function Callout({
+  title,
+  message,
+  variant = "warning",
+  action,
+}: CalloutProps) {
   const isInfo = variant === "info";
 
   return (
@@ -50,6 +56,7 @@ export function Callout({ title, message, variant = "warning" }: CalloutProps) {
           >
             {message}
           </p>
+          {action && <div className="mt-2">{action}</div>}
         </div>
       </div>
     </div>
