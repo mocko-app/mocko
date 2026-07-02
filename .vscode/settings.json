@@ -5,6 +5,5 @@
   "editor.insertSpaces": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  },
-  "eslint.validate": ["typescript", "javascript"]
+  }
 }

@@ -3,10 +3,10 @@
   "private": true,
   "scripts": {
     "build": "npm run build --prefix ./mocko-core && npm run build --prefix ./mocko-control",
-    "test": "npm test --prefix ./mocko-tests",
+    "test": "npm test --prefix ./mocko-control && npm test --prefix ./mocko-tests",
     "test:fast": "npm run test:fast --prefix ./mocko-tests",
-    "test:full": "npm run test:full --prefix ./mocko-tests",
-    "test:full:fast": "npm run test:full:fast --prefix ./mocko-tests",
+    "test:full": "npm test --prefix ./mocko-control && npm run test:full --prefix ./mocko-tests",
+    "test:full:fast": "npm test --prefix ./mocko-control && npm run test:full:fast --prefix ./mocko-tests",
     "prestart": "npm run build",
     "start:fast": "node ./mocko-cli/bin/main.js ./mocko-core/mocks --watch",
     "start": "npm run start:fast"
