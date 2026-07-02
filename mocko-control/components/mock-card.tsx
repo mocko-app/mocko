@@ -1,22 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import {
-  MoreHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-  ToggleLeftIcon,
-  ToggleRightIcon,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MockActionsMenu } from "@/components/mock-actions-menu";
 import type { MockDto } from "@/lib/types/mock-dtos";
 import type { HttpMethod } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
@@ -126,53 +113,20 @@ export const MockCard: React.FC<{
             </div>
           )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
-                  aria-label={`Actions for ${mock.name}`}
-                />
-              }
-            >
-              <MoreHorizontalIcon aria-hidden="true" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {!isReadOnly ? (
-                <>
-                  <DropdownMenuItem onClick={() => onEdit(mock.id)}>
-                    <PencilIcon aria-hidden="true" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onToggleEnabled(mock.id, !mock.isEnabled)}
-                  >
-                    {mock.isEnabled ? (
-                      <ToggleLeftIcon aria-hidden="true" />
-                    ) : (
-                      <ToggleRightIcon aria-hidden="true" />
-                    )}
-                    {mock.isEnabled ? "Disable" : "Enable"}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => onDelete(mock)}
-                  >
-                    <TrashIcon aria-hidden="true" />
-                    Delete
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <DropdownMenuItem onClick={() => onEdit(mock.id)}>
-                  <PencilIcon aria-hidden="true" />
-                  View
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <MockActionsMenu
+            mock={mock}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
+                aria-label={`Actions for ${mock.name}`}
+              />
+            }
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onToggleEnabled={onToggleEnabled}
+          />
         </div>
       </div>
     </div>
