@@ -10,4 +10,4 @@ You're on Mocko, a dynamic HTTP mocking tool.
 
 ./package.json is the root workspace package.json file which defines the workspaces and dependencies for those projects.
 
-For full tests (build proxy, build control, run tests) you can run `npm test --prefix ./mocko-tests`. After UI changes on control there is no need to test, just check `npm run build --prefix ./mocko-control` which already lints and builds.
+For full tests (build proxy, build control, run the control component tests and the mocko-tests suite) run `npm run test:full` from the root. When your change is purely frontend and doesn't touch any backend, you can run just `npm test --prefix ./mocko-control` (Vitest component tests, see mocko-control/AGENTS.md) plus `npm run build --prefix ./mocko-control` which already lints and builds, instead of the full suite.
