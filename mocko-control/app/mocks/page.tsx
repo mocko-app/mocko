@@ -23,6 +23,7 @@ import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
+import { replaceUrl } from "@/lib/frontend/replace-url";
 import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
 import {
   buildMockListUrl,
@@ -58,9 +59,9 @@ const MocksPage: React.FC = () => {
     const canonical = buildMockListUrl(search, selectedLabels);
     const current = query ? `/mocks?${query}` : "/mocks";
     if (canonical !== current) {
-      router.replace(canonical, { scroll: false });
+      replaceUrl(canonical);
     }
-  }, [query, router, search, selectedLabels]);
+  }, [query, search, selectedLabels]);
 
   const filtered = useMemo(
     () => filterMocks(mocks, search, selectedLabels),
@@ -77,16 +78,16 @@ const MocksPage: React.FC = () => {
 
   function handleSearchChange(value: string) {
     setSearchInputValue(value);
-    router.replace(buildMockListUrl(value, selectedLabels), { scroll: false });
+    replaceUrl(buildMockListUrl(value, selectedLabels));
   }
 
   function handleLabelsChange(labels: string[]) {
-    router.replace(buildMockListUrl(search, labels), { scroll: false });
+    replaceUrl(buildMockListUrl(search, labels));
   }
 
   function clearFilters() {
     setSearchInputValue("");
-    router.replace("/mocks", { scroll: false });
+    replaceUrl("/mocks");
   }
 
   function handleEdit(id: string) {

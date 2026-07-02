@@ -61,3 +61,21 @@ export function resetRoute(): void {
     fn.mockClear();
   }
 }
+
+// Same-page query updates must go through native history.replaceState:
+// on statically prerendered pages Next's production router resolves
+// param-only navigations against the prerender cache and reverts the URL,
+// while useSearchParams does reflect native history updates. This sync
+// mirrors that so URL-as-state pages re-render in tests too. Reinstalled
+// per test because restoreMocks unwinds vi.spyOn.
+export function installHistorySync(): void {
+  for (const method of ["pushState", "replaceState"] as const) {
+    const original = window.history[method].bind(window.history);
+    vi.spyOn(window.history, method).mockImplementation(
+      (state, unused, url) => {
+        original(state, unused, url);
+        if (url != null) navigateTo(String(url));
+      },
+    );
+  }
+}

@@ -253,11 +253,14 @@ describe("mocks page URL filters", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "foo" }));
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks?q=bar", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks?q=bar",
+    );
     expect(getListedMockNames()).toEqual(["Mock: Foo bar", "Mock: bar plain"]);
     expect(router.push).not.toHaveBeenCalled();
+    expect(window.history.pushState).not.toHaveBeenCalled();
   });
 
   it("shows no mocks for an unlabeled+label URL but keeps both chips deselectable", async () => {
@@ -281,9 +284,10 @@ describe("mocks page URL filters", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "foo" }));
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/mocks?label=__unlabeled__",
-      { scroll: false },
     );
     expect(getListedMockNames()).toEqual(["Mock: Plain mock"]);
   });
@@ -295,9 +299,11 @@ describe("mocks page URL filters", () => {
 
     await findEmptyFilterState();
     await user.click(screen.getByRole("button", { name: "ghost" }));
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks",
+    );
     expect(getListedMockNames()).toEqual(["Mock: Real mock"]);
   });
 
@@ -313,14 +319,16 @@ describe("mocks page URL filters", () => {
 
     await findMocksList();
     expect(getListedMockNames()).toEqual(["Mock: Foo mock"]);
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(window.history.replaceState).not.toHaveBeenCalled();
 
     const chip = screen.getByRole("button", { name: "Foo" });
     expect(chip).toHaveAttribute("aria-pressed", "true");
     await user.click(chip);
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks",
+    );
     expect(getListedMockNames()).toHaveLength(2);
   });
 
@@ -336,9 +344,11 @@ describe("mocks page URL filters", () => {
 
     await findMocksList();
     expect(getListedMockNames()).toEqual(["Mock: Foo mock"]);
-    expect(router.replace).toHaveBeenCalledWith("/mocks?label=foo", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      "/mocks?label=foo",
+    );
   });
 
   it("drops empty query values on load", async () => {
@@ -350,7 +360,11 @@ describe("mocks page URL filters", () => {
 
     await findMocksList();
     expect(getListedMockNames()).toHaveLength(2);
-    expect(router.replace).toHaveBeenCalledWith("/mocks", { scroll: false });
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      "/mocks",
+    );
   });
 
   it("round-trips labels with special characters through the URL", async () => {
@@ -367,15 +381,19 @@ describe("mocks page URL filters", () => {
     expect(getListedMockNames()).toEqual(["Mock: Amp mock"]);
 
     await user.click(screen.getByRole("button", { name: "a&b" }));
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks",
+    );
     expect(getListedMockNames()).toHaveLength(2);
 
     await user.click(screen.getByRole("button", { name: "a&b" }));
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks?label=a%26b", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks?label=a%26b",
+    );
     expect(getListedMockNames()).toEqual(["Mock: Amp mock"]);
   });
 
@@ -385,19 +403,23 @@ describe("mocks page URL filters", () => {
 
     await findMocksList();
     await user.click(screen.getByRole("button", { name: "users" }));
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks?label=users", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks?label=users",
+    );
 
     await user.type(
       screen.getByRole("textbox", { name: "Search mocks" }),
       "get",
     );
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/mocks?q=get&label=users",
-      { scroll: false },
     );
     expect(router.push).not.toHaveBeenCalled();
+    expect(window.history.pushState).not.toHaveBeenCalled();
   });
 
   it("clears filters back to a bare URL", async () => {
@@ -413,9 +435,11 @@ describe("mocks page URL filters", () => {
     await findEmptyFilterState();
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
 
-    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
-      scroll: false,
-    });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/mocks",
+    );
     expect(getListedMockNames()).toHaveLength(2);
     expect(screen.getByRole("textbox", { name: "Search mocks" })).toHaveValue(
       "",

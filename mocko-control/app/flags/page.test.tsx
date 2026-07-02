@@ -4,7 +4,7 @@ import { http, HttpResponse } from "msw";
 import FlagsPage from "./page";
 import { aFlagKey } from "@/test/fixtures";
 import { givenApi, server } from "@/test/msw";
-import { givenRoute, router } from "@/test/navigation";
+import { givenRoute } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 async function findFlagsList() {
@@ -142,16 +142,18 @@ describe("flags page search", () => {
       "zzz",
     );
 
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/flags?prefix=payments%3A&q=zzz",
-      { scroll: false },
     );
     expect(await screen.findByText("No items match “zzz”")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Clear search" }));
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/flags?prefix=payments%3A",
-      { scroll: false },
     );
     const list = await findFlagsList();
     expect(within(list).getByRole("listitem")).toHaveAccessibleName(
