@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import MocksPage from "./page";
 import { aMock } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
+import { givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 async function findMocksList() {
@@ -17,14 +18,25 @@ function getListedMockNames(): string[] {
     .map((item) => item.getAttribute("aria-label") ?? "");
 }
 
-describe("mocks page filtering", () => {
-  const fixtures = () => [
-    aMock({ name: "Get users", method: "GET", labels: ["users"] }),
-    aMock({ name: "Create user", method: "POST", labels: ["users", "admin"] }),
-    aMock({ name: "Get payments", method: "GET", labels: ["payments"] }),
-    aMock({ name: "Health check", method: "GET", labels: [] }),
-  ];
+function getChipNames(candidates: string[]): string[] {
+  return screen
+    .getAllByRole("button")
+    .map((button) => button.textContent ?? "")
+    .filter((name) => candidates.includes(name));
+}
 
+async function findEmptyFilterState() {
+  return await screen.findByText("No mocks match the current filters.");
+}
+
+const fixtures = () => [
+  aMock({ name: "Get users", method: "GET", labels: ["users"] }),
+  aMock({ name: "Create user", method: "POST", labels: ["users", "admin"] }),
+  aMock({ name: "Get payments", method: "GET", labels: ["payments"] }),
+  aMock({ name: "Health check", method: "GET", labels: [] }),
+];
+
+describe("mocks page filtering", () => {
   it("combines label and search filters and clears both at once", async () => {
     givenApi({ mocks: fixtures() });
     const { user } = renderWithProviders(<MocksPage />);
@@ -94,6 +106,117 @@ describe("mocks page filtering", () => {
     expect(getListedMockNames()).toHaveLength(4);
   });
 
+  it("matches search terms against path and labels, not just the name", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "Alpha", path: "/billing/invoices" }),
+        aMock({ name: "Beta", labels: ["billing"] }),
+        aMock({ name: "Gamma" }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    await user.type(
+      screen.getByRole("textbox", { name: "Search mocks" }),
+      "billing",
+    );
+    expect(getListedMockNames()).toEqual(["Mock: Alpha", "Mock: Beta"]);
+  });
+
+  it("narrows label chips to those of matching mocks while searching", async () => {
+    givenApi({ mocks: fixtures() });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    await user.type(
+      screen.getByRole("textbox", { name: "Search mocks" }),
+      "payments",
+    );
+
+    expect(
+      screen.getByRole("button", { name: "payments" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "users" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "admin" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Unlabeled" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("narrows unselected chips to labels co-occurring with the selection", async () => {
+    givenApi({ mocks: fixtures() });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    await user.click(screen.getByRole("button", { name: "users" }));
+
+    expect(screen.getByRole("button", { name: "users" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "admin" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "payments" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Unlabeled" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps selected label chips visible when filters empty the list", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo mock", labels: ["foo"] }),
+        aMock({ name: "A bar mock", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    await user.click(screen.getByRole("button", { name: "foo" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Search mocks" }),
+      "bar",
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "No mocks match the current filters.",
+    );
+
+    await user.click(screen.getByRole("button", { name: "foo" }));
+    expect(getListedMockNames()).toEqual(["Mock: A bar mock"]);
+  });
+
+  it("orders chips by match count with selected chips first", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "U1", labels: ["users"] }),
+        aMock({ name: "U2", labels: ["users", "admin"] }),
+        aMock({ name: "U3", labels: ["users", "admin"] }),
+        aMock({ name: "Z", labels: ["zeta"] }),
+        aMock({ name: "B", labels: ["beta"] }),
+        aMock({ name: "P", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+    await findMocksList();
+
+    const chips = ["users", "admin", "zeta", "beta", "Unlabeled"];
+    expect(getChipNames(chips)).toEqual([
+      "users",
+      "admin",
+      "beta",
+      "zeta",
+      "Unlabeled",
+    ]);
+
+    await user.click(screen.getByRole("button", { name: "admin" }));
+    await user.click(screen.getByRole("button", { name: "users" }));
+    expect(getChipNames(chips)).toEqual(["users", "admin"]);
+  });
+
   it("does not offer label filters when no mock has labels", async () => {
     givenApi({
       mocks: [aMock({ name: "First" }), aMock({ name: "Second" })],
@@ -104,6 +227,199 @@ describe("mocks page filtering", () => {
     expect(
       screen.queryByRole("button", { name: "Unlabeled" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("mocks page URL filters", () => {
+  it("applies filters from the URL and rewrites it when deselecting a chip", async () => {
+    givenRoute({ pathname: "/mocks", search: "q=bar&label=foo" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo bar", labels: ["foo"] }),
+        aMock({ name: "Foo only", labels: ["foo"] }),
+        aMock({ name: "bar plain", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(getListedMockNames()).toEqual(["Mock: Foo bar"]);
+    expect(screen.getByRole("textbox", { name: "Search mocks" })).toHaveValue(
+      "bar",
+    );
+    expect(screen.getByRole("button", { name: "foo" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(screen.getByRole("button", { name: "foo" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks?q=bar", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toEqual(["Mock: Foo bar", "Mock: bar plain"]);
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("shows no mocks for an unlabeled+label URL but keeps both chips deselectable", async () => {
+    givenRoute({ pathname: "/mocks", search: "label=foo&label=__unlabeled__" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo mock", labels: ["foo"] }),
+        aMock({ name: "Plain mock", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findEmptyFilterState();
+    expect(screen.getByRole("button", { name: "foo" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Unlabeled" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(screen.getByRole("button", { name: "foo" }));
+    expect(router.replace).toHaveBeenLastCalledWith(
+      "/mocks?label=__unlabeled__",
+      { scroll: false },
+    );
+    expect(getListedMockNames()).toEqual(["Mock: Plain mock"]);
+  });
+
+  it("keeps a URL label that matches no mock as a deselectable chip", async () => {
+    givenRoute({ pathname: "/mocks", search: "label=ghost" });
+    givenApi({ mocks: [aMock({ name: "Real mock", labels: ["foo"] })] });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findEmptyFilterState();
+    await user.click(screen.getByRole("button", { name: "ghost" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toEqual(["Mock: Real mock"]);
+  });
+
+  it("matches URL labels case-insensitively without rewriting the URL", async () => {
+    givenRoute({ pathname: "/mocks", search: "label=FOO" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo mock", labels: ["Foo"] }),
+        aMock({ name: "Other mock", labels: ["other"] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(getListedMockNames()).toEqual(["Mock: Foo mock"]);
+    expect(router.replace).not.toHaveBeenCalled();
+
+    const chip = screen.getByRole("button", { name: "Foo" });
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+    await user.click(chip);
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toHaveLength(2);
+  });
+
+  it("canonicalizes duplicate URL labels on load", async () => {
+    givenRoute({ pathname: "/mocks", search: "label=foo&label=foo&label=FOO" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo mock", labels: ["foo"] }),
+        aMock({ name: "Plain mock", labels: [] }),
+      ],
+    });
+    renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(getListedMockNames()).toEqual(["Mock: Foo mock"]);
+    expect(router.replace).toHaveBeenCalledWith("/mocks?label=foo", {
+      scroll: false,
+    });
+  });
+
+  it("drops empty query values on load", async () => {
+    givenRoute({ pathname: "/mocks", search: "q=&label=" });
+    givenApi({
+      mocks: [aMock({ name: "First" }), aMock({ name: "Second" })],
+    });
+    renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(getListedMockNames()).toHaveLength(2);
+    expect(router.replace).toHaveBeenCalledWith("/mocks", { scroll: false });
+  });
+
+  it("round-trips labels with special characters through the URL", async () => {
+    givenRoute({ pathname: "/mocks", search: "label=a%26b" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Amp mock", labels: ["a&b"] }),
+        aMock({ name: "Plain mock", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(getListedMockNames()).toEqual(["Mock: Amp mock"]);
+
+    await user.click(screen.getByRole("button", { name: "a&b" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toHaveLength(2);
+
+    await user.click(screen.getByRole("button", { name: "a&b" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks?label=a%26b", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toEqual(["Mock: Amp mock"]);
+  });
+
+  it("writes search and label changes to the URL with replace", async () => {
+    givenApi({ mocks: fixtures() });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    await user.click(screen.getByRole("button", { name: "users" }));
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks?label=users", {
+      scroll: false,
+    });
+
+    await user.type(
+      screen.getByRole("textbox", { name: "Search mocks" }),
+      "get",
+    );
+    expect(router.replace).toHaveBeenLastCalledWith(
+      "/mocks?q=get&label=users",
+      { scroll: false },
+    );
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("clears filters back to a bare URL", async () => {
+    givenRoute({ pathname: "/mocks", search: "q=nomatch&label=foo" });
+    givenApi({
+      mocks: [
+        aMock({ name: "Foo mock", labels: ["foo"] }),
+        aMock({ name: "Plain mock", labels: [] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findEmptyFilterState();
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+
+    expect(router.replace).toHaveBeenLastCalledWith("/mocks", {
+      scroll: false,
+    });
+    expect(getListedMockNames()).toHaveLength(2);
+    expect(screen.getByRole("textbox", { name: "Search mocks" })).toHaveValue(
+      "",
+    );
   });
 });
 

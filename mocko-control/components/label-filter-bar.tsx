@@ -8,30 +8,13 @@ import {
   UNLABELED_STYLE,
   UNLABELED_STYLE_SELECTED,
 } from "@/lib/utils/labels";
-import {
-  getOrderedLabelFilterKeys,
-  isLabelFilterSelected,
-  toggleLabelFilter,
-} from "@/lib/mock/filter";
+import { isLabelFilterSelected, toggleLabelFilter } from "@/lib/mock/filter";
 
 type LabelFilterBarProps = {
-  visibleLabels: string[];
-  hasUnlabeled: boolean;
+  labelKeys: string[];
   selectedLabels: string[];
   onChange: (labels: string[]) => void;
 };
-
-function getLabelFilterSelected(
-  key: string,
-  selectedLabels: string[],
-  unlabeledSelected: boolean,
-): boolean {
-  if (key === UNLABELED_KEY) {
-    return unlabeledSelected;
-  }
-
-  return isLabelFilterSelected(key, selectedLabels);
-}
 
 function getLabelFilterStyle(
   key: string,
@@ -61,32 +44,24 @@ function getLabelFilterText(key: string): string {
 }
 
 export function LabelFilterBar({
-  visibleLabels,
-  hasUnlabeled,
+  labelKeys,
   selectedLabels,
   onChange,
 }: LabelFilterBarProps) {
-  if (visibleLabels.length === 0 && !hasUnlabeled) return null;
-
-  const unlabeledSelected = selectedLabels.includes(UNLABELED_KEY);
-  const allKeys = getOrderedLabelFilterKeys(
-    visibleLabels,
-    selectedLabels,
-    hasUnlabeled,
-  );
+  if (labelKeys.length === 0) return null;
 
   function toggle(key: string) {
     onChange(toggleLabelFilter(selectedLabels, key));
   }
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-      {allKeys.map((key) => {
-        const selected = getLabelFilterSelected(
-          key,
-          selectedLabels,
-          unlabeledSelected,
-        );
+    <div
+      role="group"
+      aria-label="Filter mocks by label"
+      className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"
+    >
+      {labelKeys.map((key) => {
+        const selected = isLabelFilterSelected(key, selectedLabels);
         const style = getLabelFilterStyle(key, selected);
 
         return (
@@ -94,6 +69,7 @@ export function LabelFilterBar({
             key={key}
             type="button"
             onClick={() => toggle(key)}
+            aria-pressed={selected}
             variant="outline"
             size="xs"
             style={style}

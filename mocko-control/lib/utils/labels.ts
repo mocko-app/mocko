@@ -68,6 +68,17 @@ export const UNLABELED_STYLE_SELECTED: React.CSSProperties = {
   borderColor: "hsl(0 0% 60%)",
 };
 
+export function compareLabelsByCount(
+  countOf: (normalized: string) => number,
+): (a: string, b: string) => number {
+  return (a, b) => {
+    const countDiff = countOf(b.toLowerCase()) - countOf(a.toLowerCase());
+    if (countDiff !== 0) return countDiff;
+    if (a.length !== b.length) return a.length - b.length;
+    return a.localeCompare(b);
+  };
+}
+
 export function getAvailableLabels(mocks: Pick<MockDto, "labels">[]): string[] {
   const normalizedToDisplay = new Map<string, string>();
   const normalizedToCount = new Map<string, number>();
@@ -85,12 +96,9 @@ export function getAvailableLabels(mocks: Pick<MockDto, "labels">[]): string[] {
     }
   }
 
-  return [...normalizedToDisplay.entries()]
-    .sort(([aN, aDisplay], [bN, bDisplay]) => {
-      const countDiff =
-        (normalizedToCount.get(bN) ?? 0) - (normalizedToCount.get(aN) ?? 0);
-      if (countDiff !== 0) return countDiff;
-      return aDisplay.length - bDisplay.length;
-    })
-    .map(([, display]) => display);
+  return [...normalizedToDisplay.values()].sort(
+    compareLabelsByCount(
+      (normalized) => normalizedToCount.get(normalized) ?? 0,
+    ),
+  );
 }

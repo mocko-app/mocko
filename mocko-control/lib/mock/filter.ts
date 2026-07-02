@@ -1,5 +1,9 @@
 import type { MockDto } from "../types/mock-dtos";
-import { UNLABELED_KEY } from "../utils/labels";
+import {
+  compareLabelsByCount,
+  getAvailableLabels,
+  UNLABELED_KEY,
+} from "../utils/labels";
 
 export function matchesMockSearch(mock: MockDto, search: string): boolean {
   const query = search.trim().toLowerCase();
@@ -33,45 +37,81 @@ export function getNormalizedSelectedLabels(
   );
 }
 
-export function getOrderedLabelFilterKeys(
-  visibleLabels: string[],
+export function filterMocks(
+  mocks: MockDto[],
+  search: string,
   selectedLabels: string[],
-  hasUnlabeled: boolean,
+): MockDto[] {
+  let result = mocks;
+
+  if (search) {
+    result = result.filter((mock) => matchesMockSearch(mock, search));
+  }
+
+  if (selectedLabels.length > 0) {
+    result = result.filter((mock) => {
+      const normalized = mock.labels.map(normalizeLabel);
+      return selectedLabels.every((selected) =>
+        selected === UNLABELED_KEY
+          ? mock.labels.length === 0
+          : normalized.includes(normalizeLabel(selected)),
+      );
+    });
+  }
+
+  return result;
+}
+
+export function getLabelFilterKeys(
+  mocks: Pick<MockDto, "labels">[],
+  filtered: Pick<MockDto, "labels">[],
+  selectedLabels: string[],
 ): string[] {
-  const normalizedSelected = getNormalizedSelectedLabels(selectedLabels);
-  const unlabeledSelected = selectedLabels.includes(UNLABELED_KEY);
+  const countByNormalized = new Map<string, number>();
   const displayByNormalized = new Map<string, string>();
 
-  for (const label of visibleLabels) {
-    displayByNormalized.set(normalizeLabel(label), label);
+  for (const mock of mocks) {
+    for (const label of mock.labels) {
+      const normalized = normalizeLabel(label);
+      countByNormalized.set(
+        normalized,
+        (countByNormalized.get(normalized) ?? 0) + 1,
+      );
+      if (!displayByNormalized.has(normalized)) {
+        displayByNormalized.set(normalized, label);
+      }
+    }
   }
 
+  const selectedKeys: string[] = [];
+  const seen = new Set<string>();
   for (const label of selectedLabels) {
     if (label === UNLABELED_KEY) continue;
-    displayByNormalized.set(normalizeLabel(label), label);
+    const normalized = normalizeLabel(label);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    selectedKeys.push(displayByNormalized.get(normalized) ?? label);
   }
-
-  const selectedVisibleLabels = selectedLabels.filter(
-    (label) =>
-      label !== UNLABELED_KEY && displayByNormalized.has(normalizeLabel(label)),
-  );
-  const remainingVisibleLabels = visibleLabels.filter(
-    (label) => !normalizedSelected.has(normalizeLabel(label)),
-  );
-
-  const allKeys = [
-    ...selectedVisibleLabels.map(
-      (label) => displayByNormalized.get(normalizeLabel(label)) ?? label,
+  selectedKeys.sort(
+    compareLabelsByCount(
+      (normalized) => countByNormalized.get(normalized) ?? 0,
     ),
-    ...(unlabeledSelected ? [UNLABELED_KEY] : []),
-    ...remainingVisibleLabels,
+  );
+
+  const unselectedVisible = getAvailableLabels(filtered).filter(
+    (label) => !seen.has(normalizeLabel(label)),
+  );
+
+  const anyMockHasLabels = countByNormalized.size > 0;
+  const showUnlabeled =
+    selectedLabels.includes(UNLABELED_KEY) ||
+    (anyMockHasLabels && filtered.some((mock) => mock.labels.length === 0));
+
+  return [
+    ...selectedKeys,
+    ...unselectedVisible,
+    ...(showUnlabeled ? [UNLABELED_KEY] : []),
   ];
-
-  if (hasUnlabeled && !unlabeledSelected) {
-    allKeys.push(UNLABELED_KEY);
-  }
-
-  return allKeys;
 }
 
 export function isLabelFilterSelected(

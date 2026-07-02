@@ -99,6 +99,29 @@ describe("flags page navigation", () => {
 });
 
 describe("flags page search", () => {
+  it("prefills the search input from the URL and queries the API with it", async () => {
+    givenRoute({ pathname: "/flags", search: "q=pay" });
+    givenApi();
+
+    const queries: (string | null)[] = [];
+    server.use(
+      http.get("/api/flags", ({ request }) => {
+        queries.push(new URL(request.url).searchParams.get("q"));
+        return HttpResponse.json({
+          flagKeys: [aFlagKey({ name: "payments-v2" })],
+          isTruncated: false,
+        });
+      }),
+    );
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(
+      screen.getByRole("textbox", { name: "Search flags and folders" }),
+    ).toHaveValue("pay");
+    expect(queries).toContain("pay");
+  });
+
   it("keeps the search in the URL and clears back out of the empty state", async () => {
     givenRoute({ pathname: "/flags", search: "prefix=payments:" });
     givenApi();
