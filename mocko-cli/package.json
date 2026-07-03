@@ -8,7 +8,7 @@
   },
   "engineStrict": true,
   "engines": {
-    "node": ">=14"
+    "node": ">=20.19.0"
   },
   "scripts": {
     "start": "node bin/main",
