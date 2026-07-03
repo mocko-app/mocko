@@ -110,6 +110,7 @@ const MocksPage: React.FC = () => {
       try {
         await deleteMock(mock.id);
         await mutate();
+        toast.success("Mock deleted.");
       } catch (error) {
         console.error("Failed to delete mock", error);
         toast.error("Failed to delete mock");
@@ -129,6 +130,7 @@ const MocksPage: React.FC = () => {
       await deleteMock(deleteTarget.id);
       await mutate();
       setDeleteTarget(undefined);
+      toast.success("Mock deleted.");
     } catch (error) {
       console.error("Failed to delete mock", error);
       toast.error("Failed to delete mock");
@@ -139,6 +141,7 @@ const MocksPage: React.FC = () => {
     try {
       await patchMock(id, { isEnabled: enabled });
       await mutate();
+      toast.success(enabled ? "Mock enabled." : "Mock disabled.");
     } catch (error) {
       if (enabled) {
         console.error("Failed to enable mock", error);

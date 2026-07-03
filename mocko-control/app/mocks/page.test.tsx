@@ -510,6 +510,7 @@ describe("mocks page header counts", () => {
     await user.click(await screen.findByRole("menuitem", { name: "Disable" }));
 
     expect(await screen.findByText("1 mock · 1 disabled")).toBeInTheDocument();
+    expect(await screen.findByText("Mock disabled.")).toBeInTheDocument();
   });
 
   it("hides the counts when mocks cannot be fetched", async () => {
@@ -564,6 +565,7 @@ describe("mocks page delete flow", () => {
 
     await waitFor(() => expect(getListedMockNames()).toHaveLength(1));
     expect(deletedIds).toEqual(["first-mock"]);
+    expect(await screen.findByText("Mock deleted.")).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Actions for Second mock" }),

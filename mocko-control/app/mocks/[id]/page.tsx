@@ -68,6 +68,7 @@ export default function EditMockPage() {
     try {
       await deleteMock(data.id);
       await mutate("/api/mocks");
+      toast.success("Mock deleted.");
       router.push("/mocks");
     } catch (error) {
       console.error("Failed to delete mock", error);
@@ -84,6 +85,7 @@ export default function EditMockPage() {
       const updatedMock = await patchMock(data.id, { isEnabled: enabled });
       await mutateMock(updatedMock, { revalidate: false });
       await mutate("/api/mocks");
+      toast.success(enabled ? "Mock enabled." : "Mock disabled.");
     } catch (error) {
       if (enabled) {
         console.error("Failed to enable mock", error);
