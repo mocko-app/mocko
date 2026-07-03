@@ -67,7 +67,21 @@ export function createRedisClient(config: RedisTestConfig): Redis.Redis {
 export async function flushRedis(config: RedisTestConfig): Promise<void> {
   const redis = createRedisClient(config);
   try {
-    await redis.flushdb();
+    const match = `${config.prefix}*`;
+    let cursor = '0';
+    do {
+      const [next, keys] = await redis.scan(
+        cursor,
+        'MATCH',
+        match,
+        'COUNT',
+        100,
+      );
+      cursor = next;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== '0');
   } finally {
     redis.disconnect();
   }

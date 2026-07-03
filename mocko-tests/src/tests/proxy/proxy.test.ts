@@ -1,9 +1,4 @@
-import {
-  createSubject,
-  createContent,
-  MockoInstance,
-  CONTENT_PORT,
-} from '../../harness';
+import { createSubject, createContent, MockoInstance } from '../../harness';
 import { nextPort } from '../../harness/port';
 
 describe('proxy', () => {
@@ -28,7 +23,7 @@ describe('proxy', () => {
     `);
     await subject.createMock(`
       mock "GET /hello" {
-        body = "{{proxy 'http://localhost:${CONTENT_PORT}/'}}"
+        body = "{{proxy 'http://localhost:${content.port}/'}}"
       }
     `);
 
@@ -44,7 +39,7 @@ describe('proxy', () => {
     `);
     await subject.createMock(`
       mock "POST /validate/{any}" {
-        body = "{{proxy 'http://localhost:${CONTENT_PORT}/'}}"
+        body = "{{proxy 'http://localhost:${content.port}/'}}"
       }
     `);
 
@@ -60,7 +55,7 @@ describe('proxy', () => {
     `);
     await subject.createMock(`
       mock "POST /validate/{any}" {
-        body = "{{proxy 'http://localhost:${CONTENT_PORT}/'}}"
+        body = "{{proxy 'http://localhost:${content.port}/'}}"
       }
     `);
 
@@ -80,7 +75,7 @@ describe('proxy', () => {
     `);
     await subject.createMock(`
       mock "POST /validate/{any}" {
-        body = "{{proxy 'http://localhost:${CONTENT_PORT}/'}}"
+        body = "{{proxy 'http://localhost:${content.port}/'}}"
       }
     `);
 
@@ -96,11 +91,11 @@ describe('proxy', () => {
     await subject.createMock(`
       host "v1" {
         source      = "v1.local"
-        destination = "http://localhost:${CONTENT_PORT}/v1"
+        destination = "http://localhost:${content.port}/v1"
       }
       host "v2" {
         source      = "v2.local"
-        destination = "http://localhost:${CONTENT_PORT}/v2"
+        destination = "http://localhost:${content.port}/v2"
       }
       mock "GET /host-one" {
         body = "{{proxy 'v1'}}"
@@ -123,11 +118,11 @@ describe('proxy', () => {
     await subject.createMock(`
       host "v1" {
         source      = "v1.local"
-        destination = "http://localhost:${CONTENT_PORT}/v1"
+        destination = "http://localhost:${content.port}/v1"
       }
       host "v2" {
         source      = "v2.local"
-        destination = "http://localhost:${CONTENT_PORT}/v2"
+        destination = "http://localhost:${content.port}/v2"
       }
     `);
 
@@ -151,11 +146,11 @@ describe('proxy', () => {
     await subject.createMock(`
       host "v1" {
         source      = "v1.local"
-        destination = "http://localhost:${CONTENT_PORT}/v1"
+        destination = "http://localhost:${content.port}/v1"
       }
       host "v2" {
         source      = "v2.local"
-        destination = "http://localhost:${CONTENT_PORT}/v2"
+        destination = "http://localhost:${content.port}/v2"
       }
       mock "GET /host-generic" {
         body = "{{proxy}}"
@@ -177,7 +172,7 @@ describe('proxy', () => {
     await subject.createMock(`
       host "slug-host" {
         source      = "slug-host.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content.port}"
       }
       mock "GET /host-slug-scoped" {
         host = "slug-host"
@@ -201,7 +196,7 @@ describe('proxy', () => {
     await subject.createMock(`
       host "legacy-host" {
         source      = "legacy-host.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content.port}"
       }
       mock "GET /host-header-scoped" {
         host = "legacy-host.local"

@@ -86,6 +86,10 @@ export class DeployService {
         this.definitionProvider.setDeployDefinition(definition);
         await this.remapEventBus.emit();
     }
+
+    async remap(): Promise<void> {
+        await this.remapEventBus.emit();
+    }
 }
 
 function getManagementAuthMode(): ManagementAuthMode {

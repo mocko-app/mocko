@@ -3,7 +3,6 @@ import {
   createRedisSubject,
   describeRedis,
   flushRedis,
-  CONTENT_PORT,
   MockoInstance,
   randomPath,
   RedisTestConfig,
@@ -59,7 +58,7 @@ describeRedis('redis hosts persistence', () => {
       slug: 'redis-host',
       name: '',
       source: 'redis.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content!.port}`,
     });
     expect(createRes.status).toBe(201);
     expect(createRes.data.name).toBe('');
@@ -106,7 +105,7 @@ describeRedis('redis hosts persistence', () => {
       host "file-host" {
         name        = "File host"
         source      = "file.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content!.port}"
       }
     `);
 
@@ -136,7 +135,7 @@ describeRedis('redis hosts persistence', () => {
       host "file-host" {
         name        = "File host"
         source      = "file.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content!.port}"
       }
     `);
 
@@ -159,14 +158,14 @@ describeRedis('redis hosts persistence', () => {
     await subject.createMock(`
       host "duplicate" {
         source      = "duplicate.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content!.port}"
       }
     `);
 
     const createRes = await subject.ensureControl().post('/api/hosts', {
       slug: 'duplicate',
       source: 'other.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content!.port}`,
     });
     expect(createRes.status).toBe(409);
     expect(createRes.data.code).toBe('HOST_SLUG_CONFLICT');
@@ -186,7 +185,7 @@ describeRedis('redis hosts persistence', () => {
     const createHostRes = await control.post('/api/hosts', {
       slug: 'redis-hosted',
       source: 'redis-hosted.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content!.port}`,
     });
     expect(createHostRes.status).toBe(201);
     await subject.waitForRemap(revision);

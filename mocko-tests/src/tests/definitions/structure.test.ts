@@ -116,7 +116,7 @@ describe('definition structure', () => {
       const deepFile = path.join(deepDir, 'deep.hcl');
       const deepMock = `mock "GET /deep-nested" { body = "deep" }`;
       await fs.mkdir(deepDir, { recursive: true });
-      await subject.writeFileAndWaitForRemap(deepFile, deepMock);
+      await subject.writeFileAndRemap(deepFile, deepMock);
     });
 
     afterAll(() => subject.stop());

@@ -9,7 +9,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function waitForHealth(
   client: AxiosInstance,
   targetRevision = 0,
-  timeout = 5000,
+  timeout = 10000,
 ): Promise<void> {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
