@@ -6,6 +6,7 @@ import { Callout } from "@/components/callout";
 import { EmptyState } from "@/components/empty-state";
 import { MockForm } from "@/components/mock-form";
 import { ApiError } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useMock } from "@/lib/frontend/hooks/resources";
 import type { MockDetailsDto } from "@/lib/types/mock-dtos";
 
@@ -47,6 +48,7 @@ function toDuplicateInitial(source: MockDetailsDto): MockDetailsDto {
 }
 
 function NewMockPageInner() {
+  useDocumentTitle("New mock");
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? undefined;
   const { data, error, isLoading } = useMock(from, {

@@ -3,8 +3,10 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { FlagForm } from "@/components/flags/flag-form";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 
 function NewFlagPageInner() {
+  useDocumentTitle("New flag");
   const searchParams = useSearchParams();
   const prefix = searchParams.get("prefix") ?? undefined;
 

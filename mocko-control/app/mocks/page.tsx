@@ -23,6 +23,7 @@ import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
 import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
@@ -36,6 +37,7 @@ import type { MockDto } from "@/lib/types/mock-dtos";
 const EMPTY_MOCKS: MockDto[] = [];
 
 const MocksPage: React.FC = () => {
+  useDocumentTitle("Mocks");
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.toString();

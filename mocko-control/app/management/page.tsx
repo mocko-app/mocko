@@ -8,9 +8,11 @@ import { OperationsCatalog } from "@/components/management/operations-catalog";
 import { RunCard } from "@/components/management/run-card";
 import { StaleFlagsDialog } from "@/components/management/stale-flags-dialog";
 import { useManagementActions } from "@/lib/frontend/hooks/use-management-actions";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useOperations } from "@/lib/frontend/hooks/resources";
 
 export default function ManagementPage() {
+  useDocumentTitle("Management");
   const { data, error, isLoading, mutate } = useOperations();
   const [staleStartOpen, setStaleStartOpen] = useState(false);
   const [matchingStartOpen, setMatchingStartOpen] = useState(false);

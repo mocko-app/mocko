@@ -23,6 +23,7 @@ import { formatFlagListCounts } from "@/lib/flag/flag-list-counts";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag } from "@/lib/frontend/api";
 import { replaceUrl } from "@/lib/frontend/replace-url";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useFlags } from "@/lib/frontend/hooks/resources";
 import type { FlagKeyDto } from "@/lib/types/flag-dtos";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const FlagsPage: React.FC = () => {
   const isRoot = !prefix;
   const crumbs = prefix.split(":").filter(Boolean);
   const currentCrumb = crumbs.at(-1) ?? "Flags";
+  useDocumentTitle(isRoot ? "Flags" : `Flags: ${currentCrumb}`);
   const newFlagHref = `/flags/new${prefix ? `?prefix=${prefix}` : ""}`;
   const countsDescription = data ? (
     formatFlagListCounts(data, Boolean(search))

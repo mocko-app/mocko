@@ -3,12 +3,14 @@
 import { Callout } from "@/components/callout";
 import { HostForm } from "@/components/host-form";
 import { ApiError } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHost } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
 export default function HostDetailPage() {
   const slug = useParam("slug");
   const { data: host, error, isLoading } = useHost(slug);
+  useDocumentTitle(slug ? `Edit: ${slug}` : "Edit host");
 
   if (isLoading) {
     return <div className="text-sm text-muted-foreground">Loading host...</div>;

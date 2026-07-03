@@ -4,6 +4,7 @@ import { Callout } from "@/components/callout";
 import { EmptyState } from "@/components/empty-state";
 import { FlagForm } from "@/components/flags/flag-form";
 import { ApiError } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useFlag } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
@@ -25,6 +26,7 @@ export default function FlagDetailPage() {
   const rawKey = useParam("key");
   const key = rawKey ? decodeURIComponent(rawKey) : undefined;
   const { data, error, isLoading } = useFlag(key);
+  useDocumentTitle(key ? `Edit: ${key}` : "Edit flag");
 
   if (!key) {
     return <FlagMissingState />;

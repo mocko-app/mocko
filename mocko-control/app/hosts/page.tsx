@@ -13,10 +13,12 @@ import { ListPageHeader } from "@/components/list-page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deleteHost } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { Host } from "@/lib/types/host";
 
 const HostsPage: React.FC = () => {
+  useDocumentTitle("Hosts");
   const router = useRouter();
   const { data, error, isLoading, mutate } = useHosts();
   const hosts = data ?? [];
