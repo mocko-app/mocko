@@ -25,6 +25,15 @@ async function fillValidHost(user: UserEvent) {
   await user.type(screen.getByLabelText("Source"), "payments.local");
 }
 
+describe("new host page focus", () => {
+  it("autofocuses the slug field", async () => {
+    givenApi();
+    renderWithProviders(<NewHostPage />);
+
+    expect(await screen.findByLabelText("Slug")).toHaveFocus();
+  });
+});
+
 describe("new host page validation", () => {
   it("rejects missing and malformed slugs and requires a source", async () => {
     givenApi();

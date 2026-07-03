@@ -207,6 +207,7 @@ export function MockForm({
             placeholder="Get user profile"
             aria-required="true"
             aria-invalid={showErrors && Boolean(errors.name)}
+            autoFocus={mode === "create"}
           />
           {showErrors && errors.name && (
             <p className="text-xs text-destructive">{errors.name}</p>

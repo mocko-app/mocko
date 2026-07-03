@@ -22,6 +22,13 @@ function capturePuts(): Array<{ key: string; payload: PutFlagDto }> {
 }
 
 describe("new flag page", () => {
+  it("autofocuses the key field", async () => {
+    givenApi();
+    renderWithProviders(<NewFlagPage />);
+
+    expect(await screen.findByLabelText("Key")).toHaveFocus();
+  });
+
   it("prefills the key from the prefix and creates the flag", async () => {
     givenRoute({ pathname: "/flags/new", search: "prefix=payments:" });
     givenApi();
