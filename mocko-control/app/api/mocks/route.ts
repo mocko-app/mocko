@@ -1,10 +1,4 @@
-import { NextResponse } from "next/server";
-import {
-  errorResponse,
-  jsonResponse,
-  parseRequestBody,
-  tryCatch,
-} from "@/lib/http";
+import { jsonResponse, parseRequestBody, route } from "@/lib/http";
 import { computeMockConflicts } from "@/lib/mock/mock-conflicts";
 import { mockService } from "@/lib/mock/mock.service";
 import { MockDto } from "@/lib/types/mock-dtos";
@@ -13,28 +7,16 @@ import { createMockSchema } from "@/lib/validation/mock.schema";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(): Promise<NextResponse> {
+export const GET = route(async () => {
   const mocks = await mockService.listMocks();
   const conflicts = computeMockConflicts(mocks);
-  return jsonResponse(
-    mocks.map((mock) => MockDto.ofMock(mock, conflicts.get(mock.id)?.role)),
+  return mocks.map((mock) =>
+    MockDto.ofMock(mock, conflicts.get(mock.id)?.role),
   );
-}
+});
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const [body, bodyError] = await tryCatch(() =>
-    parseRequestBody(request, createMockSchema),
-  );
-  if (bodyError) {
-    return errorResponse(bodyError);
-  }
-
-  const [mock, createError] = await tryCatch(() =>
-    mockService.createMock(body),
-  );
-  if (createError) {
-    return errorResponse(createError);
-  }
-
+export const POST = route(async (request) => {
+  const body = await parseRequestBody(request, createMockSchema);
+  const mock = await mockService.createMock(body);
   return jsonResponse(MockDto.ofMock(mock), 201);
-}
+});

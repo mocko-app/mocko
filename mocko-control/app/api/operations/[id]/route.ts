@@ -1,11 +1,4 @@
-import { NextResponse } from "next/server";
-import {
-  errorResponse,
-  jsonResponse,
-  noContentResponse,
-  parseRequestBody,
-  tryCatch,
-} from "@/lib/http";
+import { parseRequestBody, route } from "@/lib/http";
 import { operationService } from "@/lib/management/operation.service";
 import { patchOperationSchema } from "@/lib/validation/operation.schema";
 
@@ -18,40 +11,14 @@ type RouteContext = {
   }>;
 };
 
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const [body, bodyError] = await tryCatch(() =>
-    parseRequestBody(request, patchOperationSchema),
-  );
-  if (bodyError) {
-    return errorResponse(bodyError);
-  }
+export const PATCH = route(async (request, context: RouteContext) => {
+  await parseRequestBody(request, patchOperationSchema);
 
   const { id } = await context.params;
-  const [operation, patchError] = await tryCatch(() =>
-    operationService.transitionToExecuting(id),
-  );
-  if (patchError) {
-    return errorResponse(patchError);
-  }
+  return operationService.transitionToExecuting(id);
+});
 
-  void body;
-  return jsonResponse(operation);
-}
-
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
+export const DELETE = route(async (_request, context: RouteContext) => {
   const { id } = await context.params;
-  const [, deleteError] = await tryCatch(() =>
-    operationService.deleteOperation(id),
-  );
-  if (deleteError) {
-    return errorResponse(deleteError);
-  }
-
-  return noContentResponse();
-}
+  await operationService.deleteOperation(id);
+});

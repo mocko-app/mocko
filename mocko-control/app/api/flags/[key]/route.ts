@@ -1,12 +1,4 @@
-import { NextResponse } from "next/server";
-import {
-  HttpResponseError,
-  errorResponse,
-  jsonResponse,
-  noContentResponse,
-  parseRequestBody,
-  tryCatch,
-} from "@/lib/http";
+import { HttpResponseError, parseRequestBody, route } from "@/lib/http";
 import { flagService } from "@/lib/flag/flag.service";
 import {
   getFlagKeyValidationError,
@@ -22,55 +14,27 @@ type RouteContext = {
   }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
+export const GET = route(async (_request, context: RouteContext) => {
   const { key: rawKey } = await context.params;
   const key = decodeURIComponent(rawKey);
-  const [flag, getError] = await tryCatch(() => flagService.getFlag(key));
-  if (getError) {
-    return errorResponse(getError);
-  }
+  return flagService.getFlag(key);
+});
 
-  return jsonResponse(flag);
-}
-
-export async function PUT(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const [body, bodyError] = await tryCatch(() =>
-    parseRequestBody(request, putFlagSchema),
-  );
-  if (bodyError) {
-    return errorResponse(bodyError);
-  }
+export const PUT = route(async (request, context: RouteContext) => {
+  const body = await parseRequestBody(request, putFlagSchema);
 
   const { key: rawKey } = await context.params;
   const key = decodeURIComponent(rawKey);
   const keyError = getFlagKeyValidationError(key);
   if (keyError) {
-    return errorResponse(HttpResponseError.badRequest(keyError));
-  }
-  const [flag, putError] = await tryCatch(() => flagService.setFlag(key, body));
-  if (putError) {
-    return errorResponse(putError);
+    throw HttpResponseError.badRequest(keyError);
   }
 
-  return jsonResponse(flag);
-}
+  return flagService.setFlag(key, body);
+});
 
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
+export const DELETE = route(async (_request, context: RouteContext) => {
   const { key: rawKey } = await context.params;
   const key = decodeURIComponent(rawKey);
-  const [, deleteError] = await tryCatch(() => flagService.deleteFlag(key));
-  if (deleteError) {
-    return errorResponse(deleteError);
-  }
-
-  return noContentResponse();
-}
+  await flagService.deleteFlag(key);
+});
