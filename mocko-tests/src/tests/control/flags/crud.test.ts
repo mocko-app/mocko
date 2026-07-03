@@ -20,6 +20,8 @@ describe('control flags crud', () => {
     expect(initialList.status).toBe(200);
     expect(initialList.data.flagKeys).toBeTruthy();
     expect(typeof initialList.data.isTruncated).toBe('boolean');
+    expect(typeof initialList.data.count).toBe('number');
+    expect(typeof initialList.data.matchCount).toBe('number');
 
     const createRes = await setControlFlag(control, flagKey, 'pending');
     expect(createRes.status).toBe(200);
@@ -126,6 +128,8 @@ describe('control flags crud', () => {
 
     const rootSearch = await control.get('/api/flags?q=1234');
     expect(rootSearch.status).toBe(200);
+    expect(rootSearch.data.count).toBe(3);
+    expect(rootSearch.data.matchCount).toBe(2);
     expect(rootSearch.data.flagKeys).toEqual([
       expect.objectContaining({
         type: 'PREFIX',
@@ -137,6 +141,8 @@ describe('control flags crud', () => {
 
     const scopedSearch = await control.get('/api/flags?prefix=users:&q=1234');
     expect(scopedSearch.status).toBe(200);
+    expect(scopedSearch.data.count).toBe(3);
+    expect(scopedSearch.data.matchCount).toBe(2);
     expect(scopedSearch.data.flagKeys).toEqual([
       expect.objectContaining({
         type: 'PREFIX',
@@ -148,6 +154,8 @@ describe('control flags crud', () => {
 
     const nestedList = await control.get('/api/flags?prefix=users:1234:');
     expect(nestedList.status).toBe(200);
+    expect(nestedList.data.count).toBe(2);
+    expect(nestedList.data.matchCount).toBe(2);
     expect(nestedList.data.flagKeys).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -157,6 +165,31 @@ describe('control flags crud', () => {
           matchCount: 1,
         }),
         expect.objectContaining({ type: 'FLAG', name: 'status' }),
+      ]),
+    );
+  });
+
+  it('counts root flags alongside prefixes when filtering', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await setControlFlag(control, 'root-flag', 'on');
+    await setControlFlag(control, 'prefix:deep-flag', 'on');
+    await setControlFlag(control, 'prefix:ignored', 'off');
+
+    const search = await control.get('/api/flags?q=flag');
+    expect(search.status).toBe(200);
+    expect(search.data.count).toBe(3);
+    expect(search.data.matchCount).toBe(2);
+    expect(search.data.flagKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'FLAG', name: 'root-flag' }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'prefix',
+          count: 2,
+          matchCount: 1,
+        }),
       ]),
     );
   });

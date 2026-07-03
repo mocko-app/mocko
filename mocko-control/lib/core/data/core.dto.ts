@@ -74,6 +74,8 @@ export type CoreFlagKeyDto = {
 export type CoreFlagListDto = {
   flagKeys: CoreFlagKeyDto[];
   isTruncated: boolean;
+  count?: number;
+  matchCount?: number;
 };
 
 export type CoreFlagDto = {

@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, type AxiosResponse } from "axios";
 import type {
   ErrorDto,
   ParsingError,
@@ -64,143 +64,63 @@ export function toApiError(error: unknown): ApiError {
   return new ApiError(500, null);
 }
 
-export async function createMock(payload: CreateMockDto) {
+async function request<T>(call: () => Promise<AxiosResponse<T>>): Promise<T> {
   try {
-    const response = await api.post("/api/mocks", payload);
-    return response.data;
+    return (await call()).data;
   } catch (error) {
     throw toApiError(error);
   }
 }
 
-export async function patchMock(
-  id: string,
-  payload: PatchMockDto,
-): Promise<MockDetailsDto> {
-  try {
-    const response = await api.patch<MockDetailsDto>(
-      `/api/mocks/${id}`,
-      payload,
-    );
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const createMock = (payload: CreateMockDto) =>
+  request(() => api.post("/api/mocks", payload));
 
-export async function deleteMock(id: string): Promise<void> {
-  try {
-    await api.delete(`/api/mocks/${id}`);
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const patchMock = (id: string, payload: PatchMockDto) =>
+  request(() => api.patch<MockDetailsDto>(`/api/mocks/${id}`, payload));
 
-export async function getHosts(): Promise<HostDto[]> {
-  try {
-    const response = await api.get<HostDto[]>("/api/hosts");
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const deleteMock = (id: string) =>
+  request(() => api.delete<void>(`/api/mocks/${id}`));
 
-export async function getHost(slug: string): Promise<HostDto> {
-  try {
-    const response = await api.get<HostDto>(`/api/hosts/${slug}`);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const getHosts = () => request(() => api.get<HostDto[]>("/api/hosts"));
 
-export async function createHost(payload: CreateHostDto): Promise<HostDto> {
-  try {
-    const response = await api.post<HostDto>("/api/hosts", payload);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const getHost = (slug: string) =>
+  request(() => api.get<HostDto>(`/api/hosts/${slug}`));
 
-export async function patchHost(
-  slug: string,
-  payload: PatchHostDto,
-): Promise<HostDto> {
-  try {
-    const response = await api.patch<HostDto>(`/api/hosts/${slug}`, payload);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const createHost = (payload: CreateHostDto) =>
+  request(() => api.post<HostDto>("/api/hosts", payload));
 
-export async function deleteHost(slug: string): Promise<void> {
-  try {
-    await api.delete(`/api/hosts/${slug}`);
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const patchHost = (slug: string, payload: PatchHostDto) =>
+  request(() => api.patch<HostDto>(`/api/hosts/${slug}`, payload));
 
-export async function getFlags(
-  prefix?: string,
-  search?: string,
-): Promise<FlagListDto> {
-  try {
-    const url = buildFlagListUrl("/api/flags", prefix, search);
-    const response = await api.get<FlagListDto>(url);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const deleteHost = (slug: string) =>
+  request(() => api.delete<void>(`/api/hosts/${slug}`));
 
-export async function getFlag(key: string): Promise<FlagDto> {
-  try {
-    const encodedKey = encodeURIComponent(key);
-    const response = await api.get<FlagDto>(`/api/flags/${encodedKey}`);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const getFlags = (prefix?: string, search?: string) =>
+  request(() =>
+    api.get<FlagListDto>(buildFlagListUrl("/api/flags", prefix, search)),
+  );
 
-export async function putFlag(key: string, value: string): Promise<FlagDto> {
-  try {
-    const encodedKey = encodeURIComponent(key);
-    const response = await api.put<FlagDto>(`/api/flags/${encodedKey}`, {
+export const getFlag = (key: string) =>
+  request(() => api.get<FlagDto>(`/api/flags/${encodeURIComponent(key)}`));
+
+export const putFlag = (key: string, value: string) =>
+  request(() =>
+    api.put<FlagDto>(`/api/flags/${encodeURIComponent(key)}`, {
       value,
       source: "CONTROL",
-    });
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+    }),
+  );
 
-export async function deleteFlag(key: string): Promise<void> {
-  try {
-    const encodedKey = encodeURIComponent(key);
-    await api.delete(`/api/flags/${encodedKey}`);
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const deleteFlag = (key: string) =>
+  request(() => api.delete<void>(`/api/flags/${encodeURIComponent(key)}`));
 
 export async function getVersions(): Promise<VersionsDto> {
   const response = await api.get<VersionsDto>("/api/versions");
   return response.data;
 }
 
-export async function getOperations(): Promise<OperationsResponse> {
-  try {
-    const response = await api.get<OperationsResponse>("/api/operations");
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const getOperations = () =>
+  request(() => api.get<OperationsResponse>("/api/operations"));
 
 export type CreateOperationPayload =
   | {
@@ -212,35 +132,16 @@ export type CreateOperationPayload =
       matchingFlagsData: { mode: MatchingFlagsMode; pattern: string };
     };
 
-export async function createOperation(
-  payload: CreateOperationPayload,
-): Promise<Operation> {
-  try {
-    const response = await api.post<Operation>("/api/operations", payload);
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const createOperation = (payload: CreateOperationPayload) =>
+  request(() => api.post<Operation>("/api/operations", payload));
 
-export async function executeOperation(id: string): Promise<Operation> {
-  try {
-    const response = await api.patch<Operation>(`/api/operations/${id}`, {
-      status: "EXECUTING",
-    });
-    return response.data;
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const executeOperation = (id: string) =>
+  request(() =>
+    api.patch<Operation>(`/api/operations/${id}`, { status: "EXECUTING" }),
+  );
 
-export async function deleteOperation(id: string): Promise<void> {
-  try {
-    await api.delete(`/api/operations/${id}`);
-  } catch (error) {
-    throw toApiError(error);
-  }
-}
+export const deleteOperation = (id: string) =>
+  request(() => api.delete<void>(`/api/operations/${id}`));
 
 function firstError(
   fieldErrors: Record<string, string[] | undefined>,

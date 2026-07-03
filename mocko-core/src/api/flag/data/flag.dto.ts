@@ -24,10 +24,17 @@ export class FlagListDto {
     private constructor(
         public readonly flagKeys: FlagKeyDto[],
         public readonly isTruncated: boolean,
+        public readonly count: number,
+        public readonly matchCount: number,
     ) { }
 
-    static of(flagKeys: FlagKeyDto[], isTruncated: boolean): FlagListDto {
-        return new FlagListDto(flagKeys, isTruncated);
+    static of(
+        flagKeys: FlagKeyDto[],
+        isTruncated: boolean,
+        count: number,
+        matchCount: number,
+    ): FlagListDto {
+        return new FlagListDto(flagKeys, isTruncated, count, matchCount);
     }
 }
 

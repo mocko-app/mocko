@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AlertTriangleIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
@@ -69,6 +70,15 @@ export const MockCard: React.FC<{
             )}
             {isReadOnly && (
               <Badge variant="annotationReadOnly">Read Only</Badge>
+            )}
+            {mock.annotations.includes("SHADOWED") && (
+              <Badge variant="annotationShadowed">Shadowed</Badge>
+            )}
+            {mock.annotations.includes("CONFLICT") && (
+              <Badge variant="annotationConflict">
+                <AlertTriangleIcon aria-hidden="true" />
+                Conflict
+              </Badge>
             )}
           </div>
           {mock.filePath && (

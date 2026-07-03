@@ -212,3 +212,66 @@ describe("edit mock page delete flow", () => {
     await waitFor(() => expect(router.push).toHaveBeenCalledWith("/mocks"));
   });
 });
+
+describe("edit mock page conflict notice", () => {
+  it("shows the shadowed notice linking to the overriding mock", async () => {
+    const mock = aMockDetails({
+      id: "file-1",
+      name: "File mock",
+      annotations: ["READ_ONLY", "SHADOWED"],
+      conflict: {
+        role: "shadowed",
+        related: [
+          {
+            id: "ui-1",
+            name: "UI override",
+            method: "GET",
+            path: "/same",
+            host: undefined,
+            filePath: undefined,
+            source: "UI",
+          },
+        ],
+      },
+    });
+    givenEditPage(mock);
+    renderWithProviders(<EditMockPage />);
+
+    expect(
+      await screen.findByText("Shadowed by another mock"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Open UI override" }),
+    ).toHaveAttribute("href", "/mocks/ui-1");
+  });
+
+  it("shows the conflict notice for an ambiguous collision", async () => {
+    const mock = aMockDetails({
+      id: "ui-a",
+      name: "Mock A",
+      annotations: ["CONFLICT"],
+      conflict: {
+        role: "conflict",
+        related: [
+          {
+            id: "ui-b",
+            name: "Mock B",
+            method: "GET",
+            path: "/same",
+            host: undefined,
+            filePath: undefined,
+            source: "UI",
+          },
+        ],
+      },
+    });
+    givenEditPage(mock);
+    renderWithProviders(<EditMockPage />);
+
+    expect(await screen.findByText("Conflicting mocks")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Mock B" })).toHaveAttribute(
+      "href",
+      "/mocks/ui-b",
+    );
+  });
+});

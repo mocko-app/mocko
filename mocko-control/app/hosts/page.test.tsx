@@ -86,5 +86,24 @@ describe("hosts page failure handling", () => {
     expect(
       await screen.findByText("Could not fetch hosts"),
     ).toBeInTheDocument();
+    expect(screen.queryByText("0 hosts")).not.toBeInTheDocument();
+  });
+});
+
+describe("hosts page header counts", () => {
+  it("shows the host count", async () => {
+    givenApi({ hosts: [aHost(), aHost(), aHost()] });
+    renderWithProviders(<HostsPage />);
+
+    await screen.findByRole("list", { name: "Hosts list" });
+    expect(screen.getByText("3 hosts")).toBeInTheDocument();
+  });
+
+  it("uses the singular form for a single host", async () => {
+    givenApi({ hosts: [aHost()] });
+    renderWithProviders(<HostsPage />);
+
+    await screen.findByRole("list", { name: "Hosts list" });
+    expect(screen.getByText("1 host")).toBeInTheDocument();
   });
 });

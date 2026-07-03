@@ -25,6 +25,10 @@ const badgeVariants = cva(
           "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-muted-foreground uppercase",
         annotationDisabled:
           "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-red-400/80 uppercase",
+        annotationShadowed:
+          "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-muted-foreground uppercase",
+        annotationConflict:
+          "gap-1 rounded-sm border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-widest text-amber-400 uppercase",
         statusInfo:
           "h-auto rounded-none border-0 bg-transparent p-0 text-[9px] font-semibold tracking-widest text-sky-400/80 uppercase",
         statusWarning:

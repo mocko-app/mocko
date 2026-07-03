@@ -109,7 +109,14 @@ export class FlagService {
             ...flags.map((name) => FlagKeyDto.of('FLAG', name)),
         ];
 
-        return FlagListDto.of(flagKeys, isTruncated);
+        let count = 0;
+        let matchCount = 0;
+        for(const groupCounts of counts.values()) {
+            count += groupCounts.total;
+            matchCount += groupCounts.matches;
+        }
+
+        return FlagListDto.of(flagKeys, isTruncated, count, matchCount);
     }
 
     private normalizePrefix(prefix: string): string {

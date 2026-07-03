@@ -67,6 +67,8 @@ export class MemoryStore extends Store {
     return {
       flagKeys: list.flagKeys.map((flagKey) => this.toFlagKey(flagKey)),
       isTruncated: list.isTruncated,
+      count: list.count,
+      matchCount: list.matchCount,
     };
   }
 

@@ -13,6 +13,8 @@ export class FlagListDto {
   constructor(
     public readonly flagKeys: FlagKey[],
     public readonly isTruncated: boolean,
+    public readonly count?: number,
+    public readonly matchCount?: number,
   ) {}
 }
 
