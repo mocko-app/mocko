@@ -39,16 +39,16 @@ function formatFolderCount(
     const matchCount = item.matchCount ?? item.count;
     const suffix = isTruncated ? "+" : "";
     const matchLabel = matchCount === 1 ? "match" : "matches";
-    return `${matchCount}${suffix} ${matchLabel} · ${item.count}${suffix} total`;
+    return `${matchCount.toLocaleString()}${suffix} ${matchLabel} · ${item.count.toLocaleString()}${suffix} total`;
   }
 
   if (isTruncated) {
     const flagLabel = item.count === 1 ? "flag" : "flags";
-    return `At least ${item.count} ${flagLabel}`;
+    return `At least ${item.count.toLocaleString()} ${flagLabel}`;
   }
 
   const flagLabel = item.count === 1 ? "flag" : "flags";
-  return `${item.count} ${flagLabel}`;
+  return `${item.count.toLocaleString()} ${flagLabel}`;
 }
 
 export function FolderItem({

@@ -37,6 +37,22 @@ describe("flags page navigation", () => {
     ).toHaveAttribute("href", "/flags/new");
   });
 
+  it("formats large folder counts with thousands separators", async () => {
+    givenRoute({ pathname: "/flags" });
+    givenApi({
+      flagList: {
+        flagKeys: [
+          aFlagKey({ type: "PREFIX", name: "payments", count: 100000 }),
+        ],
+        isTruncated: false,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("100,000 flags")).toBeInTheDocument();
+  });
+
   it("composes nested folder links and breadcrumbs inside a prefix", async () => {
     givenRoute({ pathname: "/flags", search: "prefix=payments:" });
     givenApi({
