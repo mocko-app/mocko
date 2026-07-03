@@ -4,7 +4,7 @@ import { http, HttpResponse } from "msw";
 import FlagsPage from "./page";
 import { aFlagKey } from "@/test/fixtures";
 import { givenApi, server } from "@/test/msw";
-import { givenRoute, router } from "@/test/navigation";
+import { givenRoute } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 async function findFlagsList() {
@@ -99,6 +99,29 @@ describe("flags page navigation", () => {
 });
 
 describe("flags page search", () => {
+  it("prefills the search input from the URL and queries the API with it", async () => {
+    givenRoute({ pathname: "/flags", search: "q=pay" });
+    givenApi();
+
+    const queries: (string | null)[] = [];
+    server.use(
+      http.get("/api/flags", ({ request }) => {
+        queries.push(new URL(request.url).searchParams.get("q"));
+        return HttpResponse.json({
+          flagKeys: [aFlagKey({ name: "payments-v2" })],
+          isTruncated: false,
+        });
+      }),
+    );
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(
+      screen.getByRole("textbox", { name: "Search flags and folders" }),
+    ).toHaveValue("pay");
+    expect(queries).toContain("pay");
+  });
+
   it("keeps the search in the URL and clears back out of the empty state", async () => {
     givenRoute({ pathname: "/flags", search: "prefix=payments:" });
     givenApi();
@@ -119,16 +142,18 @@ describe("flags page search", () => {
       "zzz",
     );
 
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/flags?prefix=payments%3A&q=zzz",
-      { scroll: false },
     );
     expect(await screen.findByText("No items match “zzz”")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Clear search" }));
-    expect(router.replace).toHaveBeenLastCalledWith(
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
       "/flags?prefix=payments%3A",
-      { scroll: false },
     );
     const list = await findFlagsList();
     expect(within(list).getByRole("listitem")).toHaveAccessibleName(

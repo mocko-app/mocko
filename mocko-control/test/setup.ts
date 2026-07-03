@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom/vitest";
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { server } from "./msw";
-import { resetRoute } from "./navigation";
+import { installHistorySync, resetRoute } from "./navigation";
 
 // jsdom lacks a few browser APIs used by Base UI, sonner and next-themes.
 class ResizeObserverStub {
@@ -50,6 +50,8 @@ vi.mock("next/navigation", async () => {
 vi.mock("@monaco-editor/react", () => import("./monaco-stub"));
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+
+beforeEach(() => installHistorySync());
 
 afterEach(() => {
   server.resetHandlers();

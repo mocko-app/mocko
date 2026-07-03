@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Callout } from "@/components/callout";
@@ -23,16 +23,25 @@ import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
-import { matchesMockSearch } from "@/lib/mock/filter";
+import { replaceUrl } from "@/lib/frontend/replace-url";
+import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
+import {
+  buildMockListUrl,
+  parseMockListParams,
+} from "@/lib/mock/mock-list-url";
 import type { MockDto } from "@/lib/types/mock-dtos";
-import { getAvailableLabels, UNLABELED_KEY } from "@/lib/utils/labels";
 
 const EMPTY_MOCKS: MockDto[] = [];
 
 const MocksPage: React.FC = () => {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const { search, labels: selectedLabels } = useMemo(
+    () => parseMockListParams(new URLSearchParams(query)),
+    [query],
+  );
+  const [searchInputValue, setSearchInputValue] = useState(search);
   const [deleteTarget, setDeleteTarget] = useState<MockDto>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
 
@@ -40,41 +49,45 @@ const MocksPage: React.FC = () => {
   const { data: hosts = [] } = useHosts();
 
   const mocks = data ?? EMPTY_MOCKS;
-  const anyMockHasLabels = mocks.some((m) => m.labels.length > 0);
   const hostSlugs = useMemo(() => hosts.map((host) => host.slug), [hosts]);
 
-  const filtered = useMemo(() => {
-    let result = mocks;
+  useEffect(() => {
+    setSearchInputValue(search);
+  }, [search]);
 
-    if (search) {
-      result = result.filter((mock) => matchesMockSearch(mock, search));
+  useEffect(() => {
+    const canonical = buildMockListUrl(search, selectedLabels);
+    const current = query ? `/mocks?${query}` : "/mocks";
+    if (canonical !== current) {
+      replaceUrl(canonical);
     }
+  }, [query, search, selectedLabels]);
 
-    if (selectedLabels.includes(UNLABELED_KEY)) {
-      result = result.filter((m) => m.labels.length === 0);
-    } else if (selectedLabels.length > 0) {
-      result = result.filter((m) => {
-        const normalized = m.labels.map((l) => l.toLowerCase());
-        return selectedLabels.every((sel) =>
-          normalized.includes(sel.toLowerCase()),
-        );
-      });
-    }
-
-    return result;
-  }, [mocks, search, selectedLabels]);
-
-  const visibleLabels = useMemo(() => getAvailableLabels(filtered), [filtered]);
-  const showUnlabeled =
-    anyMockHasLabels && filtered.some((m) => m.labels.length === 0);
+  const filtered = useMemo(
+    () => filterMocks(mocks, search, selectedLabels),
+    [mocks, search, selectedLabels],
+  );
+  const labelKeys = useMemo(
+    () => getLabelFilterKeys(mocks, filtered, selectedLabels),
+    [mocks, filtered, selectedLabels],
+  );
 
   const isFiltered = search.length > 0 || selectedLabels.length > 0;
   const filteredOutCount = mocks.length - filtered.length;
   const activeCount = mocks.filter((m) => m.isEnabled).length;
 
+  function handleSearchChange(value: string) {
+    setSearchInputValue(value);
+    replaceUrl(buildMockListUrl(value, selectedLabels));
+  }
+
+  function handleLabelsChange(labels: string[]) {
+    replaceUrl(buildMockListUrl(search, labels));
+  }
+
   function clearFilters() {
-    setSearch("");
-    setSelectedLabels([]);
+    setSearchInputValue("");
+    replaceUrl("/mocks");
   }
 
   function handleEdit(id: string) {
@@ -153,8 +166,8 @@ const MocksPage: React.FC = () => {
 
       <div className="flex flex-col gap-3 mb-6">
         <PageSearchInput
-          value={search}
-          onChange={setSearch}
+          value={searchInputValue}
+          onChange={handleSearchChange}
           placeholder="Search mocks…"
           ariaLabel="Search mocks"
         />
@@ -162,10 +175,9 @@ const MocksPage: React.FC = () => {
           <LabelBarSkeleton />
         ) : (
           <LabelFilterBar
-            visibleLabels={visibleLabels}
-            hasUnlabeled={showUnlabeled}
+            labelKeys={labelKeys}
             selectedLabels={selectedLabels}
-            onChange={setSelectedLabels}
+            onChange={handleLabelsChange}
           />
         )}
       </div>
@@ -225,4 +237,10 @@ const MocksPage: React.FC = () => {
   );
 };
 
-export default MocksPage;
+export default function MocksPageWrapper() {
+  return (
+    <Suspense>
+      <MocksPage />
+    </Suspense>
+  );
+}

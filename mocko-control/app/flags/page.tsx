@@ -20,6 +20,7 @@ import { ListPageHeader } from "@/components/list-page-header";
 import { PageSearchInput } from "@/components/page-search-input";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag } from "@/lib/frontend/api";
+import { replaceUrl } from "@/lib/frontend/replace-url";
 import { useFlags } from "@/lib/frontend/hooks/resources";
 import type { FlagKeyDto } from "@/lib/types/flag-dtos";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,7 @@ const FlagsPage: React.FC = () => {
       prefix || undefined,
       value || undefined,
     );
-    router.replace(nextUrl, { scroll: false });
+    replaceUrl(nextUrl);
   }
 
   useEffect(() => {
