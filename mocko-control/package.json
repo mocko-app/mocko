@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run lint",
-    "build": "next build --webpack",
+    "build": "next build",
     "postbuild": "node scripts/prepare-standalone-assets.js",
     "start": "next start",
     "test": "vitest run",
