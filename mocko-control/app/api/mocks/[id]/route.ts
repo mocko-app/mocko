@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   errorResponse,
-  HttpResponseError,
   jsonResponse,
   noContentResponse,
   parseRequestBody,
@@ -35,9 +34,9 @@ export async function GET(
     return errorResponse(listError);
   }
 
-  const mock = mocks.find((item) => item.id === id);
-  if (!mock) {
-    return errorResponse(HttpResponseError.mockNotFound(id));
+  const [mock, getError] = await tryCatch(() => mockService.getMock(id));
+  if (getError) {
+    return errorResponse(getError);
   }
 
   const [failure] = await tryCatch(() => mockService.getFailure(id));
