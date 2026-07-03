@@ -40,6 +40,16 @@ async function setStatusCode(user: UserEvent, value: string) {
   }
 }
 
+describe("new mock page focus", () => {
+  it("autofocuses the name field", async () => {
+    givenApi();
+    renderWithProviders(<NewMockPage />);
+
+    await findCreateForm();
+    expect(screen.getByLabelText("Name")).toHaveFocus();
+  });
+});
+
 describe("new mock page payload mapping", () => {
   it("sends the mapped payload and redirects after a successful create", async () => {
     givenApi();

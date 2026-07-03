@@ -207,6 +207,7 @@ export function FlagForm(props: FlagFormProps) {
             aria-required="true"
             disabled={isSubmitting}
             aria-invalid={Boolean(keyError)}
+            autoFocus
           />
         ) : (
           <div

@@ -109,6 +109,7 @@ export function HostForm({ initial, mode }: HostFormProps) {
               placeholder="payments"
               aria-required="true"
               aria-invalid={showErrors && Boolean(errors.slug)}
+              autoFocus
               className={cn(
                 "font-mono text-sm",
                 showErrors &&

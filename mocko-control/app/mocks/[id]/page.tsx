@@ -9,6 +9,7 @@ import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { MockForm } from "@/components/mock-form";
 import { ApiError, deleteMock, patchMock } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useMock } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
@@ -32,6 +33,7 @@ export default function EditMockPage() {
   const id = useParam("id");
   const { data, error, isLoading, mutate: mutateMock } = useMock(id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  useDocumentTitle(data ? `Edit: ${data.name}` : "Edit mock");
 
   if (!id) {
     return <EditMissingState />;
@@ -68,6 +70,7 @@ export default function EditMockPage() {
     try {
       await deleteMock(data.id);
       await mutate("/api/mocks");
+      toast.success("Mock deleted.");
       router.push("/mocks");
     } catch (error) {
       console.error("Failed to delete mock", error);
@@ -84,6 +87,7 @@ export default function EditMockPage() {
       const updatedMock = await patchMock(data.id, { isEnabled: enabled });
       await mutateMock(updatedMock, { revalidate: false });
       await mutate("/api/mocks");
+      toast.success(enabled ? "Mock enabled." : "Mock disabled.");
     } catch (error) {
       if (enabled) {
         console.error("Failed to enable mock", error);

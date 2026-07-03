@@ -28,14 +28,14 @@ export function ListPageHeader({
           {title}
         </h1>
         {description ? (
-          <p
+          <div
             className={cn(
               "mt-0.5 text-sm text-muted-foreground",
               descriptionClassName,
             )}
           >
             {description}
-          </p>
+          </div>
         ) : null}
       </div>
       <div className="shrink-0">{actions}</div>

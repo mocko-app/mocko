@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server";
+import { parseRequestBody, route, tryCatch } from "@/lib/http";
 import {
-  errorResponse,
-  jsonResponse,
-  noContentResponse,
-  parseRequestBody,
-  tryCatch,
-} from "@/lib/http";
+  computeMockConflicts,
+  resolveMockConflict,
+} from "@/lib/mock/mock-conflicts";
 import { mockService } from "@/lib/mock/mock.service";
 import { MockDetailsDto } from "@/lib/types/mock-dtos";
 import { patchMockSchema } from "@/lib/validation/mock.schema";
@@ -19,51 +16,32 @@ type RouteContext = {
   }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
+export const GET = route(async (_request, context: RouteContext) => {
   const { id } = await context.params;
-  const [mock, mockError] = await tryCatch(() => mockService.getMock(id));
-  if (mockError) {
-    return errorResponse(mockError);
-  }
+
+  const mocks = await mockService.listMocks();
+  const mock = await mockService.getMock(id);
 
   const [failure] = await tryCatch(() => mockService.getFailure(id));
-  return jsonResponse(MockDetailsDto.ofMock(mock, failure));
-}
+  const conflicts = computeMockConflicts(mocks);
+  const conflict = resolveMockConflict(id, conflicts, mocks);
+  return MockDetailsDto.ofMock(mock, failure ?? null, conflict);
+});
 
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const [body, bodyError] = await tryCatch(() =>
-    parseRequestBody(request, patchMockSchema),
-  );
-  if (bodyError) {
-    return errorResponse(bodyError);
-  }
+export const PATCH = route(async (request, context: RouteContext) => {
+  const body = await parseRequestBody(request, patchMockSchema);
 
   const { id } = await context.params;
-  const [mock, updateError] = await tryCatch(() =>
-    mockService.updateMock(id, body),
-  );
-  if (updateError) {
-    return errorResponse(updateError);
-  }
+  const mock = await mockService.updateMock(id, body);
 
-  return jsonResponse(MockDetailsDto.ofMock(mock));
-}
+  const [mocks] = await tryCatch(() => mockService.listMocks());
+  const conflict = mocks
+    ? resolveMockConflict(id, computeMockConflicts(mocks), mocks)
+    : null;
+  return MockDetailsDto.ofMock(mock, null, conflict);
+});
 
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
+export const DELETE = route(async (_request, context: RouteContext) => {
   const { id } = await context.params;
-  const [, deleteError] = await tryCatch(() => mockService.deleteMock(id));
-  if (deleteError) {
-    return errorResponse(deleteError);
-  }
-
-  return noContentResponse();
-}
+  await mockService.deleteMock(id);
+});

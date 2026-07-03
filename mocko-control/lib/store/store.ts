@@ -21,6 +21,8 @@ export type StoreFlag = {
 export type FlagListResult = {
   flagKeys: FlagKey[];
   isTruncated: boolean;
+  count?: number;
+  matchCount?: number;
 };
 
 export abstract class Store {

@@ -9,7 +9,12 @@ export class FlagService {
 
   async listFlags(prefix: string, search?: string): Promise<FlagListDto> {
     const list = await this.store.listFlags(prefix, search);
-    return new FlagListDto(list.flagKeys, list.isTruncated);
+    return new FlagListDto(
+      list.flagKeys,
+      list.isTruncated,
+      list.count,
+      list.matchCount,
+    );
   }
 
   async getFlag(key: string): Promise<FlagDto> {

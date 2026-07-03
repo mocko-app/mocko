@@ -90,6 +90,25 @@ export class HttpResponseError extends Error {
   }
 }
 
+export function route<Ctx>(
+  handler: (request: Request, context: Ctx) => Promise<unknown>,
+): (request: Request, context: Ctx) => Promise<NextResponse> {
+  return async (request, context) => {
+    try {
+      const result = await handler(request, context);
+      if (result instanceof NextResponse) {
+        return result;
+      }
+      if (result === undefined) {
+        return noContentResponse();
+      }
+      return jsonResponse(result);
+    } catch (error) {
+      return errorResponse(error);
+    }
+  };
+}
+
 export function jsonResponse(data: unknown, status = 200): NextResponse {
   return NextResponse.json(data, {
     status,
@@ -107,6 +126,10 @@ export function noContentResponse(status = 204): NextResponse {
 export function errorResponse(error: unknown): NextResponse {
   if (error instanceof HttpResponseError) {
     return error.toResponse();
+  }
+
+  if (error instanceof ZodError) {
+    return HttpResponseError.validationError(error).toResponse();
   }
 
   if (

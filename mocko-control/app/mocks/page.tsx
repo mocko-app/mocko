@@ -21,10 +21,13 @@ import {
 } from "@/components/mocks-list-skeleton";
 import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
+import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
 import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
+import { formatMockListCounts } from "@/lib/mock/mock-list-counts";
 import {
   buildMockListUrl,
   parseMockListParams,
@@ -34,6 +37,7 @@ import type { MockDto } from "@/lib/types/mock-dtos";
 const EMPTY_MOCKS: MockDto[] = [];
 
 const MocksPage: React.FC = () => {
+  useDocumentTitle("Mocks");
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.toString();
@@ -74,7 +78,16 @@ const MocksPage: React.FC = () => {
 
   const isFiltered = search.length > 0 || selectedLabels.length > 0;
   const filteredOutCount = mocks.length - filtered.length;
-  const activeCount = mocks.filter((m) => m.isEnabled).length;
+  const disabledCount = mocks.filter((m) => !m.isEnabled).length;
+  const countsDescription = data ? (
+    formatMockListCounts(
+      mocks.length,
+      disabledCount,
+      isFiltered ? filtered.length : undefined,
+    )
+  ) : isLoading ? (
+    <Skeleton className="my-0.5 h-4 w-36" />
+  ) : undefined;
 
   function handleSearchChange(value: string) {
     setSearchInputValue(value);
@@ -99,6 +112,7 @@ const MocksPage: React.FC = () => {
       try {
         await deleteMock(mock.id);
         await mutate();
+        toast.success("Mock deleted.");
       } catch (error) {
         console.error("Failed to delete mock", error);
         toast.error("Failed to delete mock");
@@ -118,6 +132,7 @@ const MocksPage: React.FC = () => {
       await deleteMock(deleteTarget.id);
       await mutate();
       setDeleteTarget(undefined);
+      toast.success("Mock deleted.");
     } catch (error) {
       console.error("Failed to delete mock", error);
       toast.error("Failed to delete mock");
@@ -128,6 +143,7 @@ const MocksPage: React.FC = () => {
     try {
       await patchMock(id, { isEnabled: enabled });
       await mutate();
+      toast.success(enabled ? "Mock enabled." : "Mock disabled.");
     } catch (error) {
       if (enabled) {
         console.error("Failed to enable mock", error);
@@ -143,7 +159,7 @@ const MocksPage: React.FC = () => {
     <div>
       <ListPageHeader
         title="Mocks"
-        description={`${mocks.length} total · ${activeCount} active`}
+        description={countsDescription}
         actions={
           <Button
             nativeButton={false}

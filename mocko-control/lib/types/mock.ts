@@ -1,8 +1,12 @@
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
+
 export const MOCK_ANNOTATIONS = ["TEMPORARY", "READ_ONLY"] as const;
+export const DERIVED_MOCK_ANNOTATIONS = ["SHADOWED", "CONFLICT"] as const;
 
 export type HttpMethod = (typeof HTTP_METHODS)[number];
 export type MockAnnotation = (typeof MOCK_ANNOTATIONS)[number];
+export type DerivedMockAnnotation = (typeof DERIVED_MOCK_ANNOTATIONS)[number];
+export type DisplayMockAnnotation = MockAnnotation | DerivedMockAnnotation;
 
 export type MockResponse = {
   code: number;

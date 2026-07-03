@@ -1,13 +1,30 @@
 import type {
+  DisplayMockAnnotation,
   HttpMethod,
   Mock,
-  MockAnnotation,
   MockResponse,
 } from "@/lib/types/mock";
 
 export type MockFailure = {
   message: string;
   date: string;
+};
+
+export type MockConflictRole = "active" | "shadowed" | "conflict";
+
+export type MockSummaryDto = {
+  id: string;
+  name: string;
+  method: HttpMethod;
+  path: string;
+  host?: string;
+  filePath?: string;
+  source: "UI" | "FILE";
+};
+
+export type MockConflictDto = {
+  role: MockConflictRole;
+  related: MockSummaryDto[];
 };
 
 export type CreateMockDto = {
@@ -46,6 +63,19 @@ export class MockResponseDto {
   }
 }
 
+function annotationsWithConflict(
+  mock: Mock,
+  role: MockConflictRole | undefined,
+): DisplayMockAnnotation[] {
+  const annotations: DisplayMockAnnotation[] = [...mock.annotations];
+  if (role === "shadowed") {
+    annotations.push("SHADOWED");
+  } else if (role === "conflict") {
+    annotations.push("CONFLICT");
+  }
+  return annotations;
+}
+
 export class MockDto {
   private constructor(
     public readonly id: string,
@@ -57,10 +87,10 @@ export class MockDto {
     public readonly format: string | undefined,
     public readonly isEnabled: boolean,
     public readonly labels: string[],
-    public readonly annotations: MockAnnotation[],
+    public readonly annotations: DisplayMockAnnotation[],
   ) {}
 
-  static ofMock(mock: Mock): MockDto {
+  static ofMock(mock: Mock, conflictRole?: MockConflictRole): MockDto {
     return new MockDto(
       mock.id,
       mock.name,
@@ -71,7 +101,7 @@ export class MockDto {
       mock.format,
       mock.isEnabled,
       [...mock.labels],
-      [...mock.annotations],
+      annotationsWithConflict(mock, conflictRole),
     );
   }
 }
@@ -87,14 +117,16 @@ export class MockDetailsDto {
     public readonly format: string | undefined,
     public readonly isEnabled: boolean,
     public readonly labels: string[],
-    public readonly annotations: MockAnnotation[],
+    public readonly annotations: DisplayMockAnnotation[],
     public readonly response: MockResponseDto,
     public readonly failure: MockFailure | null,
+    public readonly conflict: MockConflictDto | null,
   ) {}
 
   static ofMock(
     mock: Mock,
     failure: MockFailure | null = null,
+    conflict: MockConflictDto | null = null,
   ): MockDetailsDto {
     return new MockDetailsDto(
       mock.id,
@@ -106,9 +138,10 @@ export class MockDetailsDto {
       mock.format,
       mock.isEnabled,
       [...mock.labels],
-      [...mock.annotations],
+      annotationsWithConflict(mock, conflict?.role),
       MockResponseDto.ofResponse(mock.response),
       failure,
+      conflict,
     );
   }
 }
