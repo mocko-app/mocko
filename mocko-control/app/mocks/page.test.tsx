@@ -72,6 +72,30 @@ describe("mocks page filtering", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("clears the search with the inline clear button", async () => {
+    givenApi({ mocks: fixtures() });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    const searchInput = screen.getByRole("textbox", { name: "Search mocks" });
+
+    expect(
+      screen.queryByRole("button", { name: "Clear search field" }),
+    ).not.toBeInTheDocument();
+
+    await user.type(searchInput, "create");
+    expect(getListedMockNames()).toEqual(["Mock: Create user"]);
+
+    await user.click(
+      screen.getByRole("button", { name: "Clear search field" }),
+    );
+    expect(searchInput).toHaveValue("");
+    expect(getListedMockNames()).toHaveLength(4);
+    expect(
+      screen.queryByRole("button", { name: "Clear search field" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows the empty filter state when the search matches nothing", async () => {
     givenApi({ mocks: fixtures() });
     const { user } = renderWithProviders(<MocksPage />);
