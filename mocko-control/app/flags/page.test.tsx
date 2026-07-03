@@ -165,6 +165,124 @@ describe("flags page search", () => {
   });
 });
 
+describe("flags page header counts", () => {
+  it("shows the total flag count at the root", async () => {
+    givenRoute({ pathname: "/flags" });
+    givenApi({
+      flagList: {
+        flagKeys: [
+          aFlagKey({ type: "PREFIX", name: "payments", count: 41 }),
+          aFlagKey({ name: "maintenance" }),
+        ],
+        isTruncated: false,
+        count: 42,
+        matchCount: 42,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("42 flags")).toBeInTheDocument();
+  });
+
+  it("marks the root count as a lower bound when truncated", async () => {
+    givenRoute({ pathname: "/flags" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "one" })],
+        isTruncated: true,
+        count: 500,
+        matchCount: 500,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("500+ flags")).toBeInTheDocument();
+  });
+
+  it("shows match counts when searching from the root", async () => {
+    givenRoute({ pathname: "/flags" });
+    givenApi();
+    server.use(
+      http.get("/api/flags", ({ request }) => {
+        const query = new URL(request.url).searchParams.get("q");
+        if (!query) {
+          return HttpResponse.json({
+            flagKeys: [aFlagKey({ name: "checkout" })],
+            isTruncated: false,
+            count: 42,
+            matchCount: 42,
+          });
+        }
+        return HttpResponse.json({
+          flagKeys: [aFlagKey({ name: "payments-v2" })],
+          isTruncated: false,
+          count: 42,
+          matchCount: 3,
+        });
+      }),
+    );
+    const { user } = renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("42 flags")).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole("textbox", { name: "Search flags and folders" }),
+      "pay",
+    );
+    expect(await screen.findByText("3 of 42 flags")).toBeInTheDocument();
+  });
+
+  it("drops the unknown total when a search is truncated", async () => {
+    givenRoute({ pathname: "/flags", search: "q=pay" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "payments-v2" })],
+        isTruncated: true,
+        count: 500,
+        matchCount: 3,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("3+ matches")).toBeInTheDocument();
+  });
+
+  it("shows no counts when the backend does not report them", async () => {
+    givenRoute({ pathname: "/flags" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "one" })],
+        isTruncated: false,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.queryByText(/^\d+\+? flags?$/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the prefix as the description inside a folder", async () => {
+    givenRoute({ pathname: "/flags", search: "prefix=payments:" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "checkout" })],
+        isTruncated: false,
+        count: 12,
+        matchCount: 12,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByText("payments:")).toBeInTheDocument();
+    expect(screen.queryByText(/^\d+\+? flags?$/)).not.toBeInTheDocument();
+  });
+});
+
 describe("flags page delete flow", () => {
   it("asks for confirmation and skips it after don't ask again", async () => {
     const state = givenApi({

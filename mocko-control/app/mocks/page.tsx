@@ -21,10 +21,12 @@ import {
 } from "@/components/mocks-list-skeleton";
 import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
 import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
+import { formatMockListCounts } from "@/lib/mock/mock-list-counts";
 import {
   buildMockListUrl,
   parseMockListParams,
@@ -74,7 +76,16 @@ const MocksPage: React.FC = () => {
 
   const isFiltered = search.length > 0 || selectedLabels.length > 0;
   const filteredOutCount = mocks.length - filtered.length;
-  const activeCount = mocks.filter((m) => m.isEnabled).length;
+  const disabledCount = mocks.filter((m) => !m.isEnabled).length;
+  const countsDescription = data ? (
+    formatMockListCounts(
+      mocks.length,
+      disabledCount,
+      isFiltered ? filtered.length : undefined,
+    )
+  ) : isLoading ? (
+    <Skeleton className="my-0.5 h-4 w-36" />
+  ) : undefined;
 
   function handleSearchChange(value: string) {
     setSearchInputValue(value);
@@ -143,7 +154,7 @@ const MocksPage: React.FC = () => {
     <div>
       <ListPageHeader
         title="Mocks"
-        description={`${mocks.length} total · ${activeCount} active`}
+        description={countsDescription}
         actions={
           <Button
             nativeButton={false}

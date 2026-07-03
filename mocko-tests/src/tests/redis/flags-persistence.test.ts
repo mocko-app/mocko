@@ -124,6 +124,8 @@ describeRedis('redis flags persistence', () => {
     const res = await subject.ensureControl().get('/api/flags?prefix=bulk:');
     expect(res.status).toBe(200);
     expect(res.data.isTruncated).toBe(false);
+    expect(res.data.count).toBe(20_100);
+    expect(res.data.matchCount).toBe(20_100);
     expect(res.data.flagKeys).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -172,6 +174,8 @@ describeRedis('redis flags persistence', () => {
       .ensureControl()
       .get('/api/flags?prefix=users:&q=1234');
     expect(res.status).toBe(200);
+    expect(res.data.count).toBe(3);
+    expect(res.data.matchCount).toBe(2);
     expect(res.data.flagKeys).toEqual([
       expect.objectContaining({
         type: 'PREFIX',
@@ -180,6 +184,42 @@ describeRedis('redis flags persistence', () => {
         matchCount: 2,
       }),
     ]);
+  });
+
+  it('counts Redis-backed root flags alongside prefixes when filtering', async () => {
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true, '--watch': false },
+      mode: 'url',
+      env: {
+        FLAGS_LIST_LIMIT: '10',
+      },
+    }));
+
+    const redisClient = createRedisClient(redis);
+    const effectivePrefix = getEffectiveRedisPrefix(redis.prefix);
+    await redisClient
+      .pipeline()
+      .hset(`${effectivePrefix}flags:root-flag`, redisFlagFields('on'))
+      .hset(`${effectivePrefix}flags:prefix:deep-flag`, redisFlagFields('on'))
+      .hset(`${effectivePrefix}flags:prefix:ignored`, redisFlagFields('off'))
+      .exec();
+    redisClient.disconnect();
+
+    const res = await subject.ensureControl().get('/api/flags?q=flag');
+    expect(res.status).toBe(200);
+    expect(res.data.count).toBe(3);
+    expect(res.data.matchCount).toBe(2);
+    expect(res.data.flagKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'FLAG', name: 'root-flag' }),
+        expect.objectContaining({
+          type: 'PREFIX',
+          name: 'prefix',
+          count: 2,
+          matchCount: 1,
+        }),
+      ]),
+    );
   });
 
   it('filters Redis-backed lists case-insensitively', async () => {

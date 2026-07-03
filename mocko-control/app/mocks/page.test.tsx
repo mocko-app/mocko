@@ -447,6 +447,81 @@ describe("mocks page URL filters", () => {
   });
 });
 
+describe("mocks page header counts", () => {
+  it("shows the total with the disabled count and switches to match counts while filtering", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "Get users", isEnabled: true, labels: ["users"] }),
+        aMock({ name: "Create user", isEnabled: false, labels: ["users"] }),
+        aMock({ name: "Get payments", isEnabled: true, labels: ["payments"] }),
+      ],
+    });
+    const { user } = renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(screen.getByText("3 mocks · 1 disabled")).toBeInTheDocument();
+
+    const searchInput = screen.getByRole("textbox", { name: "Search mocks" });
+    await user.type(searchInput, "user");
+    expect(screen.getByText("2 of 3 mocks")).toBeInTheDocument();
+    expect(screen.queryByText(/disabled/)).not.toBeInTheDocument();
+
+    await user.clear(searchInput);
+    expect(screen.getByText("3 mocks · 1 disabled")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "payments" }));
+    expect(screen.getByText("1 of 3 mocks")).toBeInTheDocument();
+  });
+
+  it("collapses to the total when every mock is enabled", async () => {
+    givenApi({
+      mocks: [aMock({ name: "First" }), aMock({ name: "Second" })],
+    });
+    renderWithProviders(<MocksPage />);
+
+    await findMocksList();
+    expect(screen.getByText("2 mocks")).toBeInTheDocument();
+    expect(screen.queryByText(/disabled/)).not.toBeInTheDocument();
+  });
+
+  it("updates the disabled count when a mock is toggled", async () => {
+    const state = givenApi({
+      mocks: [aMock({ name: "Toggler", isEnabled: true })],
+    });
+    server.use(
+      http.patch("/api/mocks/:id", async ({ params, request }) => {
+        const payload = (await request.json()) as { isEnabled: boolean };
+        state.mocks = state.mocks.map((mock) =>
+          mock.id === params.id
+            ? { ...mock, isEnabled: payload.isEnabled }
+            : mock,
+        );
+        return HttpResponse.json(state.mocks[0]);
+      }),
+    );
+
+    const { user } = renderWithProviders(<MocksPage />);
+    await findMocksList();
+    expect(screen.getByText("1 mock")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Toggler" }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Disable" }));
+
+    expect(await screen.findByText("1 mock · 1 disabled")).toBeInTheDocument();
+  });
+
+  it("hides the counts when mocks cannot be fetched", async () => {
+    givenApi();
+    givenApiError("get", "/api/mocks");
+    renderWithProviders(<MocksPage />);
+
+    await screen.findByText("Could not fetch mocks");
+    expect(screen.queryByText("0 mocks")).not.toBeInTheDocument();
+  });
+});
+
 describe("mocks page delete flow", () => {
   it("asks for confirmation and skips it after don't ask again", async () => {
     const first = aMock({ id: "first-mock", name: "First mock" });

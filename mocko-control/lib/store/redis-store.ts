@@ -190,6 +190,13 @@ export class RedisStore extends Store {
       }
     } while (cursor !== "0");
 
+    let count = 0;
+    let matchCount = 0;
+    for (const groupCounts of counts.values()) {
+      count += groupCounts.total;
+      matchCount += groupCounts.matches;
+    }
+
     return {
       flagKeys: [
         ...Array.from(groups).map<FlagKey>((name) => ({
@@ -201,6 +208,8 @@ export class RedisStore extends Store {
         ...flags.map<FlagKey>((name) => ({ type: "FLAG", name })),
       ],
       isTruncated,
+      count,
+      matchCount,
     };
   }
 

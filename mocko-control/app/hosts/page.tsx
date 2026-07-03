@@ -11,16 +11,24 @@ import { EmptyState } from "@/components/empty-state";
 import { HostCard } from "@/components/host-card";
 import { ListPageHeader } from "@/components/list-page-header";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { deleteHost } from "@/lib/frontend/api";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { Host } from "@/lib/types/host";
 
 const HostsPage: React.FC = () => {
   const router = useRouter();
-  const { data: hosts = [], error, mutate } = useHosts();
+  const { data, error, isLoading, mutate } = useHosts();
+  const hosts = data ?? [];
   const [deleteTarget, setDeleteTarget] = useState<Host>();
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const countsDescription = data ? (
+    `${hosts.length} ${hosts.length === 1 ? "host" : "hosts"}`
+  ) : isLoading ? (
+    <Skeleton className="my-0.5 h-4 w-16" />
+  ) : undefined;
 
   function handleEdit(slug: string) {
     router.push(`/hosts/${slug}`);
@@ -57,6 +65,7 @@ const HostsPage: React.FC = () => {
     <div>
       <ListPageHeader
         title="Hosts"
+        description={countsDescription}
         actions={
           <Button
             nativeButton={false}
