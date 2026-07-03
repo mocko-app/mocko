@@ -5,6 +5,7 @@ import {
   parseRequestBody,
   tryCatch,
 } from "@/lib/http";
+import { computeMockConflicts } from "@/lib/mock/mock-conflicts";
 import { mockService } from "@/lib/mock/mock.service";
 import { MockDto } from "@/lib/types/mock-dtos";
 import { createMockSchema } from "@/lib/validation/mock.schema";
@@ -14,7 +15,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<NextResponse> {
   const mocks = await mockService.listMocks();
-  return jsonResponse(mocks.map(MockDto.ofMock));
+  const conflicts = computeMockConflicts(mocks);
+  return jsonResponse(
+    mocks.map((mock) => MockDto.ofMock(mock, conflicts.get(mock.id)?.role)),
+  );
 }
 
 export async function POST(request: Request): Promise<NextResponse> {

@@ -612,3 +612,35 @@ describe("mocks page failure handling", () => {
     expect(screen.queryByLabelText("Disabled")).not.toBeInTheDocument();
   });
 });
+
+describe("mocks page conflict badges", () => {
+  it("renders Conflict and Shadowed badges on the offending rows", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "Conflict mock", annotations: ["CONFLICT"] }),
+        aMock({
+          name: "Shadowed mock",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+        aMock({ name: "Plain mock" }),
+      ],
+    });
+    renderWithProviders(<MocksPage />);
+
+    const conflictCard = await screen.findByRole("listitem", {
+      name: "Mock: Conflict mock",
+    });
+    expect(within(conflictCard).getByText("Conflict")).toBeInTheDocument();
+
+    const shadowedCard = screen.getByRole("listitem", {
+      name: "Mock: Shadowed mock",
+    });
+    expect(within(shadowedCard).getByText("Shadowed")).toBeInTheDocument();
+
+    const plainCard = screen.getByRole("listitem", {
+      name: "Mock: Plain mock",
+    });
+    expect(within(plainCard).queryByText("Conflict")).not.toBeInTheDocument();
+    expect(within(plainCard).queryByText("Shadowed")).not.toBeInTheDocument();
+  });
+});

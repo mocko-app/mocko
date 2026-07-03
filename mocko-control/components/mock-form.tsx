@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { XIcon } from "lucide-react";
+import { AlertTriangleIcon, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
+import { MockConflictNotice } from "@/components/mock-conflict-notice";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
 import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
 import { BodyEditor } from "@/components/monaco-editor";
@@ -25,7 +26,11 @@ import {
 } from "@/lib/frontend/hooks/use-mock-form";
 import { getAvailableLabels } from "@/lib/utils/labels";
 import { LabelPicker } from "@/components/label-picker";
-import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
+import type {
+  CreateMockDto,
+  MockConflictRole,
+  MockDetailsDto,
+} from "@/lib/types/mock-dtos";
 import { HTTP_METHODS } from "@/lib/types/mock";
 import { cn } from "@/lib/utils";
 
@@ -50,8 +55,9 @@ const MockFormHeader: React.FC<{
   title: string;
   isReadOnly: boolean;
   isDisabled: boolean;
+  conflictRole?: MockConflictRole;
   actions?: React.ReactNode;
-}> = ({ title, isReadOnly, isDisabled, actions }) => {
+}> = ({ title, isReadOnly, isDisabled, conflictRole, actions }) => {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1">
@@ -65,6 +71,17 @@ const MockFormHeader: React.FC<{
           {isDisabled && (
             <Badge variant="annotationDisabled" className="text-xs">
               Disabled
+            </Badge>
+          )}
+          {conflictRole === "shadowed" && (
+            <Badge variant="annotationShadowed" className="text-xs">
+              Shadowed
+            </Badge>
+          )}
+          {conflictRole === "conflict" && (
+            <Badge variant="annotationConflict">
+              <AlertTriangleIcon aria-hidden="true" />
+              Conflict
             </Badge>
           )}
         </div>
@@ -117,6 +134,7 @@ export function MockForm({
       <MockFormHeader
         isReadOnly={isReadOnly}
         isDisabled={mode === "edit" && initial ? !initial.isEnabled : false}
+        conflictRole={mode === "edit" ? initial?.conflict?.role : undefined}
         title={title}
         actions={
           mode === "edit" &&
@@ -163,6 +181,9 @@ export function MockForm({
           title="Temporary mock"
           message="This mock was created through the UI without a persistent store. It will be lost when Mocko restarts."
         />
+      )}
+      {mode === "edit" && initial?.conflict && (
+        <MockConflictNotice conflict={initial.conflict} />
       )}
       {showErrors && errors.form && (
         <div

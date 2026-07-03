@@ -41,6 +41,7 @@ export function aMockDetails(
       headers: {},
     },
     failure: null,
+    conflict: null,
     ...overrides,
   };
 }

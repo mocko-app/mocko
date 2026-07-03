@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import {
   errorResponse,
+  HttpResponseError,
   jsonResponse,
   noContentResponse,
   parseRequestBody,
   tryCatch,
 } from "@/lib/http";
+import {
+  computeMockConflicts,
+  resolveMockConflict,
+} from "@/lib/mock/mock-conflicts";
 import { mockService } from "@/lib/mock/mock.service";
 import { MockDetailsDto } from "@/lib/types/mock-dtos";
 import { patchMockSchema } from "@/lib/validation/mock.schema";
@@ -24,13 +29,21 @@ export async function GET(
   context: RouteContext,
 ): Promise<NextResponse> {
   const { id } = await context.params;
-  const [mock, mockError] = await tryCatch(() => mockService.getMock(id));
-  if (mockError) {
-    return errorResponse(mockError);
+
+  const [mocks, listError] = await tryCatch(() => mockService.listMocks());
+  if (listError) {
+    return errorResponse(listError);
+  }
+
+  const mock = mocks.find((item) => item.id === id);
+  if (!mock) {
+    return errorResponse(HttpResponseError.mockNotFound(id));
   }
 
   const [failure] = await tryCatch(() => mockService.getFailure(id));
-  return jsonResponse(MockDetailsDto.ofMock(mock, failure));
+  const conflicts = computeMockConflicts(mocks);
+  const conflict = resolveMockConflict(id, conflicts, mocks);
+  return jsonResponse(MockDetailsDto.ofMock(mock, failure ?? null, conflict));
 }
 
 export async function PATCH(
@@ -52,7 +65,11 @@ export async function PATCH(
     return errorResponse(updateError);
   }
 
-  return jsonResponse(MockDetailsDto.ofMock(mock));
+  const [mocks] = await tryCatch(() => mockService.listMocks());
+  const conflict = mocks
+    ? resolveMockConflict(id, computeMockConflicts(mocks), mocks)
+    : null;
+  return jsonResponse(MockDetailsDto.ofMock(mock, null, conflict));
 }
 
 export async function DELETE(

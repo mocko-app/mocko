@@ -42,6 +42,7 @@ function toDuplicateInitial(source: MockDetailsDto): MockDetailsDto {
       headers: { ...source.response.headers },
     },
     failure: null,
+    conflict: null,
   };
 }
 
