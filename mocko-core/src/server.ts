@@ -11,6 +11,7 @@ import {RedisProvider} from "./redis/redis.provider";
 import { DefinitionProvider } from "./definitions/definition.provider";
 import { HealthService } from "./api/health/health.service";
 import { RemapEventBus } from "./utils/remap-event-bus";
+import { Synchronize } from "@mocko/sync";
 
 const debug = require('debug')('mocko:proxy:server');
 
@@ -51,6 +52,7 @@ export class Server {
         }
     }
 
+    @Synchronize('remapRoutes')
     private async remapRoutes(): Promise<Server> {
         this.logger.info('Remapping routes');
         debug('building routes');

@@ -45,6 +45,7 @@ describe('deploy endpoint', () => {
         {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
+          MANAGEMENT_AUTH_MODE: 'deploy',
           DEPLOY_SECRET: 'secret',
         },
       );
@@ -62,6 +63,7 @@ describe('deploy endpoint', () => {
         {},
         {
           DEPLOY_ENDPOINT_ENABLED: 'true',
+          MANAGEMENT_AUTH_MODE: 'deploy',
           DEPLOY_SECRET: 'secret',
         },
       );
@@ -110,10 +112,11 @@ describe('deploy endpoint', () => {
       expect(detailsRes.status).toBe(401);
     });
 
-    it('rejects mock management routes without token in default deploy auth mode', async () => {
+    it('rejects mock management routes without token in deploy auth mode', async () => {
       subject = await createSubject(
         {},
         {
+          MANAGEMENT_AUTH_MODE: 'deploy',
           DEPLOY_SECRET: 'secret',
         },
       );
@@ -315,8 +318,11 @@ describe('deploy endpoint', () => {
       expect(res.status).toBe(404);
     });
 
-    it('enables deploy endpoint by default', async () => {
-      subject = await createSubject({ '--ui': true });
+    it('enables deploy endpoint with --ui', async () => {
+      subject = await createSubject(
+        { '--ui': true },
+        { MANAGEMENT_AUTH_MODE: 'deploy' },
+      );
 
       const res = await subject.client.post('/__mocko__/deploy', {
         mocks: [],
@@ -327,7 +333,10 @@ describe('deploy endpoint', () => {
     });
 
     it('enables deploy endpoint with --ui-port', async () => {
-      subject = await createSubject({ '--ui-port': 7788 });
+      subject = await createSubject(
+        { '--ui-port': 7788 },
+        { MANAGEMENT_AUTH_MODE: 'deploy' },
+      );
       const res = await subject.client.post('/__mocko__/deploy', {
         mocks: [],
         hosts: [],
@@ -337,7 +346,10 @@ describe('deploy endpoint', () => {
     });
 
     it('enables deploy endpoint with a harness ui request and ui-port', async () => {
-      subject = await createSubject({ '--ui': true, '--ui-port': 7799 });
+      subject = await createSubject(
+        { '--ui': true, '--ui-port': 7799 },
+        { MANAGEMENT_AUTH_MODE: 'deploy' },
+      );
       const res = await subject.client.post('/__mocko__/deploy', {
         mocks: [],
         hosts: [],

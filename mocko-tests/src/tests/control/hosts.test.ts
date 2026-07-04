@@ -2,7 +2,6 @@ import * as path from 'node:path';
 import {
   createContent,
   createSubject,
-  CONTENT_PORT,
   MockoInstance,
   randomPath,
 } from '../../harness';
@@ -43,16 +42,16 @@ describe('control hosts integration', () => {
       host "named" {
         name        = "Friendly name"
         source      = "named.local"
-        destination = "http://localhost:${CONTENT_PORT}/named"
+        destination = "http://localhost:${content.port}/named"
       }
       host "empty-name" {
         name        = ""
         source      = "empty-name.local"
-        destination = "http://localhost:${CONTENT_PORT}/empty-name"
+        destination = "http://localhost:${content.port}/empty-name"
       }
       host "unnamed" {
         source      = "unnamed.local"
-        destination = "http://localhost:${CONTENT_PORT}/unnamed"
+        destination = "http://localhost:${content.port}/unnamed"
       }
     `);
     const normalizedFilePath = normalizeHostFilePath(subject, filePath);
@@ -64,7 +63,7 @@ describe('control hosts integration', () => {
     expect(namedHost.name).toBe('Friendly name');
     expect(namedHost.source).toBe('named.local');
     expect(namedHost.destination).toBe(
-      `http://localhost:${CONTENT_PORT}/named`,
+      `http://localhost:${content.port}/named`,
     );
     expect(namedHost.annotations).toContain('READ_ONLY');
     expect(namedHost.annotations).not.toContain('TEMPORARY');
@@ -83,7 +82,7 @@ describe('control hosts integration', () => {
     expect(detailsRes.data.name).toBe('Friendly name');
     expect(detailsRes.data.source).toBe('named.local');
     expect(detailsRes.data.destination).toBe(
-      `http://localhost:${CONTENT_PORT}/named`,
+      `http://localhost:${content.port}/named`,
     );
     expect(detailsRes.data.annotations).toEqual(['READ_ONLY']);
 
@@ -112,7 +111,7 @@ describe('control hosts integration', () => {
       slug: 'storeless',
       name: 'Storeless host',
       source: 'storeless.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
 
     expect(createRes.status).toBe(201);
@@ -180,7 +179,7 @@ describe('control hosts integration', () => {
     const createHostRes = await control.post('/api/hosts', {
       slug: 'storeless',
       source: 'storeless.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
     expect(createHostRes.status).toBe(201);
 
@@ -231,18 +230,18 @@ describe('control hosts integration', () => {
     await subject.createMock(`
       host "shared" {
         source      = "shared.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content.port}"
       }
       host "file-only" {
         source      = "file-only.local"
-        destination = "http://localhost:${CONTENT_PORT}"
+        destination = "http://localhost:${content.port}"
       }
     `);
 
     const duplicateRes = await control.post('/api/hosts', {
       slug: 'shared',
       source: 'other.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
     expect(duplicateRes.status).toBe(409);
     expect(duplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
@@ -251,7 +250,7 @@ describe('control hosts integration', () => {
       slug: 'ui-only',
       name: 'UI only',
       source: 'ui-only.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
     expect(createRes.status).toBe(201);
 
@@ -277,7 +276,7 @@ describe('control hosts integration', () => {
     const createRes = await control.post('/api/hosts', {
       slug: 'validate',
       source: 'validate.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
     expect(createRes.status).toBe(201);
 
@@ -354,7 +353,7 @@ describe('control hosts integration', () => {
     const createHostRes = await control.post('/api/hosts', {
       slug: 'cleardest',
       source: 'clear-destination.local',
-      destination: `http://localhost:${CONTENT_PORT}`,
+      destination: `http://localhost:${content.port}`,
     });
     expect(createHostRes.status).toBe(201);
 
@@ -404,7 +403,7 @@ describe('control hosts integration', () => {
   it('proxies unmatched requests for ui hosts without destination to the global proxy url when configured', async () => {
     subject = await createSubject({
       '--ui': true,
-      '-u': `http://localhost:${CONTENT_PORT}`,
+      '-u': `http://localhost:${content.port}`,
     });
     const control = subject.ensureControl();
 

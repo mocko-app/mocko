@@ -8,6 +8,8 @@ import { nextPort } from './port';
 import { waitForHealth, waitForStatus, HealthResponse } from './health';
 
 const CLI_BIN = require.resolve('@mocko/cli/bin/main.js');
+const WATCHER_READY_MARKER = 'Watching mocks folder for changes';
+const WATCHER_READY_TIMEOUT_MS = 10000;
 const WATCHER_BOOTSTRAP_DELAY_MS = 500;
 const REMAP_TIMEOUT_MS = 10000;
 const CONTROL_START_TIMEOUT_MS = 15000;
@@ -89,7 +91,14 @@ export class MockoInstance {
     }
 
     this.proc = spawn(process.execPath, [CLI_BIN, ...args], {
-      env: { ...process.env, ...this.extraEnv, SILENT: 'true' },
+      env: {
+        ...process.env,
+        MANAGEMENT_AUTH_MODE: 'none',
+        MOCKO_LOG_WATCHER_READY: 'true',
+        REMAP_ENDPOINT_ENABLED: 'true',
+        ...this.extraEnv,
+        SILENT: 'true',
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     this.proc.stdout?.on('data', (chunk) => {
@@ -102,7 +111,9 @@ export class MockoInstance {
       this.exitCode = code;
     });
 
-    if (this.watchEnabled) {
+    if (this.watchEnabled && this.includeMocksFolder) {
+      await this.waitForOutput(WATCHER_READY_MARKER, WATCHER_READY_TIMEOUT_MS);
+    } else if (this.watchEnabled) {
       await sleep(WATCHER_BOOTSTRAP_DELAY_MS);
     }
 
@@ -157,8 +168,27 @@ export class MockoInstance {
 
   async createMock(hcl: string): Promise<string> {
     const filename = path.join(this.tempDir, `mock-${this.mockCounter++}.hcl`);
-    await this.writeFileAndWaitForRemap(filename, hcl);
+    await this.writeFileAndRemap(filename, hcl);
     return filename;
+  }
+
+  async writeFileAndRemap(filename: string, content: string): Promise<void> {
+    await fs.writeFile(filename, content);
+    if (!this.watchEnabled) {
+      return;
+    }
+    await this.remap();
+  }
+
+  async remap(): Promise<void> {
+    const secret = this.extraEnv.DEPLOY_SECRET;
+    const headers = secret ? { Authorization: `Bearer ${secret}` } : undefined;
+    const res = await this.client.post('/__mocko__/remap', undefined, {
+      headers,
+    });
+    if (res.status !== 204) {
+      throw new Error(`Remap request failed with status ${res.status}`);
+    }
   }
 
   async writeFileAndWaitForRemap(
@@ -200,6 +230,24 @@ export class MockoInstance {
     this.intentionallyStopped = true;
     await this.stopProcess();
     await fs.rm(this.tempDir, { recursive: true, force: true });
+  }
+
+  private async waitForOutput(marker: string, timeout: number): Promise<void> {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+      if (this.output.includes(marker)) {
+        return;
+      }
+      if (this.exitCode !== null) {
+        throw new Error(
+          `Process exited (code ${this.exitCode}) before emitting "${marker}".\nOutput:\n${this.output}`,
+        );
+      }
+      await sleep(10);
+    }
+    throw new Error(
+      `Timed out waiting for output "${marker}".\nOutput:\n${this.output}`,
+    );
   }
 
   private async waitForRevision(

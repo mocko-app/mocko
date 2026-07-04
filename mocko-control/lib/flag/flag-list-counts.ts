@@ -16,13 +16,13 @@ export function formatFlagListCounts(
     }
     if (list.isTruncated) {
       const matchNoun = list.matchCount === 1 ? "match" : "matches";
-      return `${list.matchCount}+ ${matchNoun}`;
+      return `${list.matchCount.toLocaleString()}+ ${matchNoun}`;
     }
-    return `${list.matchCount} of ${list.count} ${flagNoun(list.count)}`;
+    return `${list.matchCount.toLocaleString()} of ${list.count.toLocaleString()} ${flagNoun(list.count)}`;
   }
 
   const suffix = list.isTruncated ? "+" : "";
-  return `${list.count}${suffix} ${flagNoun(list.count)}`;
+  return `${list.count.toLocaleString()}${suffix} ${flagNoun(list.count)}`;
 }
 
 function flagNoun(count: number): string {

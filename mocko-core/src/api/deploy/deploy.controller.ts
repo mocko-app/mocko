@@ -23,4 +23,12 @@ export class DeployController {
 
         return h.response().code(204);
     }
+
+    async remap(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+        this.service.authorizeDeploy(request.headers.authorization);
+
+        await this.service.remap();
+
+        return h.response().code(204);
+    }
 }

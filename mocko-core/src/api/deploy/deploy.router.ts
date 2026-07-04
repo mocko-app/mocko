@@ -5,6 +5,7 @@ import { IRouter } from "../../utils/router";
 import { DeployController } from "./deploy.controller";
 
 const DEPLOY_ENDPOINT_ENABLED = configProvider.getOptionalBoolean('DEPLOY_ENDPOINT_ENABLED');
+const REMAP_ENDPOINT_ENABLED = configProvider.getOptionalBoolean('REMAP_ENDPOINT_ENABLED');
 
 @Provider()
 export class DeployRouter implements IRouter {
@@ -13,17 +14,30 @@ export class DeployRouter implements IRouter {
     ) { }
 
     async getRoutes(): Promise<ServerRoute[]> {
-        if(!DEPLOY_ENDPOINT_ENABLED) {
-            return [];
+        const routes: ServerRoute[] = [];
+
+        if(REMAP_ENDPOINT_ENABLED) {
+            routes.push({
+                method: 'POST',
+                path: '/__mocko__/remap',
+                handler: this.controller.remap.bind(this.controller),
+                rules: {
+                    mapSilently: true,
+                },
+            });
         }
 
-        return [{
-            method: 'POST',
-            path: '/__mocko__/deploy',
-            handler: this.controller.deploy.bind(this.controller),
-            rules: {
-                mapSilently: true,
-            },
-        }];
+        if(DEPLOY_ENDPOINT_ENABLED) {
+            routes.push({
+                method: 'POST',
+                path: '/__mocko__/deploy',
+                handler: this.controller.deploy.bind(this.controller),
+                rules: {
+                    mapSilently: true,
+                },
+            });
+        }
+
+        return routes;
     }
 }

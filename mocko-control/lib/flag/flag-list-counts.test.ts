@@ -62,6 +62,15 @@ describe("formatFlagListCounts", () => {
     ).toBe("1+ match");
   });
 
+  it("formats large counts with thousands separators", () => {
+    expect(
+      formatFlagListCounts(
+        { isTruncated: false, count: 100000, matchCount: 1234 },
+        true,
+      ),
+    ).toBe("1,234 of 100,000 flags");
+  });
+
   it("returns nothing when the backend does not report counts", () => {
     expect(formatFlagListCounts({ isTruncated: false }, false)).toBeUndefined();
     expect(

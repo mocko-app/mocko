@@ -4,8 +4,6 @@ export * from './flags';
 
 export { MockoInstance };
 
-export const CONTENT_PORT = 6650;
-
 export async function createSubject(
   options: InstanceOptions = {},
   env: NodeJS.ProcessEnv = {},
@@ -18,13 +16,7 @@ export async function createSubject(
 export async function createContent(
   env: NodeJS.ProcessEnv = {},
 ): Promise<MockoInstance> {
-  const instance = new MockoInstance(
-    {
-      '--watch': true,
-      '--port': CONTENT_PORT,
-    },
-    env,
-  );
+  const instance = new MockoInstance({ '--watch': true }, env);
   await instance.init();
   return instance;
 }

@@ -1,6 +1,6 @@
 const semver = require('semver');
-if(!semver.satisfies(process.version, '>=14')) {
-    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 14 https://docs.mocko.dev/updating-node/`);
+if(!semver.satisfies(process.version, '>=20.19.0')) {
+    console.error(`Your NodeJS version (${process.version}) is too old for mocko :(\nUse at least NodeJS 20.19 https://docs.mocko.dev/updating-node/`);
     process.exit(1);
 }
 
