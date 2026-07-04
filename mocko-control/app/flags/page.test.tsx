@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import FlagsPage from "./page";
+import FlagDetailPage from "./[key]/page";
 import { aFlagKey } from "@/test/fixtures";
 import { givenApi, server } from "@/test/msw";
-import { givenRoute } from "@/test/navigation";
+import { getRoute, givenRoute } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 async function findFlagsList() {
@@ -79,7 +80,7 @@ describe("flags page navigation", () => {
     );
     expect(
       screen.getByRole("button", { name: "Create new flag" }),
-    ).toHaveAttribute("href", "/flags/new?prefix=payments:");
+    ).toHaveAttribute("href", "/flags/new?prefix=payments%3A");
   });
 
   it("shows the empty-folder state and working breadcrumbs for a prefix that does not exist", async () => {
@@ -178,6 +179,111 @@ describe("flags page search", () => {
     expect(
       screen.getByRole("textbox", { name: "Search flags and folders" }),
     ).toHaveValue("");
+  });
+});
+
+describe("flags page search across navigation", () => {
+  it("keeps the search when navigating into a folder", async () => {
+    givenRoute({ pathname: "/flags", search: "q=pay" });
+    givenApi({
+      flagList: {
+        flagKeys: [
+          aFlagKey({ type: "PREFIX", name: "payments", count: 2 }),
+          aFlagKey({ name: "payments-v2" }),
+        ],
+        isTruncated: false,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(
+      screen.getByRole("link", { name: "Open folder payments" }),
+    ).toHaveAttribute("href", "/flags?prefix=payments%3A&q=pay");
+    expect(
+      screen.getByRole("link", { name: "Open flag payments-v2" }),
+    ).toHaveAttribute("href", "/flags/payments-v2?q=pay");
+    expect(
+      screen.getByRole("button", { name: "Create new flag" }),
+    ).toHaveAttribute("href", "/flags/new?q=pay");
+  });
+
+  it("keeps the search when navigating up via breadcrumbs", async () => {
+    givenRoute({ pathname: "/flags", search: "prefix=payments:eu:&q=che" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "checkout" })],
+        isTruncated: false,
+      },
+    });
+    renderWithProviders(<FlagsPage />);
+
+    await findFlagsList();
+    expect(screen.getByRole("link", { name: "payments" })).toHaveAttribute(
+      "href",
+      "/flags?prefix=payments%3A&q=che",
+    );
+    expect(screen.getByRole("link", { name: "Flags" })).toHaveAttribute(
+      "href",
+      "/flags?q=che",
+    );
+    expect(
+      screen.getByRole("button", { name: "Create new flag" }),
+    ).toHaveAttribute("href", "/flags/new?prefix=payments%3Aeu%3A&q=che");
+  });
+
+  it("keeps the search after opening a flag and closing it", async () => {
+    givenRoute({ pathname: "/flags", search: "prefix=payments:&q=che" });
+    givenApi({
+      flagList: {
+        flagKeys: [aFlagKey({ name: "checkout" })],
+        isTruncated: false,
+      },
+      flagValues: { "payments:checkout": { value: '"on"' } },
+    });
+
+    const list = renderWithProviders(<FlagsPage />);
+    await findFlagsList();
+    expect(
+      screen.getByRole("textbox", { name: "Search flags and folders" }),
+    ).toHaveValue("che");
+
+    // jsdom cannot navigate; follow the flag link like the browser would.
+    const href = screen
+      .getByRole("link", { name: "Open flag checkout" })
+      .getAttribute("href")!;
+    list.unmount();
+    const url = new URL(href, "http://localhost");
+    givenRoute({
+      pathname: url.pathname,
+      params: { key: url.pathname.slice("/flags/".length) },
+      search: url.search.replace(/^\?/, ""),
+    });
+
+    const detail = renderWithProviders(<FlagDetailPage />);
+    await screen.findByRole("form", { name: "checkout" });
+    expect(screen.getByRole("link", { name: "payments" })).toHaveAttribute(
+      "href",
+      "/flags?prefix=payments%3A&q=che",
+    );
+    expect(screen.getByRole("link", { name: "Flags" })).toHaveAttribute(
+      "href",
+      "/flags?q=che",
+    );
+    await detail.user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+    detail.unmount();
+
+    expect(getRoute().pathname).toBe("/flags");
+    renderWithProviders(<FlagsPage />);
+    await findFlagsList();
+    expect(new URLSearchParams(getRoute().search).get("prefix")).toBe(
+      "payments:",
+    );
+    expect(
+      screen.getByRole("textbox", { name: "Search flags and folders" }),
+    ).toHaveValue("che");
   });
 });
 

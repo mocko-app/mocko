@@ -30,6 +30,8 @@ import { filterMocks, getLabelFilterKeys } from "@/lib/mock/filter";
 import { formatMockListCounts } from "@/lib/mock/mock-list-counts";
 import {
   buildMockListUrl,
+  buildMockUrl,
+  buildNewMockUrl,
   parseMockListParams,
 } from "@/lib/mock/mock-list-url";
 import type { MockDto } from "@/lib/types/mock-dtos";
@@ -104,11 +106,11 @@ const MocksPage: React.FC = () => {
   }
 
   function handleEdit(id: string) {
-    router.push(`/mocks/${id}`);
+    router.push(buildMockUrl(id, search, selectedLabels));
   }
 
   function handleDuplicate(id: string) {
-    router.push(`/mocks/new?from=${encodeURIComponent(id)}`);
+    router.push(buildNewMockUrl(search, selectedLabels, id));
   }
 
   async function handleDelete(mock: MockDto) {
@@ -167,7 +169,12 @@ const MocksPage: React.FC = () => {
         actions={
           <Button
             nativeButton={false}
-            render={<Link href="/mocks/new" aria-label="Create new mock" />}
+            render={
+              <Link
+                href={buildNewMockUrl(search, selectedLabels)}
+                aria-label="Create new mock"
+              />
+            }
           >
             <PlusIcon aria-hidden="true" />
             New mock
@@ -221,6 +228,7 @@ const MocksPage: React.FC = () => {
               <MockCard
                 key={mock.id}
                 mock={mock}
+                href={buildMockUrl(mock.id, search, selectedLabels)}
                 hostSlugs={hostSlugs}
                 onEdit={handleEdit}
                 onDelete={handleDelete}

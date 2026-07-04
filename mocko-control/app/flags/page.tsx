@@ -52,7 +52,11 @@ const FlagsPage: React.FC = () => {
   const crumbs = prefix.split(":").filter(Boolean);
   const currentCrumb = crumbs.at(-1) ?? "Flags";
   useDocumentTitle(isRoot ? "Flags" : `Flags: ${currentCrumb}`);
-  const newFlagHref = `/flags/new${prefix ? `?prefix=${prefix}` : ""}`;
+  const newFlagHref = buildFlagListUrl(
+    "/flags/new",
+    prefix || undefined,
+    search || undefined,
+  );
   const countsDescription = data ? (
     formatFlagListCounts(data, Boolean(search))
   ) : isLoading ? (
@@ -68,7 +72,9 @@ const FlagsPage: React.FC = () => {
   }
 
   function handleEdit(key: string) {
-    router.push(`/flags/${key}`);
+    router.push(
+      buildFlagListUrl(`/flags/${key}`, undefined, search || undefined),
+    );
   }
 
   function handleSearchChange(value: string) {
@@ -202,6 +208,11 @@ const FlagsPage: React.FC = () => {
                   key={`${prefix}${item.name}`}
                   item={item}
                   flagKey={`${prefix}${item.name}`}
+                  href={buildFlagListUrl(
+                    `/flags/${prefix}${item.name}`,
+                    undefined,
+                    search || undefined,
+                  )}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                 />

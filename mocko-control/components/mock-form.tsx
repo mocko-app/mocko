@@ -26,6 +26,8 @@ import {
   type ContentType,
   useMockForm,
 } from "@/lib/frontend/hooks/use-mock-form";
+import { useMockListParams } from "@/lib/frontend/hooks/use-mock-list-params";
+import { buildMockListUrl, buildNewMockUrl } from "@/lib/mock/mock-list-url";
 import { getAvailableLabels } from "@/lib/utils/labels";
 import { LabelPicker } from "@/components/label-picker";
 import type {
@@ -129,6 +131,7 @@ export function MockForm({
     showErrors,
     templateError,
   } = useMockForm(initial, mode);
+  const listParams = useMockListParams();
   const availableLabels = getAvailableLabels(mocksData ?? []);
   const hasNestPathParams = /\/:[A-Za-z0-9_-]+/.test(form.path);
   const bodyError = templateError;
@@ -144,7 +147,11 @@ export function MockForm({
         isDisabled={mode === "edit" && initial ? !initial.isEnabled : false}
         conflictRole={mode === "edit" ? initial?.conflict?.role : undefined}
         title={title}
-        onClose={() => navigateWithGuard("/mocks")}
+        onClose={() =>
+          navigateWithGuard(
+            buildMockListUrl(listParams.search, listParams.labels),
+          )
+        }
         actions={
           mode === "edit" &&
           initial && (
@@ -160,7 +167,11 @@ export function MockForm({
               onDelete={() => onDelete?.()}
               onDuplicate={() =>
                 navigateWithGuard(
-                  `/mocks/new?from=${encodeURIComponent(initial.id)}`,
+                  buildNewMockUrl(
+                    listParams.search,
+                    listParams.labels,
+                    initial.id,
+                  ),
                 )
               }
               onToggleEnabled={(_, enabled) => onToggleEnabled?.(enabled)}
@@ -180,7 +191,11 @@ export function MockForm({
               nativeButton={false}
               render={
                 <Link
-                  href={`/mocks/new?from=${encodeURIComponent(initial.id)}`}
+                  href={buildNewMockUrl(
+                    listParams.search,
+                    listParams.labels,
+                    initial.id,
+                  )}
                 />
               }
             >

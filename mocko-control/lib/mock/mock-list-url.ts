@@ -5,8 +5,11 @@ export type MockListParams = {
   labels: string[];
 };
 
-export function buildMockListUrl(search: string, labels: string[]): string {
-  const searchParams = new URLSearchParams();
+function appendListParams(
+  searchParams: URLSearchParams,
+  search: string,
+  labels: string[],
+): void {
   if (search) {
     searchParams.set("q", search);
   }
@@ -15,13 +18,40 @@ export function buildMockListUrl(search: string, labels: string[]): string {
       searchParams.append("label", label);
     }
   }
+}
 
+function toQuerySuffix(searchParams: URLSearchParams): string {
   const query = searchParams.toString();
-  if (!query) {
-    return "/mocks";
-  }
+  return query ? `?${query}` : "";
+}
 
-  return `/mocks?${query}`;
+export function buildMockListUrl(search: string, labels: string[]): string {
+  const searchParams = new URLSearchParams();
+  appendListParams(searchParams, search, labels);
+  return `/mocks${toQuerySuffix(searchParams)}`;
+}
+
+export function buildMockUrl(
+  id: string,
+  search: string,
+  labels: string[],
+): string {
+  const searchParams = new URLSearchParams();
+  appendListParams(searchParams, search, labels);
+  return `/mocks/${id}${toQuerySuffix(searchParams)}`;
+}
+
+export function buildNewMockUrl(
+  search: string,
+  labels: string[],
+  from?: string,
+): string {
+  const searchParams = new URLSearchParams();
+  if (from) {
+    searchParams.set("from", from);
+  }
+  appendListParams(searchParams, search, labels);
+  return `/mocks/new${toQuerySuffix(searchParams)}`;
 }
 
 export function parseMockListParams(

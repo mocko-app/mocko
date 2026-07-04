@@ -77,7 +77,7 @@ describe("flag detail page unsaved changes guard", () => {
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:");
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A");
   });
 
   it("asks before closing with unsaved edits and keeps them on cancel", async () => {
@@ -124,7 +124,7 @@ describe("flag detail page unsaved changes guard", () => {
     );
 
     await waitFor(() =>
-      expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:"),
+      expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A"),
     );
   });
 });
@@ -212,7 +212,7 @@ describe("flag detail page delete flow", () => {
     );
 
     await waitFor(() => expect(deletedKeys).toEqual(["payments:checkout"]));
-    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:");
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A");
   });
 
   it("redirects to the flags root when deleting a top-level flag", async () => {

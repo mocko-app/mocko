@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import MocksPage from "./page";
-import { aMock } from "@/test/fixtures";
+import EditMockPage from "./[id]/page";
+import { aMock, aMockDetails } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
-import { givenRoute, router } from "@/test/navigation";
+import { getRoute, givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 async function findMocksList() {
@@ -468,6 +469,189 @@ describe("mocks page URL filters", () => {
     expect(screen.getByRole("textbox", { name: "Search mocks" })).toHaveValue(
       "",
     );
+  });
+});
+
+describe("mocks page filters across mock detail", () => {
+  function givenFilterableMocks() {
+    givenApi({
+      mocks: [
+        aMock({
+          id: "create-user-mock",
+          name: "Create user",
+          method: "POST",
+          labels: ["users", "admin"],
+        }),
+        aMock({ name: "Get users", labels: ["users"] }),
+        aMock({ name: "Get payments", labels: ["payments"] }),
+      ],
+      mockDetails: [
+        aMockDetails({
+          id: "create-user-mock",
+          name: "Create user",
+          method: "POST",
+          labels: ["users", "admin"],
+        }),
+      ],
+    });
+  }
+
+  async function renderFilteredList() {
+    const list = renderWithProviders(<MocksPage />);
+    await findMocksList();
+    await list.user.click(screen.getByRole("button", { name: "users" }));
+    await list.user.type(
+      screen.getByRole("textbox", { name: "Search mocks" }),
+      "create",
+    );
+    expect(getListedMockNames()).toEqual(["Mock: Create user"]);
+    return list;
+  }
+
+  // jsdom cannot navigate, so tests re-point the route store where the
+  // browser would have gone and render the destination page themselves.
+  function browseTo(href: string, params: Record<string, string>) {
+    const url = new URL(href, "http://localhost");
+    givenRoute({
+      pathname: url.pathname,
+      params,
+      search: url.search.replace(/^\?/, ""),
+    });
+  }
+
+  async function renderEditPageForCreateUser() {
+    const detail = renderWithProviders(<EditMockPage />);
+    await screen.findByRole("form", { name: "Edit mock" });
+    return detail;
+  }
+
+  async function expectListKeepsFilters() {
+    expect(getRoute().pathname).toBe("/mocks");
+    renderWithProviders(<MocksPage />);
+    await findMocksList();
+    expect(screen.getByRole("textbox", { name: "Search mocks" })).toHaveValue(
+      "create",
+    );
+    expect(screen.getByRole("button", { name: "users" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(getListedMockNames()).toEqual(["Mock: Create user"]);
+  }
+
+  it("keeps search and selected labels after opening a mock and closing it", async () => {
+    givenFilterableMocks();
+    const list = await renderFilteredList();
+
+    const href = screen
+      .getByRole("link", { name: "Open Create user" })
+      .getAttribute("href")!;
+    list.unmount();
+    browseTo(href, { id: "create-user-mock" });
+
+    const detail = await renderEditPageForCreateUser();
+    await detail.user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+    detail.unmount();
+
+    await expectListKeepsFilters();
+  });
+
+  it("keeps filters when editing via the actions menu and closing", async () => {
+    givenFilterableMocks();
+    const list = await renderFilteredList();
+
+    await list.user.click(
+      screen.getByRole("button", { name: "Actions for Create user" }),
+    );
+    await list.user.click(
+      await screen.findByRole("menuitem", { name: "Edit" }),
+    );
+    list.unmount();
+    givenRoute({ ...getRoute(), params: { id: "create-user-mock" } });
+
+    const detail = await renderEditPageForCreateUser();
+    await detail.user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+    detail.unmount();
+
+    await expectListKeepsFilters();
+  });
+
+  it("carries the filters into the new-mock and duplicate targets", async () => {
+    givenFilterableMocks();
+    const list = await renderFilteredList();
+
+    expect(
+      screen.getByRole("button", { name: "Create new mock" }),
+    ).toHaveAttribute("href", "/mocks/new?q=create&label=users");
+
+    await list.user.click(
+      screen.getByRole("button", { name: "Actions for Create user" }),
+    );
+    await list.user.click(
+      await screen.findByRole("menuitem", { name: "Duplicate" }),
+    );
+    expect(router.push).toHaveBeenLastCalledWith(
+      "/mocks/new?from=create-user-mock&q=create&label=users",
+    );
+  });
+
+  it("carries the filters into the duplicate action on the mock detail", async () => {
+    givenFilterableMocks();
+    const list = await renderFilteredList();
+
+    const href = screen
+      .getByRole("link", { name: "Open Create user" })
+      .getAttribute("href")!;
+    list.unmount();
+    browseTo(href, { id: "create-user-mock" });
+
+    const detail = await renderEditPageForCreateUser();
+    await detail.user.click(
+      screen.getByRole("button", { name: "Actions for Create user" }),
+    );
+    await detail.user.click(
+      await screen.findByRole("menuitem", { name: "Duplicate" }),
+    );
+    expect(router.push).toHaveBeenLastCalledWith(
+      "/mocks/new?from=create-user-mock&q=create&label=users",
+    );
+  });
+
+  it("keeps filters after saving changes on the mock detail", async () => {
+    givenFilterableMocks();
+    server.use(
+      http.patch("/api/mocks/:id", async () =>
+        HttpResponse.json(
+          aMockDetails({
+            id: "create-user-mock",
+            name: "Create user!",
+            method: "POST",
+            labels: ["users", "admin"],
+          }),
+        ),
+      ),
+    );
+    const list = await renderFilteredList();
+
+    const href = screen
+      .getByRole("link", { name: "Open Create user" })
+      .getAttribute("href")!;
+    list.unmount();
+    browseTo(href, { id: "create-user-mock" });
+
+    const detail = await renderEditPageForCreateUser();
+    await detail.user.type(screen.getByLabelText("Name"), "!");
+    await detail.user.click(
+      screen.getByRole("button", { name: "Save changes" }),
+    );
+    expect(await screen.findByText("Mock updated.")).toBeInTheDocument();
+    detail.unmount();
+
+    await expectListKeepsFilters();
   });
 });
 
