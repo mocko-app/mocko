@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import NewFlagPage from "./page";
 import { givenApi, server } from "@/test/msw";
@@ -80,6 +80,37 @@ describe("new flag page", () => {
 
     expect(puts).toHaveLength(0);
     expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("closes without asking when untouched, back to the prefix it came from", async () => {
+    givenRoute({ pathname: "/flags/new", search: "prefix=payments:" });
+    givenApi();
+    const { user } = renderWithProviders(<NewFlagPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:");
+  });
+
+  it("asks before abandoning a non-empty new flag", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewFlagPage />);
+
+    await user.type(screen.getByLabelText("Key"), "my-flag");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Unsaved changes");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/flags"));
   });
 
   it("surfaces the API message when saving fails", async () => {

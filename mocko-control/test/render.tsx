@@ -16,6 +16,7 @@ export function renderWithProviders(
       value={{
         provider: () => new Map(),
         dedupingInterval: 0,
+        focusThrottleInterval: 0,
         shouldRetryOnError: false,
       }}
     >

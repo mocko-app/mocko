@@ -55,5 +55,5 @@ export default function FlagDetailPage() {
     );
   }
 
-  return <FlagForm mode="view" flagKey={key} initialValue={data.value} />;
+  return <FlagForm mode="edit" flagKey={key} serverValue={data.value} />;
 }
