@@ -88,11 +88,18 @@ export function FolderItem({
 type FlagItemProps = {
   item: FlagKeyDto;
   flagKey: string;
+  href: string;
   onEdit: (key: string) => void;
   onDelete: (flagKey: string) => void;
 };
 
-export function FlagItem({ item, flagKey, onEdit, onDelete }: FlagItemProps) {
+export function FlagItem({
+  item,
+  flagKey,
+  href,
+  onEdit,
+  onDelete,
+}: FlagItemProps) {
   return (
     <div
       className="group relative flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-[#252528]"
@@ -100,7 +107,7 @@ export function FlagItem({ item, flagKey, onEdit, onDelete }: FlagItemProps) {
       aria-label={`Flag: ${item.name}`}
     >
       <Link
-        href={`/flags/${flagKey}`}
+        href={href}
         className="absolute inset-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
         aria-label={`Open flag ${item.name}`}
       />

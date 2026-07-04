@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -11,14 +11,17 @@ import { MockForm } from "@/components/mock-form";
 import { ApiError, deleteMock, patchMock } from "@/lib/frontend/api";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useMock } from "@/lib/frontend/hooks/resources";
+import { useMockListParams } from "@/lib/frontend/hooks/use-mock-list-params";
 import { useParam } from "@/lib/frontend/hooks/use-param";
+import { buildMockListUrl } from "@/lib/mock/mock-list-url";
 
 function EditMissingState() {
+  const { search, labels } = useMockListParams();
   return (
     <div className="mx-auto max-w-2xl">
       <EmptyState
         title="Mock not found"
-        actionHref="/mocks"
+        actionHref={buildMockListUrl(search, labels)}
         actionLabel="Back to mocks"
       >
         This mock does not exist or is no longer available.
@@ -27,9 +30,10 @@ function EditMissingState() {
   );
 }
 
-export default function EditMockPage() {
+function EditMockPageInner() {
   const router = useRouter();
   const { mutate } = useSWRConfig();
+  const listParams = useMockListParams();
   const id = useParam("id");
   const { data, error, isLoading, mutate: mutateMock } = useMock(id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -71,7 +75,7 @@ export default function EditMockPage() {
       await deleteMock(data.id);
       await mutate("/api/mocks");
       toast.success("Mock deleted.");
-      router.push("/mocks");
+      router.push(buildMockListUrl(listParams.search, listParams.labels));
     } catch (error) {
       console.error("Failed to delete mock", error);
       toast.error("Failed to delete mock");
@@ -123,5 +127,13 @@ export default function EditMockPage() {
         </ConfirmDeleteDialog>
       )}
     </>
+  );
+}
+
+export default function EditMockPage() {
+  return (
+    <Suspense>
+      <EditMockPageInner />
+    </Suspense>
   );
 }

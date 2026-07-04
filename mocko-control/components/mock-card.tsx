@@ -32,14 +32,22 @@ function getHostLabel(host: string | undefined, hostSlugs: readonly string[]) {
 
 export const MockCard: React.FC<{
   mock: MockDto;
+  href: string;
   hostSlugs: readonly string[];
   onEdit: (id: string) => void;
   onDelete: (mock: MockDto) => void;
   onDuplicate: (id: string) => void;
   onToggleEnabled: (id: string, enabled: boolean) => void;
-}> = ({ mock, hostSlugs, onEdit, onDelete, onDuplicate, onToggleEnabled }) => {
+}> = ({
+  mock,
+  href,
+  hostSlugs,
+  onEdit,
+  onDelete,
+  onDuplicate,
+  onToggleEnabled,
+}) => {
   const isReadOnly = mock.annotations.includes("READ_ONLY");
-  const href = `/mocks/${mock.id}`;
   const hostLabel = getHostLabel(mock.host, hostSlugs);
 
   return (

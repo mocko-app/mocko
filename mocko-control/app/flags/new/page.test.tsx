@@ -2,8 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import NewFlagPage from "./page";
+import FlagDetailPage from "../[key]/page";
 import { givenApi, server } from "@/test/msw";
-import { givenRoute, router } from "@/test/navigation";
+import { getRoute, givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 import type { PutFlagDto } from "@/lib/types/flag-dtos";
 
@@ -92,7 +93,7 @@ describe("new flag page", () => {
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:");
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A");
   });
 
   it("asks before abandoning a non-empty new flag", async () => {
@@ -111,6 +112,52 @@ describe("new flag page", () => {
     );
 
     await waitFor(() => expect(router.push).toHaveBeenCalledWith("/flags"));
+  });
+
+  it("closes untouched back to the folder and search it came from", async () => {
+    givenRoute({ pathname: "/flags/new", search: "prefix=payments:&q=che" });
+    givenApi();
+    const { user } = renderWithProviders(<NewFlagPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A&q=che");
+  });
+
+  it("keeps the search through create and the new flag's close", async () => {
+    givenRoute({ pathname: "/flags/new", search: "prefix=payments:&q=che" });
+    givenApi({ flagValues: { "payments:checkout": { value: '"on"' } } });
+    capturePuts();
+    const page = renderWithProviders(<NewFlagPage />);
+
+    await page.user.type(screen.getByLabelText("Key"), "checkout");
+    const editor = await screen.findByRole("textbox", { name: "Code editor" });
+    await page.user.click(editor);
+    await page.user.paste('"on"');
+    await page.user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(
+        `/flags/${encodeURIComponent("payments:checkout")}?q=che`,
+      ),
+    );
+    page.unmount();
+
+    givenRoute({
+      ...getRoute(),
+      params: { key: encodeURIComponent("payments:checkout") },
+    });
+    const detail = renderWithProviders(<FlagDetailPage />);
+    await screen.findByRole("form", { name: "checkout" });
+    await detail.user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+
+    expect(router.push).toHaveBeenLastCalledWith(
+      "/flags?prefix=payments%3A&q=che",
+    );
   });
 
   it("surfaces the API message when saving fails", async () => {

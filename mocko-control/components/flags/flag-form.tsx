@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { TrashIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
+import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag, putFlag, toApiError } from "@/lib/frontend/api";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import { getFlagKeyValidationError } from "@/lib/validation/flag.schema";
@@ -31,22 +32,24 @@ type FlagFormProps =
 export function FlagForm(props: FlagFormProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
+  const searchParams = useSearchParams();
+  const listQuery = searchParams.get("q") || undefined;
 
   const isCreate = props.mode === "create";
   const flagKey = isCreate ? undefined : props.flagKey;
   const serverValue = isCreate ? "" : props.serverValue;
-  const initialKey = isCreate ? (props.prefix ?? "") : "";
+  const prefix = isCreate ? (props.prefix ?? "") : "";
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
   const [value, setValue] = useState(serverValue);
   const [baseline, setBaseline] = useState(serverValue);
-  const [keyInput, setKeyInput] = useState(initialKey);
+  const [keyInput, setKeyInput] = useState(prefix);
   const [keyError, setKeyError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isDirty = isCreate
-    ? keyInput !== initialKey || value !== ""
+    ? keyInput !== prefix || value !== ""
     : value !== baseline;
   const hasServerDrift = !isCreate && isDirty && serverValue !== baseline;
 
@@ -64,15 +67,15 @@ export function FlagForm(props: FlagFormProps) {
     }
   }, [isCreate, serverValue, value, baseline]);
 
-  const crumbs = isCreate
-    ? [...parsePrefixCrumbs(props.prefix ?? ""), { label: "New flag" }]
-    : parseFlagKeyCrumbs(flagKey!);
+  const crumbs = flagKey
+    ? parseFlagKeyCrumbs(flagKey, listQuery)
+    : [...parsePrefixCrumbs(prefix, listQuery), { label: "New flag" }];
 
   const parentHref = flagKey
-    ? getParentHref(flagKey)
-    : `/flags${isCreate && props.prefix ? `?prefix=${props.prefix}` : ""}`;
+    ? getParentHref(flagKey, listQuery)
+    : buildFlagListUrl("/flags", prefix || undefined, listQuery);
 
-  const title = isCreate ? "New flag" : flagKey!.split(":").at(-1)!;
+  const title = flagKey ? flagKey.split(":").at(-1)! : "New flag";
 
   async function revalidateFlagCaches() {
     await mutate(
@@ -162,7 +165,13 @@ export function FlagForm(props: FlagFormProps) {
       if (isCreate) {
         await revalidateFlagCaches();
         toast.success("Flag created.");
-        router.push(`/flags/${encodeURIComponent(targetKey)}`);
+        router.push(
+          buildFlagListUrl(
+            `/flags/${encodeURIComponent(targetKey)}`,
+            undefined,
+            listQuery,
+          ),
+        );
       } else {
         await mutate(`/api/flags/${encodeURIComponent(targetKey)}`, updated, {
           revalidate: false,

@@ -11,7 +11,9 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import { useMockListParams } from "@/lib/frontend/hooks/use-mock-list-params";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
+import { buildMockListUrl } from "@/lib/mock/mock-list-url";
 import type { ParsingError } from "@/lib/types/error-dtos";
 import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
 
@@ -202,6 +204,7 @@ export function useMockForm(
 ) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
+  const listParams = useMockListParams();
   const { data: mocksData, mutate: mutateMocks } = useMocks();
   const [form, setForm] = useState<MockFormState>(() =>
     getInitialFormState(initial),
@@ -302,7 +305,7 @@ export function useMockForm(
       }
 
       await mutateMocks();
-      router.push("/mocks");
+      router.push(buildMockListUrl(listParams.search, listParams.labels));
     } catch (error) {
       if (error instanceof ApiError && error.code === "BAD_REQUEST") {
         setServerErrors(toFormValidationErrors(error.validation));

@@ -8,14 +8,17 @@ import { MockForm } from "@/components/mock-form";
 import { ApiError } from "@/lib/frontend/api";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useMock } from "@/lib/frontend/hooks/resources";
+import { useMockListParams } from "@/lib/frontend/hooks/use-mock-list-params";
+import { buildMockListUrl } from "@/lib/mock/mock-list-url";
 import type { MockDetailsDto } from "@/lib/types/mock-dtos";
 
 function SourceMissingState() {
+  const { search, labels } = useMockListParams();
   return (
     <div className="mx-auto max-w-2xl">
       <EmptyState
         title="Mock not found"
-        actionHref="/mocks"
+        actionHref={buildMockListUrl(search, labels)}
         actionLabel="Back to mocks"
       >
         The mock to duplicate does not exist or is no longer available.
