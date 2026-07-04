@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useMocks } from "@/lib/frontend/hooks/resources";
+import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import type { ParsingError } from "@/lib/types/error-dtos";
 import type { CreateMockDto, MockDetailsDto } from "@/lib/types/mock-dtos";
 
@@ -205,6 +206,9 @@ export function useMockForm(
   const [form, setForm] = useState<MockFormState>(() =>
     getInitialFormState(initial),
   );
+  const [baselineJson] = useState(() =>
+    JSON.stringify(getInitialFormState(initial)),
+  );
   const [hideErrors, setHideErrors] = useState(true);
   const [serverErrors, setServerErrors] = useState<MockFormErrors>({});
   const [templateError, setTemplateError] = useState<ParsingError | null>(null);
@@ -222,6 +226,11 @@ export function useMockForm(
     errors.name || errors.path || errors.statusCode || errors.delay,
   );
   const showErrors = !hideErrors;
+  const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const isDirty = useMemo(
+    () => !isReadOnly && JSON.stringify(form) !== baselineJson,
+    [form, baselineJson, isReadOnly],
+  );
   const activeContentType = CONTENT_TYPES.find(
     (contentType) => contentType.id === form.contentType,
   )!;
@@ -237,6 +246,13 @@ export function useMockForm(
       setTemplateError(null);
     }
   }, [initial]);
+
+  const {
+    isConfirmingDiscard,
+    confirmDiscard,
+    keepEditing,
+    navigateWithGuard,
+  } = useUnsavedChangesGuard(isDirty);
 
   function set<K extends keyof MockFormState>(key: K, value: MockFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -319,13 +335,18 @@ export function useMockForm(
   return {
     errors,
     form,
+    isConfirmingDiscard,
+    isDirty,
     isSubmitting,
     lockedHeader,
     mocksData,
     set,
     showErrors,
     templateError,
+    confirmDiscard,
     handleSubmit,
+    keepEditing,
+    navigateWithGuard,
     activeContentType,
   };
 }

@@ -547,6 +547,23 @@ describe("mocks page header counts", () => {
   });
 });
 
+describe("mocks page duplicate flow", () => {
+  it("opens the prefilled new-mock page from the actions menu", async () => {
+    givenApi({ mocks: [aMock({ id: "mock-1", name: "Get users" })] });
+    const { user } = renderWithProviders(<MocksPage />);
+    await findMocksList();
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Get users" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Duplicate" }),
+    );
+
+    expect(router.push).toHaveBeenCalledWith("/mocks/new?from=mock-1");
+  });
+});
+
 describe("mocks page delete flow", () => {
   it("asks for confirmation and skips it after don't ask again", async () => {
     const first = aMock({ id: "first-mock", name: "First mock" });

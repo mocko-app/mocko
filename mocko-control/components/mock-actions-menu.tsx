@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CopyIcon,
   MoreHorizontalIcon,
@@ -24,7 +23,8 @@ export const MockActionsMenu: React.FC<{
   onDelete: (mock: MockDto) => void;
   onToggleEnabled: (id: string, enabled: boolean) => void;
   onEdit?: (id: string) => void;
-}> = ({ mock, trigger, onDelete, onToggleEnabled, onEdit }) => {
+  onDuplicate: () => void;
+}> = ({ mock, trigger, onDelete, onToggleEnabled, onEdit, onDuplicate }) => {
   const isReadOnly = mock.annotations.includes("READ_ONLY");
 
   return (
@@ -39,11 +39,7 @@ export const MockActionsMenu: React.FC<{
             {isReadOnly ? "View" : "Edit"}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          render={
-            <Link href={`/mocks/new?from=${encodeURIComponent(mock.id)}`} />
-          }
-        >
+        <DropdownMenuItem onClick={onDuplicate}>
           <CopyIcon aria-hidden="true" />
           Duplicate
         </DropdownMenuItem>

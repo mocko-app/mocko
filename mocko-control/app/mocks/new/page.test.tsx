@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import NewMockPage from "./page";
@@ -412,6 +412,58 @@ describe("new mock page server errors", () => {
     expect(await screen.findByText("Failed to save mock.")).toBeInTheDocument();
     expect(screen.getByLabelText("Name")).toHaveValue("Get users");
     expect(screen.getByRole("button", { name: "Create" })).toBeEnabled();
+  });
+});
+
+describe("new mock page unsaved changes guard", () => {
+  it("closes an untouched form without asking", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewMockPage />);
+    await findCreateForm();
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/mocks");
+  });
+
+  it("asks before abandoning a non-empty new mock", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewMockPage />);
+    await findCreateForm();
+
+    await user.type(screen.getByLabelText("Name"), "Half-finished mock");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Unsaved changes");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/mocks"));
+  });
+
+  it("closes an untouched duplicate prefill without asking", async () => {
+    givenRoute({ pathname: "/mocks/new", search: "from=mock-src" });
+    givenApi({
+      mockDetails: [aMockDetails({ id: "mock-src", name: "Source mock" })],
+    });
+    const { user } = renderWithProviders(<NewMockPage />);
+    await findCreateForm();
+
+    expect(screen.getByRole("button", { name: "Create" })).toBeEnabled();
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/mocks");
   });
 });
 
