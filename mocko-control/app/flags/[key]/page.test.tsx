@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import FlagDetailPage from "./page";
 import { givenApi, givenApiError, server } from "@/test/msw";
@@ -19,7 +19,7 @@ async function findEditor() {
 }
 
 describe("flag detail page editing", () => {
-  it("starts read-only, saves an edited value, and returns to read-only", async () => {
+  it("opens editable and saves an edited value in place", async () => {
     givenFlagRoute("payments:checkout");
     const state = givenApi({
       flagValues: { "payments:checkout": { value: "true" } },
@@ -42,51 +42,144 @@ describe("flag detail page editing", () => {
     ).toBeInTheDocument();
     const editor = await findEditor();
     expect(editor).toHaveValue("true");
-    expect(editor).toHaveAttribute("readonly");
+    expect(editor).not.toHaveAttribute("readonly");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
 
-    await user.click(screen.getByRole("button", { name: "Edit flag value" }));
-    expect(await findEditor()).not.toHaveAttribute("readonly");
-
-    await user.clear(await findEditor());
-    await user.click(await findEditor());
+    await user.clear(editor);
+    await user.click(editor);
     await user.paste("false");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
+
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(puts).toHaveLength(1));
     expect(puts[0]).toEqual({ value: "false", source: "CONTROL" });
+    expect(await screen.findByText("Flag saved.")).toBeInTheDocument();
     await waitFor(() =>
       expect(
-        screen.getByRole("button", { name: "Edit flag value" }),
-      ).toBeInTheDocument(),
+        screen.getByRole("button", { name: "Save changes" }),
+      ).toBeDisabled(),
     );
-    expect(await findEditor()).toHaveAttribute("readonly");
     expect(await findEditor()).toHaveValue("false");
+    expect(router.push).not.toHaveBeenCalled();
   });
+});
 
-  it("restores the initial value on cancel without sending anything", async () => {
+describe("flag detail page unsaved changes guard", () => {
+  it("closes without asking when nothing was changed", async () => {
     givenFlagRoute("payments:checkout");
     givenApi({ flagValues: { "payments:checkout": { value: "true" } } });
+    const { user } = renderWithProviders(<FlagDetailPage />);
+    await screen.findByRole("heading", { name: "checkout" });
 
-    const puts: PutFlagDto[] = [];
-    server.use(
-      http.put("/api/flags/:key", async ({ request }) => {
-        puts.push((await request.json()) as PutFlagDto);
-        return HttpResponse.json({ value: "" });
-      }),
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
     );
 
-    const { user } = renderWithProviders(<FlagDetailPage />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:");
+  });
 
+  it("asks before closing with unsaved edits and keeps them on cancel", async () => {
+    givenFlagRoute("payments:checkout");
+    givenApi({ flagValues: { "payments:checkout": { value: "true" } } });
+    const { user } = renderWithProviders(<FlagDetailPage />);
     await screen.findByRole("heading", { name: "checkout" });
-    await user.click(screen.getByRole("button", { name: "Edit flag value" }));
+
     await user.clear(await findEditor());
     await user.click(await findEditor());
     await user.paste("999");
-    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
 
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Unsaved changes");
+
+    await user.click(
+      within(dialog).getByRole("button", { name: "Keep editing" }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(await findEditor()).toHaveValue("999");
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("discards unsaved edits and closes when confirmed", async () => {
+    givenFlagRoute("payments:checkout");
+    givenApi({ flagValues: { "payments:checkout": { value: "true" } } });
+    const { user } = renderWithProviders(<FlagDetailPage />);
+    await screen.findByRole("heading", { name: "checkout" });
+
+    await user.clear(await findEditor());
+    await user.click(await findEditor());
+    await user.paste("999");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to flags" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments:"),
+    );
+  });
+});
+
+describe("flag detail page server updates", () => {
+  it("applies server changes while pristine", async () => {
+    givenFlagRoute("payments:checkout");
+    const state = givenApi({
+      flagValues: { "payments:checkout": { value: "true" } },
+    });
+    renderWithProviders(<FlagDetailPage />);
     expect(await findEditor()).toHaveValue("true");
-    expect(await findEditor()).toHaveAttribute("readonly");
-    expect(puts).toHaveLength(0);
+
+    state.flagValues["payments:checkout"] = { value: "false" };
+    fireEvent(window, new Event("focus"));
+
+    await waitFor(async () => expect(await findEditor()).toHaveValue("false"));
+    expect(
+      screen.queryByText("This flag changed on the server"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("warns when the flag changed on the server while dirty", async () => {
+    givenFlagRoute("payments:checkout");
+    const state = givenApi({
+      flagValues: { "payments:checkout": { value: "true" } },
+    });
+    const { user } = renderWithProviders(<FlagDetailPage />);
+    const editor = await findEditor();
+    expect(editor).toHaveValue("true");
+
+    await user.clear(editor);
+    await user.click(editor);
+    await user.paste("999");
+
+    state.flagValues["payments:checkout"] = { value: "false" };
+    fireEvent(window, new Event("focus"));
+
+    expect(
+      await screen.findByText("This flag changed on the server"),
+    ).toBeInTheDocument();
+    expect(await findEditor()).toHaveValue("999");
+    const newTabButton = screen.getByRole("button", {
+      name: "View in new tab",
+    });
+    expect(newTabButton).toHaveAttribute("href", "/flags/payments%3Acheckout");
+    expect(newTabButton).toHaveAttribute("target", "_blank");
+
+    await user.click(screen.getByRole("button", { name: "Load server value" }));
+
+    expect(await findEditor()).toHaveValue("false");
+    expect(
+      screen.queryByText("This flag changed on the server"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
   });
 });
 

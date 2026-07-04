@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
+import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
+import { SaveChangesButton } from "@/components/save-changes-button";
 import { MockConflictNotice } from "@/components/mock-conflict-notice";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
 import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
@@ -57,7 +59,8 @@ const MockFormHeader: React.FC<{
   isDisabled: boolean;
   conflictRole?: MockConflictRole;
   actions?: React.ReactNode;
-}> = ({ title, isReadOnly, isDisabled, conflictRole, actions }) => {
+  onClose: () => void;
+}> = ({ title, isReadOnly, isDisabled, conflictRole, actions, onClose }) => {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1">
@@ -90,8 +93,8 @@ const MockFormHeader: React.FC<{
       <Button
         variant="ghost"
         size="icon-lg"
-        nativeButton={false}
-        render={<Link href="/mocks" aria-label="Close and return to mocks" />}
+        onClick={onClose}
+        aria-label="Close and return to mocks"
       >
         <XIcon aria-hidden="true" />
       </Button>
@@ -111,12 +114,17 @@ export function MockForm({
   const submitLabel = mode === "create" ? "Create" : "Save changes";
   const {
     activeContentType,
+    confirmDiscard,
     errors,
     form,
     handleSubmit,
+    isConfirmingDiscard,
+    isDirty,
     isSubmitting,
+    keepEditing,
     lockedHeader,
     mocksData,
+    navigateWithGuard,
     set,
     showErrors,
     templateError,
@@ -136,6 +144,7 @@ export function MockForm({
         isDisabled={mode === "edit" && initial ? !initial.isEnabled : false}
         conflictRole={mode === "edit" ? initial?.conflict?.role : undefined}
         title={title}
+        onClose={() => navigateWithGuard("/mocks")}
         actions={
           mode === "edit" &&
           initial && (
@@ -149,6 +158,11 @@ export function MockForm({
                 />
               }
               onDelete={() => onDelete?.()}
+              onDuplicate={() =>
+                navigateWithGuard(
+                  `/mocks/new?from=${encodeURIComponent(initial.id)}`,
+                )
+              }
               onToggleEnabled={(_, enabled) => onToggleEnabled?.(enabled)}
             />
           )
@@ -355,20 +369,21 @@ export function MockForm({
         </div>
       </fieldset>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={<Link href="/mocks" />}
-        >
-          Cancel
-        </Button>
-        {!isReadOnly && (
-          <Button type="submit" disabled={isSubmitting}>
-            {submitLabel}
-          </Button>
-        )}
-      </div>
+      {!isReadOnly && (
+        <div className="flex items-center gap-2">
+          <SaveChangesButton
+            label={submitLabel}
+            pristine={mode === "edit" && !isDirty}
+            isSubmitting={isSubmitting}
+          />
+        </div>
+      )}
+
+      <ConfirmDiscardDialog
+        open={isConfirmingDiscard}
+        onDiscard={confirmDiscard}
+        onKeepEditing={keepEditing}
+      />
     </form>
   );
 }

@@ -107,6 +107,10 @@ const MocksPage: React.FC = () => {
     router.push(`/mocks/${id}`);
   }
 
+  function handleDuplicate(id: string) {
+    router.push(`/mocks/new?from=${encodeURIComponent(id)}`);
+  }
+
   async function handleDelete(mock: MockDto) {
     if (skipDeleteConfirm) {
       try {
@@ -220,6 +224,7 @@ const MocksPage: React.FC = () => {
                 hostSlugs={hostSlugs}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
                 onToggleEnabled={handleToggleEnabled}
               />
             ))}

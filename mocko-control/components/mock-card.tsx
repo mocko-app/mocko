@@ -35,8 +35,9 @@ export const MockCard: React.FC<{
   hostSlugs: readonly string[];
   onEdit: (id: string) => void;
   onDelete: (mock: MockDto) => void;
+  onDuplicate: (id: string) => void;
   onToggleEnabled: (id: string, enabled: boolean) => void;
-}> = ({ mock, hostSlugs, onEdit, onDelete, onToggleEnabled }) => {
+}> = ({ mock, hostSlugs, onEdit, onDelete, onDuplicate, onToggleEnabled }) => {
   const isReadOnly = mock.annotations.includes("READ_ONLY");
   const href = `/mocks/${mock.id}`;
   const hostLabel = getHostLabel(mock.host, hostSlugs);
@@ -135,6 +136,7 @@ export const MockCard: React.FC<{
             }
             onEdit={onEdit}
             onDelete={onDelete}
+            onDuplicate={() => onDuplicate(mock.id)}
             onToggleEnabled={onToggleEnabled}
           />
         </div>

@@ -213,6 +213,140 @@ describe("edit mock page delete flow", () => {
   });
 });
 
+function dispatchBeforeUnload() {
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  return event;
+}
+
+describe("edit mock page unsaved changes guard", () => {
+  it("closes without asking when nothing was changed", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/mocks");
+  });
+
+  it("asks before closing with unsaved edits and keeps them on cancel", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Unsaved changes");
+
+    await user.click(
+      within(dialog).getByRole("button", { name: "Keep editing" }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText("Name")).toHaveValue("Mock one!");
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("discards unsaved edits and closes when confirmed", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/mocks"));
+  });
+
+  it("duplicates immediately when pristine", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Mock one" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Duplicate" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/mocks/new?from=mock-1");
+  });
+
+  it("asks before duplicating with unsaved edits", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Mock one" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Duplicate" }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith("/mocks/new?from=mock-1"),
+    );
+  });
+
+  it("disables save while pristine and re-disables when edits are reverted", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
+
+    await user.type(screen.getByLabelText("Name"), "{Backspace}");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to mocks" }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/mocks");
+  });
+
+  it("warns before unload only while dirty", async () => {
+    givenEditPage(aMockDetails({ id: "mock-1", name: "Mock one" }));
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(true);
+
+    await user.type(screen.getByLabelText("Name"), "{Backspace}");
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
+  });
+});
+
 describe("edit mock page conflict notice", () => {
   it("shows the shadowed notice linking to the overriding mock", async () => {
     const mock = aMockDetails({
