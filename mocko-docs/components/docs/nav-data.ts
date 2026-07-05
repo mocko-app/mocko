@@ -99,7 +99,12 @@ export const docsNavItems = [
   docsLegacyItem,
 ];
 
-const implementedPrefixes = ["/getting-started", "/creating-mocks", "/recipes"];
+const implementedPrefixes = [
+  "/getting-started",
+  "/creating-mocks",
+  "/recipes",
+  "/running",
+];
 
 export const placeholderNavItems = docsNavGroups
   .flatMap((group) => group.items)
