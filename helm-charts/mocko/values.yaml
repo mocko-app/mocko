@@ -17,7 +17,7 @@ core:
   replicas: 1
 
   # URL of the upstream API to proxy unmatched requests to.
-  # Leave empty to disable proxying (unmatched requests return 502).
+  # Leave empty to disable proxying (unmatched requests return 404).
   proxyUrl: ""
 
   # Milliseconds to wait for an upstream response before returning 504.

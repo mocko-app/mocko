@@ -1,13 +1,11 @@
-FROM python:3 AS builder
-RUN pip3 install mkdocs
-RUN pip3 install mkdocs-bootstrap4
-
-WORKDIR /home/mocko
+FROM node:24-slim AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
-RUN mkdocs build
+RUN npm run build
 
-
-FROM nginx:1.23.1-alpine
-
-RUN rm /usr/share/nginx/html/*
-COPY --from=builder /home/mocko/site /usr/share/nginx/html
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/out /usr/share/nginx/html/docs
+EXPOSE 8080

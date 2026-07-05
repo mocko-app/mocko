@@ -1,0 +1,252 @@
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+export function DocsH2({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2
+      className={cn(
+        "mb-3 mt-10 text-[20px] font-semibold tracking-tight text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsP({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn("mb-4 text-[14px] leading-[1.85] text-fg-2", className)}
+      {...props}
+    />
+  );
+}
+
+export function DocsCode({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <code
+      className={cn(
+        "rounded border border-border bg-card px-1.5 py-0.5 font-mono text-[13px] text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsCodeBlock({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLPreElement>) {
+  return (
+    <pre
+      className={cn(
+        "mb-4 overflow-x-auto rounded-lg border border-border bg-card p-4 font-mono text-[13px] leading-6 text-foreground",
+        className,
+      )}
+      {...props}
+    >
+      <code>{children}</code>
+    </pre>
+  );
+}
+
+export function DocsPage({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("pb-16", className)} {...props} />;
+}
+
+export function DocsEyebrow({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn(
+        "mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h1
+      className={cn(
+        "mb-3.5 text-[33px] font-bold leading-[1.18] tracking-[-0.022em] text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsLead({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn("mb-7 text-[15px] leading-[1.75] text-fg-2", className)}
+      {...props}
+    />
+  );
+}
+
+export function DocsH3({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={cn(
+        "mb-2.5 mt-8 text-[16px] font-semibold tracking-[-0.01em] text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsUl({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLUListElement>) {
+  return (
+    <ul
+      className={cn(
+        "mb-4 space-y-1.5 text-[14px] leading-7 text-fg-2",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsLink({
+  className,
+  ...props
+}: React.ComponentProps<typeof Link>) {
+  return (
+    <Link
+      className={cn(
+        "underline underline-offset-4 transition-colors hover:text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsScreenshot({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={1902}
+      height={1082}
+      className={cn("mb-4 rounded-lg border border-border", className)}
+    />
+  );
+}
+
+export function DocsTable({
+  className,
+  children,
+}: React.HTMLAttributes<HTMLTableElement>) {
+  return (
+    <div className="mb-4 overflow-x-auto rounded-lg border border-border">
+      <table
+        className={cn(
+          "w-full border-collapse text-left text-[13px] leading-6",
+          className,
+        )}
+      >
+        {children}
+      </table>
+    </div>
+  );
+}
+
+export function DocsThead(
+  props: React.HTMLAttributes<HTMLTableSectionElement>,
+) {
+  return <thead className="bg-card" {...props} />;
+}
+
+export function DocsTbody(
+  props: React.HTMLAttributes<HTMLTableSectionElement>,
+) {
+  return <tbody className="[&>tr:last-child>td]:border-b-0" {...props} />;
+}
+
+export function DocsTh({
+  className,
+  ...props
+}: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <th
+      className={cn(
+        "whitespace-nowrap border-b border-border px-3.5 py-2 text-[12px] font-semibold text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsTd({
+  className,
+  ...props
+}: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <td
+      className={cn(
+        "border-b border-border px-3.5 py-2 align-top text-fg-2",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsSectionTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2
+      className={cn(
+        "mb-2.5 text-[16px] font-semibold tracking-[-0.01em] text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}

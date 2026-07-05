@@ -1,4 +1,5 @@
-.dockerignore
+node_modules
+.next
+out
 Dockerfile
-.gitignore
-site
+.dockerignore
