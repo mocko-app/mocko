@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function DocsH2({
@@ -106,6 +107,70 @@ export function DocsLead({
       className={cn("mb-7 text-[15px] leading-[1.75] text-fg-2", className)}
       {...props}
     />
+  );
+}
+
+export function DocsH3({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={cn(
+        "mb-2.5 mt-8 text-[16px] font-semibold tracking-[-0.01em] text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsUl({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLUListElement>) {
+  return (
+    <ul
+      className={cn(
+        "mb-4 space-y-1.5 text-[14px] leading-7 text-fg-2",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsLink({
+  className,
+  ...props
+}: React.ComponentProps<typeof Link>) {
+  return (
+    <Link
+      className={cn(
+        "underline underline-offset-4 transition-colors hover:text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function ScreenshotPlaceholder({
+  label,
+  className,
+}: {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "mb-4 flex items-center justify-center rounded-lg border border-dashed border-border bg-card/40 px-5 py-10 text-[13px] text-muted-foreground",
+        className,
+      )}
+    >
+      Screenshot placeholder: {label}
+    </div>
   );
 }
 

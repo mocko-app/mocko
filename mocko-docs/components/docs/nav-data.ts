@@ -99,26 +99,38 @@ export const docsNavItems = [
   docsLegacyItem,
 ];
 
-const implementedHrefs = new Set([
-  docsHomeItem.href,
-  "/getting-started",
-  "/recipes",
-]);
+const implementedPrefixes = ["/getting-started", "/creating-mocks", "/recipes"];
 
 export const placeholderNavItems = docsNavGroups
   .flatMap((group) => group.items)
   .filter(
     (item) =>
-      !implementedHrefs.has(item.href) &&
-      !item.href.startsWith("/creating-mocks"),
+      !implementedPrefixes.some(
+        (prefix) => item.href === prefix || item.href.startsWith(`${prefix}/`),
+      ),
   );
 
 export function isNavItemActive(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === href;
+  if (pathname === href) {
+    return true;
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (href === "/" || !pathname.startsWith(`${href}/`)) {
+    return false;
+  }
+
+  return !allNavHrefs().some(
+    (other) =>
+      other.length > href.length &&
+      (pathname === other || pathname.startsWith(`${other}/`)),
+  );
+}
+
+function allNavHrefs() {
+  return [
+    ...docsNavItems.map((item) => item.href),
+    ...docsV1NavGroups.flatMap((group) => group.items.map((item) => item.href)),
+  ];
 }
 
 export function findNavItemBySlug(slug: string[]) {
