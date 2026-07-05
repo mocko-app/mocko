@@ -10,6 +10,7 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { handleSameRouteClick } from "@/lib/frontend/replace-url";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,7 @@ export function FolderItem({
   return (
     <Link
       href={href}
+      onClick={(event) => handleSameRouteClick(event, href)}
       className="group flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-[#252528] hover:bg-card/80"
       aria-label={`Open folder ${item.name}`}
     >
