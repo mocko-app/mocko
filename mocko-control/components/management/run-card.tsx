@@ -43,6 +43,13 @@ type StatusConfig = {
   subtitleVerb: "Started" | "Completed" | "Failed";
 };
 
+type ExecuteConfirm = {
+  title: string;
+  itemLabel: string;
+  confirmLabel: string;
+  message: ReactNode;
+};
+
 type OperationRunCardFrameProps = {
   operationId: string;
   title: string;
@@ -50,15 +57,14 @@ type OperationRunCardFrameProps = {
   status: OperationStatus;
   createdAt: string;
   completedAt?: string;
-  scannedCount: number;
-  matchedCount: number;
-  purgedCount: number;
-  confirmTitle: string;
-  confirmItemLabel: string;
-  confirmMessage: ReactNode;
+  statusContent: ReactNode;
+  canExecute: boolean;
+  executeLabel: string;
+  executeVariant: "default" | "destructive";
+  confirm?: ExecuteConfirm;
   onRemove: (id: string) => void;
   onCancel: (id: string) => void;
-  onPurge: (id: string) => void;
+  onExecute: (id: string) => void;
 };
 
 const STATUS_CONFIG: Record<OperationStatus, StatusConfig> = {
@@ -92,6 +98,8 @@ const STATUS_CONFIG: Record<OperationStatus, StatusConfig> = {
 const RUN_CARD_COMPONENTS = {
   STALE_FLAGS: StaleFlagsRunCard,
   MATCHING_FLAGS: MatchingFlagsRunCard,
+  V1_MIGRATION: V1MigrationRunCard,
+  V1_PURGE: V1PurgeRunCard,
 } satisfies {
   [T in Operation["type"]]: OperationRunCardComponent<T>;
 };
@@ -123,27 +131,38 @@ function StaleFlagsRunCard({
       status={operation.status}
       createdAt={operation.createdAt}
       completedAt={operation.completedAt}
-      scannedCount={operation.staleFlagsData.scannedCount ?? 0}
-      matchedCount={matchedCount}
-      purgedCount={operation.staleFlagsData.purgedCount ?? 0}
-      confirmTitle="Purge stale flags"
-      confirmItemLabel={`${matchedCount.toLocaleString()} stale flags`}
-      confirmMessage={
-        <>
-          This will permanently delete{" "}
-          <span className="font-medium text-foreground">
-            {matchedCount.toLocaleString()}
-          </span>{" "}
-          flags that have not been read or written in the last{" "}
-          <span className="font-medium text-foreground">
-            {thresholdDays} days
-          </span>
-          . This action cannot be undone.
-        </>
+      statusContent={
+        <FlagsPurgeStatusContent
+          status={operation.status}
+          scannedCount={operation.staleFlagsData.scannedCount ?? 0}
+          matchedCount={matchedCount}
+          purgedCount={operation.staleFlagsData.purgedCount ?? 0}
+        />
       }
+      canExecute={matchedCount > 0}
+      executeLabel="Purge"
+      executeVariant="destructive"
+      confirm={{
+        title: "Purge stale flags",
+        itemLabel: `${matchedCount.toLocaleString()} stale flags`,
+        confirmLabel: `Purge ${matchedCount.toLocaleString()} flags`,
+        message: (
+          <>
+            This will permanently delete{" "}
+            <span className="font-medium text-foreground">
+              {matchedCount.toLocaleString()}
+            </span>{" "}
+            flags that have not been read or written in the last{" "}
+            <span className="font-medium text-foreground">
+              {thresholdDays} days
+            </span>
+            . This action cannot be undone.
+          </>
+        ),
+      }}
       onRemove={onRemove}
       onCancel={onCancel}
-      onPurge={onPurge}
+      onExecute={onPurge}
     />
   );
 }
@@ -166,29 +185,135 @@ function MatchingFlagsRunCard({
       status={operation.status}
       createdAt={operation.createdAt}
       completedAt={operation.completedAt}
-      scannedCount={operation.matchingFlagsData.scannedCount ?? 0}
-      matchedCount={matchedCount}
-      purgedCount={operation.matchingFlagsData.purgedCount ?? 0}
-      confirmTitle="Purge matching flags"
-      confirmItemLabel={`${matchedCount.toLocaleString()} flags matching ${
-        operation.matchingFlagsData.pattern
-      } (${modeDescription})`}
-      confirmMessage={
-        <>
-          This will permanently delete{" "}
-          <span className="font-medium text-foreground">
-            {matchedCount.toLocaleString()}
-          </span>{" "}
-          flags matching{" "}
-          <span className="break-all font-medium text-foreground">
-            {operation.matchingFlagsData.pattern}
-          </span>{" "}
-          ({modeDescription}). This action cannot be undone.
-        </>
+      statusContent={
+        <FlagsPurgeStatusContent
+          status={operation.status}
+          scannedCount={operation.matchingFlagsData.scannedCount ?? 0}
+          matchedCount={matchedCount}
+          purgedCount={operation.matchingFlagsData.purgedCount ?? 0}
+        />
       }
+      canExecute={matchedCount > 0}
+      executeLabel="Purge"
+      executeVariant="destructive"
+      confirm={{
+        title: "Purge matching flags",
+        itemLabel: `${matchedCount.toLocaleString()} flags matching ${
+          operation.matchingFlagsData.pattern
+        } (${modeDescription})`,
+        confirmLabel: `Purge ${matchedCount.toLocaleString()} flags`,
+        message: (
+          <>
+            This will permanently delete{" "}
+            <span className="font-medium text-foreground">
+              {matchedCount.toLocaleString()}
+            </span>{" "}
+            flags matching{" "}
+            <span className="break-all font-medium text-foreground">
+              {operation.matchingFlagsData.pattern}
+            </span>{" "}
+            ({modeDescription}). This action cannot be undone.
+          </>
+        ),
+      }}
       onRemove={onRemove}
       onCancel={onCancel}
-      onPurge={onPurge}
+      onExecute={onPurge}
+    />
+  );
+}
+
+function V1MigrationRunCard({
+  operation,
+  onRemove,
+  onCancel,
+  onPurge,
+}: OperationRunCardProps<"V1_MIGRATION">) {
+  const { mocksFound, flagsFound, mocksMigrated, flagsMigrated, flagsSkipped } =
+    operation.v1MigrationData;
+  const foundCount = (mocksFound ?? 0) + (flagsFound ?? 0);
+
+  return (
+    <OperationRunCardFrame
+      operationId={operation.id}
+      title="Migrate from V1"
+      criterionSubtitle={`Prefix "${operation.v1MigrationData.sourcePrefix}"`}
+      status={operation.status}
+      createdAt={operation.createdAt}
+      completedAt={operation.completedAt}
+      statusContent={
+        <V1MigrationStatusContent
+          status={operation.status}
+          mocksFound={mocksFound ?? 0}
+          flagsFound={flagsFound ?? 0}
+          mocksMigrated={mocksMigrated ?? 0}
+          flagsMigrated={flagsMigrated ?? 0}
+          flagsSkipped={flagsSkipped ?? 0}
+        />
+      }
+      canExecute={foundCount > 0}
+      executeLabel="Migrate"
+      executeVariant="default"
+      onRemove={onRemove}
+      onCancel={onCancel}
+      onExecute={onPurge}
+    />
+  );
+}
+
+function V1PurgeRunCard({
+  operation,
+  onRemove,
+  onCancel,
+  onPurge,
+}: OperationRunCardProps<"V1_PURGE">) {
+  const keysFound = operation.v1PurgeData.keysFound ?? 0;
+  const migrationCompletedAt = operation.v1PurgeData.migrationCompletedAt;
+
+  return (
+    <OperationRunCardFrame
+      operationId={operation.id}
+      title="Purge V1 Data"
+      criterionSubtitle={`Prefix "${operation.v1PurgeData.sourcePrefix}"`}
+      status={operation.status}
+      createdAt={operation.createdAt}
+      completedAt={operation.completedAt}
+      statusContent={
+        <V1PurgeStatusContent
+          status={operation.status}
+          keysFound={keysFound}
+          purgedCount={operation.v1PurgeData.purgedCount ?? 0}
+        />
+      }
+      canExecute={keysFound > 0}
+      executeLabel="Purge"
+      executeVariant="destructive"
+      confirm={{
+        title: "Purge V1 data",
+        itemLabel: `${keysFound.toLocaleString()} V1 keys`,
+        confirmLabel: `Purge ${keysFound.toLocaleString()} keys`,
+        message: (
+          <>
+            This will permanently delete{" "}
+            <span className="font-medium text-foreground">
+              {keysFound.toLocaleString()}
+            </span>{" "}
+            V1 keys under{" "}
+            <span className="break-all font-medium text-foreground">
+              {operation.v1PurgeData.sourcePrefix}
+            </span>
+            . The migration completed{" "}
+            <span className="font-medium text-foreground">
+              {migrationCompletedAt ? formatDate(migrationCompletedAt) : ""}
+            </span>
+            . Flags written by V1 after that date will be lost, so make sure
+            Mocko V1 is decommissioned. This action cannot be undone.
+          </>
+        ),
+      }}
+      onRemove={onRemove}
+      onCancel={onCancel}
+      onExecute={onPurge}
     />
   );
 }
@@ -200,17 +325,16 @@ function OperationRunCardFrame({
   status,
   createdAt,
   completedAt,
-  scannedCount,
-  matchedCount,
-  purgedCount,
-  confirmTitle,
-  confirmItemLabel,
-  confirmMessage,
+  statusContent,
+  canExecute,
+  executeLabel,
+  executeVariant,
+  confirm,
   onRemove,
   onCancel,
-  onPurge,
+  onExecute,
 }: OperationRunCardFrameProps) {
-  const [purgeOpen, setPurgeOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const config = STATUS_CONFIG[status];
   const subtitleDate =
     status === "DONE" || status === "FAILED" ? completedAt : createdAt;
@@ -220,10 +344,12 @@ function OperationRunCardFrame({
   const actions = getActions({
     status,
     createdAt,
-    matchedCount,
+    canExecute,
+    executeLabel,
+    executeVariant,
     onCancel: () => onCancel(operationId),
     onRemove: () => onRemove(operationId),
-    onPurge: () => setPurgeOpen(true),
+    onExecute: () => (confirm ? setConfirmOpen(true) : onExecute(operationId)),
   });
 
   return (
@@ -243,14 +369,7 @@ function OperationRunCardFrame({
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <StatusContent
-                status={status}
-                scannedCount={scannedCount}
-                matchedCount={matchedCount}
-                purgedCount={purgedCount}
-              />
-            </div>
+            <div className="min-w-0">{statusContent}</div>
             {actions.length > 0 && (
               <div className="flex shrink-0 justify-end gap-2">{actions}</div>
             )}
@@ -258,26 +377,28 @@ function OperationRunCardFrame({
         </CardContent>
       </Card>
 
-      <ConfirmDeleteDialog
-        open={purgeOpen}
-        title={confirmTitle}
-        itemLabel={confirmItemLabel}
-        confirmLabel={`Purge ${matchedCount.toLocaleString()} flags`}
-        showDontAskAgain={false}
-        onConfirm={() => {
-          setPurgeOpen(false);
-          onPurge(operationId);
-        }}
-        onCancel={() => setPurgeOpen(false)}
-        onDontAskAgain={() => undefined}
-      >
-        {confirmMessage}
-      </ConfirmDeleteDialog>
+      {confirm && (
+        <ConfirmDeleteDialog
+          open={confirmOpen}
+          title={confirm.title}
+          itemLabel={confirm.itemLabel}
+          confirmLabel={confirm.confirmLabel}
+          showDontAskAgain={false}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            onExecute(operationId);
+          }}
+          onCancel={() => setConfirmOpen(false)}
+          onDontAskAgain={() => undefined}
+        >
+          {confirm.message}
+        </ConfirmDeleteDialog>
+      )}
     </>
   );
 }
 
-function StatusContent({
+function FlagsPurgeStatusContent({
   status,
   scannedCount,
   matchedCount,
@@ -346,20 +467,151 @@ function StatusContent({
   return null;
 }
 
+function V1MigrationStatusContent({
+  status,
+  mocksFound,
+  flagsFound,
+  mocksMigrated,
+  flagsMigrated,
+  flagsSkipped,
+}: {
+  status: OperationStatus;
+  mocksFound: number;
+  flagsFound: number;
+  mocksMigrated: number;
+  flagsMigrated: number;
+  flagsSkipped: number;
+}) {
+  if (status === "SCANNING") {
+    return <LoadingLine>Scanning V1 data...</LoadingLine>;
+  }
+
+  if (status === "EXECUTING") {
+    return (
+      <LoadingLine>
+        Migrated{" "}
+        <span className="tabular-nums text-foreground">
+          {flagsMigrated.toLocaleString()}
+        </span>{" "}
+        flags...
+      </LoadingLine>
+    );
+  }
+
+  if (status === "READY") {
+    if (mocksFound === 0 && flagsFound === 0) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          No V1 mocks or flags found, check the source prefix
+        </p>
+      );
+    }
+
+    return (
+      <p className="text-sm">
+        <span className="tabular-nums font-medium text-foreground">
+          {mocksFound.toLocaleString()}
+        </span>
+        <span className="text-muted-foreground"> mocks and </span>
+        <span className="tabular-nums font-medium text-foreground">
+          {flagsFound.toLocaleString()}
+        </span>
+        <span className="text-muted-foreground"> flags will be migrated</span>
+      </p>
+    );
+  }
+
+  if (status === "DONE") {
+    return (
+      <p className="text-sm text-muted-foreground">
+        <span className="tabular-nums font-medium text-foreground">
+          {mocksMigrated.toLocaleString()}
+        </span>{" "}
+        mocks and{" "}
+        <span className="tabular-nums font-medium text-foreground">
+          {flagsMigrated.toLocaleString()}
+        </span>{" "}
+        flags migrated
+        {flagsSkipped > 0 && (
+          <>
+            ,{" "}
+            <span className="tabular-nums">
+              {flagsSkipped.toLocaleString()}
+            </span>{" "}
+            expired flags skipped
+          </>
+        )}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+function V1PurgeStatusContent({
+  status,
+  keysFound,
+  purgedCount,
+}: {
+  status: OperationStatus;
+  keysFound: number;
+  purgedCount: number;
+}) {
+  if (status === "SCANNING") {
+    return <LoadingLine>Counting V1 keys...</LoadingLine>;
+  }
+
+  if (status === "EXECUTING") {
+    return <LoadingLine>Deleting V1 keys...</LoadingLine>;
+  }
+
+  if (status === "READY") {
+    if (keysFound === 0) {
+      return <p className="text-sm text-muted-foreground">No V1 keys found</p>;
+    }
+
+    return (
+      <p className="text-sm">
+        <span className="tabular-nums font-medium text-foreground">
+          {keysFound.toLocaleString()}
+        </span>
+        <span className="text-muted-foreground"> V1 keys will be deleted</span>
+      </p>
+    );
+  }
+
+  if (status === "DONE") {
+    return (
+      <p className="text-sm text-muted-foreground">
+        <span className="tabular-nums font-medium text-foreground">
+          {purgedCount.toLocaleString()}
+        </span>{" "}
+        V1 keys deleted
+      </p>
+    );
+  }
+
+  return null;
+}
+
 function getActions({
   status,
   createdAt,
-  matchedCount,
+  canExecute,
+  executeLabel,
+  executeVariant,
   onCancel,
   onRemove,
-  onPurge,
+  onExecute,
 }: {
   status: OperationStatus;
   createdAt: string;
-  matchedCount: number;
+  canExecute: boolean;
+  executeLabel: string;
+  executeVariant: "default" | "destructive";
   onCancel: () => void;
   onRemove: () => void;
-  onPurge: () => void;
+  onExecute: () => void;
 }): ReactNode[] {
   if (
     (status === "SCANNING" || status === "EXECUTING") &&
@@ -380,10 +632,15 @@ function getActions({
       </Button>,
     ];
 
-    if (matchedCount > 0) {
+    if (canExecute) {
       actions.push(
-        <Button key="purge" variant="destructive" size="sm" onClick={onPurge}>
-          Purge
+        <Button
+          key="execute"
+          variant={executeVariant}
+          size="sm"
+          onClick={onExecute}
+        >
+          {executeLabel}
         </Button>,
       );
     }

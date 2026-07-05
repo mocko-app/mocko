@@ -8,6 +8,7 @@ export type StoreConfig = {
   redisOptions: RedisOptions;
   redisPrefix: string;
   flagsListLimit: number;
+  v1MigrationEnabled: boolean;
 };
 
 const DEFAULT_REDIS_PORT = 6379;
@@ -33,6 +34,7 @@ export function getStoreConfig(env = process.env): StoreConfig {
       env["FLAGS_LIST_LIMIT"] ?? env["FLAGS_LIST-LIMIT"],
       DEFAULT_FLAGS_LIST_LIMIT,
     ),
+    v1MigrationEnabled: env["MOCKO_V1_MIGRATION_ENABLED"] === "true",
   };
 }
 

@@ -870,4 +870,28 @@ describe("mocks page conflict badges", () => {
     expect(within(plainCard).queryByText("Conflict")).not.toBeInTheDocument();
     expect(within(plainCard).queryByText("Shadowed")).not.toBeInTheDocument();
   });
+
+  it("renders the Invalid Template badge on migrated mocks with broken templates", async () => {
+    givenApi({
+      mocks: [
+        aMock({ name: "Broken mock", annotations: ["INVALID_TEMPLATE"] }),
+        aMock({ name: "Plain mock" }),
+      ],
+    });
+    renderWithProviders(<MocksPage />);
+
+    const brokenCard = await screen.findByRole("listitem", {
+      name: "Mock: Broken mock",
+    });
+    expect(
+      within(brokenCard).getByText("Invalid Template"),
+    ).toBeInTheDocument();
+
+    const plainCard = screen.getByRole("listitem", {
+      name: "Mock: Plain mock",
+    });
+    expect(
+      within(plainCard).queryByText("Invalid Template"),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -70,6 +70,10 @@ export abstract class Store {
     return this.coreClient.getCoreVersion();
   }
 
+  async hasOwnMocks(): Promise<boolean> {
+    return (await this.listOwnMocks()).length > 0;
+  }
+
   abstract deleteMock(id: string): Promise<boolean>;
   abstract clearFailure(mockId: string): Promise<void>;
   abstract listFlags(prefix: string, search?: string): Promise<FlagListResult>;
@@ -104,6 +108,22 @@ export abstract class Store {
     pattern: string,
   ): Promise<void>;
   abstract purgeStaleFlagsForManagement(operationId: string): Promise<void>;
+  abstract scanV1MigrationForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void>;
+  abstract executeV1MigrationForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void>;
+  abstract scanV1PurgeForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void>;
+  abstract executeV1PurgeForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void>;
 
   protected abstract listOwnMocks(): Promise<Mock[]>;
   protected abstract getOwnMock(id: string): Promise<Mock | null>;

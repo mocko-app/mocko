@@ -34,9 +34,22 @@ const matchingFlagsOperationSchema = z
     }
   });
 
+const v1MigrationOperationSchema = z.object({
+  type: z.literal("V1_MIGRATION"),
+  v1MigrationData: z.object({
+    sourcePrefix: z.string().trim().min(1, "Source prefix is required"),
+  }),
+});
+
+const v1PurgeOperationSchema = z.object({
+  type: z.literal("V1_PURGE"),
+});
+
 export const createOperationSchema = z.discriminatedUnion("type", [
   staleFlagsOperationSchema,
   matchingFlagsOperationSchema,
+  v1MigrationOperationSchema,
+  v1PurgeOperationSchema,
 ]);
 
 export const patchOperationSchema = z.object({

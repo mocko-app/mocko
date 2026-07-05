@@ -1,6 +1,10 @@
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
-export const MOCK_ANNOTATIONS = ["TEMPORARY", "READ_ONLY"] as const;
+export const MOCK_ANNOTATIONS = [
+  "TEMPORARY",
+  "READ_ONLY",
+  "INVALID_TEMPLATE",
+] as const;
 export const DERIVED_MOCK_ANNOTATIONS = ["SHADOWED", "CONFLICT"] as const;
 
 export type HttpMethod = (typeof HTTP_METHODS)[number];

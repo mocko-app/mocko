@@ -89,6 +89,12 @@ export const MockCard: React.FC<{
                 Conflict
               </Badge>
             )}
+            {mock.annotations.includes("INVALID_TEMPLATE") && (
+              <Badge variant="annotationInvalidTemplate">
+                <AlertTriangleIcon aria-hidden="true" />
+                Invalid Template
+              </Badge>
+            )}
           </div>
           {mock.filePath && (
             <p className="truncate text-xs text-muted-foreground">

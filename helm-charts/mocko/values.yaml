@@ -74,6 +74,12 @@ control:
     type: ClusterIP
     port: 6625
 
+  # Reveals the "Migrate from V1" and "Purge V1 Data" operations on the
+  # Management page. Enable only while migrating a Mocko V1 installation
+  # that shares this Redis; disable again once the migration is done.
+  v1Migration:
+    enabled: false
+
   # resources:
   #   requests:
   #     cpu: 50m
