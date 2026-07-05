@@ -26,7 +26,7 @@ export default function V1VariablesPage() {
         >
           Flags
         </Link>
-        , variables are not persisted — they exist only for the duration of the
+        , variables are not persisted; they exist only for the duration of the
         current request.
       </DocsP>
 

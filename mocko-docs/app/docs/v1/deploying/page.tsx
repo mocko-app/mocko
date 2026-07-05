@@ -21,7 +21,7 @@ export default function V1DeployingPage() {
         not just your local machine.
       </DocsP>
 
-      <DocsH2>Standalone mode — Docker</DocsH2>
+      <DocsH2>Standalone mode: Docker</DocsH2>
       <DocsP>
         To run Mocko with as few resources as possible, build a container image
         using <DocsCode>gabrielctpinheiro/mocko-proxy</DocsCode> as a base.

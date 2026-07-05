@@ -7,9 +7,9 @@ import {
   DocsLead,
   DocsPage,
   DocsSectionTitle,
-  DocsSnippet,
   DocsTitle,
 } from "@/components/docs/content";
+import { DocsSnippet } from "@/components/docs/snippet";
 import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -62,7 +62,7 @@ export default function DocsHomePage() {
       <DocsTitle>Everything you need to run Mocko</DocsTitle>
       <DocsLead>
         Create dynamic HTTP mocks, proxy the endpoints you are not replacing,
-        and choose the workflow that fits — local dev, self-hosted, or Mocko
+        and choose the workflow that fits: local dev, self-hosted, or Mocko
         Cloud.
       </DocsLead>
 

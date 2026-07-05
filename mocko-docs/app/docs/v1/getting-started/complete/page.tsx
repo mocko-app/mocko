@@ -11,7 +11,7 @@ import {
 } from "@/components/docs/content";
 
 export const metadata: Metadata = {
-  title: "Getting Started — Complete Stack (v1)",
+  title: "Getting Started: Complete Stack (v1)",
 };
 
 export default function V1CompletePage() {

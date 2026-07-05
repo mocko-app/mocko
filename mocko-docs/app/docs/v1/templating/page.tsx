@@ -18,7 +18,7 @@ export default function V1TemplatingPage() {
       <LegacyBanner v2href="/docs/creating-mocks/templating" />
       <DocsTitle>Templating</DocsTitle>
       <DocsP>
-        Templating is where Mocko really shines — it lets you create dynamic
+        Templating is where Mocko really shines: it lets you create dynamic
         mocks and simulate complicated scenarios with ease. You can use
         templating in any installation of Mocko: standalone mode, complete
         stack, or hybrid.
@@ -75,16 +75,16 @@ export default function V1TemplatingPage() {
       <DocsP>Fields available in every template:</DocsP>
       <ul className="mb-4 list-disc space-y-1.5 pl-6 text-[14px] text-fg-2">
         <li>
-          <DocsCode>request.params</DocsCode> — URL params defined in the path
+          <DocsCode>request.params</DocsCode>: URL params defined in the path
         </li>
         <li>
-          <DocsCode>request.headers</DocsCode> — request headers
+          <DocsCode>request.headers</DocsCode>: request headers
         </li>
         <li>
-          <DocsCode>request.query</DocsCode> — query string parameters
+          <DocsCode>request.query</DocsCode>: query string parameters
         </li>
         <li>
-          <DocsCode>request.body</DocsCode> — request body fields (JSON)
+          <DocsCode>request.body</DocsCode>: request body fields (JSON)
         </li>
       </ul>
 

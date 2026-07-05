@@ -17,7 +17,7 @@ export default function V1PersistencePage() {
       <LegacyBanner v2href="/docs/reference/helpers" />
       <DocsTitle>Persistence</DocsTitle>
       <DocsP>
-        Mocko allows you to use Flags — values that persist between requests, or
+        Mocko allows you to use Flags: values that persist between requests, or
         even between restarts when Redis is enabled. Redis is on by default in
         the complete stack and off by default in standalone mode (falls back to
         in-memory).

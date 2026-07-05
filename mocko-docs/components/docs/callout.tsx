@@ -10,25 +10,21 @@ import { cn } from "@/lib/utils";
 const variants = {
   info: {
     icon: InfoIcon,
-    border: "border-l-blue-400",
-    bg: "bg-blue-400/10",
-    iconColor: "text-blue-400",
+    bg: "bg-sky-500/10",
+    iconColor: "text-sky-300",
   },
   warning: {
     icon: AlertTriangleIcon,
-    border: "border-l-amber-500",
     bg: "bg-amber-500/10",
-    iconColor: "text-amber-500",
+    iconColor: "text-amber-300",
   },
   tip: {
     icon: LightbulbIcon,
-    border: "border-l-primary",
     bg: "bg-primary/10",
     iconColor: "text-primary",
   },
   danger: {
     icon: XCircleIcon,
-    border: "border-l-destructive",
     bg: "bg-destructive/10",
     iconColor: "text-destructive",
   },
@@ -45,14 +41,13 @@ export function Callout({
   children: ReactNode;
   className?: string;
 }) {
-  const { icon: Icon, border, bg, iconColor } = variants[variant];
+  const { icon: Icon, bg, iconColor } = variants[variant];
 
   return (
     <div
       role="note"
       className={cn(
-        "my-4 flex gap-3 rounded-r-lg border-l-4 px-4 py-3.5 text-[13px] leading-[1.75] text-fg-2",
-        border,
+        "my-4 flex gap-3 rounded-lg px-4 py-3.5 text-[13px] leading-[1.75] text-fg-2",
         bg,
         className,
       )}

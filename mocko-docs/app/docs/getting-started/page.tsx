@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle2Icon } from "lucide-react";
 import { Callout } from "@/components/docs/callout";
 import {
   DocsCode,
-  DocsCodeBlock,
   DocsEyebrow,
   DocsH2,
   DocsLead,
@@ -12,6 +10,7 @@ import {
   DocsP,
   DocsTitle,
 } from "@/components/docs/content";
+import { DocsSnippet } from "@/components/docs/snippet";
 
 export const metadata: Metadata = {
   title: "Getting Started",
@@ -52,37 +51,23 @@ export default function GettingStartedPage() {
         mock, and hit it with a real HTTP request.
       </DocsLead>
 
-      {/* Prerequisites */}
-      <DocsH2>Prerequisites</DocsH2>
-      <ul className="mb-4 space-y-2">
-        {["Node.js 20.19 or newer", "npm"].map((item) => (
-          <li
-            key={item}
-            className="flex items-center gap-2.5 text-[14px] text-fg-2"
-          >
-            <CheckCircle2Icon
-              className="size-4 shrink-0 text-primary"
-              aria-hidden
-            />
-            {item}
-          </li>
-        ))}
-      </ul>
-
       {/* Step 1 */}
       <DocsH2>1. Install the CLI</DocsH2>
-      <DocsCodeBlock>npm install -g @mocko/cli</DocsCodeBlock>
+      <DocsP>
+        You need Node.js 20.19 or newer. Install the CLI globally with npm:
+      </DocsP>
+      <DocsSnippet command="npm install -g @mocko/cli" className="mb-4" />
 
       {/* Step 2 */}
       <DocsH2>2. Start Mocko</DocsH2>
-      <DocsCodeBlock>mocko --ui</DocsCodeBlock>
+      <DocsSnippet command="mocko --ui" className="mb-4" />
       <DocsP>
         A folder argument is optional. Use <DocsCode>mocko --ui .</DocsCode> if
         you also want to load file mocks from the current directory. Without a
         folder, Mocko starts with no pre-loaded file mocks.
       </DocsP>
       <Callout variant="warning">
-        Mocks created in the UI are <strong>temporary</strong> — they reset when
+        Mocks created in the UI are <strong>temporary</strong>: they reset when
         Mocko stops unless you run with Redis. For repeatable project behavior,
         move mocks into files with{" "}
         <Link
@@ -117,7 +102,11 @@ export default function GettingStartedPage() {
 
       {/* Step 4 */}
       <DocsH2>4. Test it</DocsH2>
-      <DocsCodeBlock>{`curl http://localhost:6625/hello\n# Hello from Mocko!`}</DocsCodeBlock>
+      <DocsSnippet
+        command="curl http://localhost:8080/hello"
+        output="Hello from Mocko!"
+        className="mb-4"
+      />
 
       <DocsH2>5. Move repeatable mocks to files</DocsH2>
       <DocsP>

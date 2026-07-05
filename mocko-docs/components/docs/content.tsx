@@ -1,4 +1,3 @@
-import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function DocsH2({
@@ -104,10 +103,7 @@ export function DocsLead({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn(
-        "mb-7 max-w-[510px] text-[15px] leading-[1.75] text-fg-2",
-        className,
-      )}
+      className={cn("mb-7 text-[15px] leading-[1.75] text-fg-2", className)}
       {...props}
     />
   );
@@ -125,23 +121,5 @@ export function DocsSectionTitle({
       )}
       {...props}
     />
-  );
-}
-
-export function DocsSnippet({ command }: { command: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-[13px]">
-      <div className="flex items-center gap-2.5">
-        <span className="select-none font-semibold text-primary">$</span>
-        <span className="text-foreground">{command}</span>
-      </div>
-      <button
-        type="button"
-        aria-label="Copy to clipboard"
-        className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-border hover:text-fg-2"
-      >
-        <Copy className="size-3.5" aria-hidden />
-      </button>
-    </div>
   );
 }

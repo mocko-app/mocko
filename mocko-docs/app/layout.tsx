@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   },
   description:
     "Documentation for Mocko, the dynamic HTTP mocking tool for local development, self-hosting, and Mocko Cloud.",
+  icons: {
+    icon: "https://cdn.codetunnel.net/mocko/icon.png",
+    shortcut: "https://cdn.codetunnel.net/mocko/icon.png",
+  },
 };
 
 export default function RootLayout({

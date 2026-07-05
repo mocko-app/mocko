@@ -12,7 +12,7 @@ import {
 } from "@/components/docs/content";
 
 export const metadata: Metadata = {
-  title: "Getting Started — Standalone Mode (v1)",
+  title: "Getting Started: Standalone Mode (v1)",
 };
 
 export default function V1StandalonePage() {
@@ -110,24 +110,24 @@ mock "GET /cats/george" {
       <DocsP>
         Define the method and path right after the mock stanza. You can use{" "}
         <DocsCode>*</DocsCode> to match all methods. Specific paths take higher
-        priority over generic ones — <DocsCode>/cats/george</DocsCode> always
+        priority over generic ones: <DocsCode>/cats/george</DocsCode> always
         matches before <DocsCode>/cats/{"{name}"}</DocsCode>.
       </DocsP>
 
       <DocsH2>Parameters</DocsH2>
       <ul className="mb-4 list-disc space-y-1.5 pl-6 text-[14px] text-fg-2">
         <li>
-          <DocsCode>status</DocsCode> — any value from 200–599; defaults to 201
+          <DocsCode>status</DocsCode>: any value from 200–599; defaults to 201
           for POST, 200 otherwise
         </li>
         <li>
-          <DocsCode>headers</DocsCode> — response headers map
+          <DocsCode>headers</DocsCode>: response headers map
         </li>
         <li>
-          <DocsCode>delay</DocsCode> — delay in milliseconds before responding
+          <DocsCode>delay</DocsCode>: delay in milliseconds before responding
         </li>
         <li>
-          <DocsCode>body</DocsCode> — the response body, supports Handlebars
+          <DocsCode>body</DocsCode>: the response body, supports Handlebars
           templating
         </li>
       </ul>
