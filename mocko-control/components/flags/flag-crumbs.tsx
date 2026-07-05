@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
+import { handleSameRouteClick } from "@/lib/frontend/replace-url";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -37,7 +38,14 @@ export function FlagCrumbs({ crumbs, query, className }: FlagCrumbsProps) {
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
                 {href ? (
-                  <BreadcrumbLink render={<Link href={href} />}>
+                  <BreadcrumbLink
+                    render={
+                      <Link
+                        href={href}
+                        onClick={(event) => handleSameRouteClick(event, href)}
+                      />
+                    }
+                  >
                     {crumb}
                   </BreadcrumbLink>
                 ) : (
