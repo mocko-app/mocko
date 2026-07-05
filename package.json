@@ -11,6 +11,11 @@
     "start:fast": "node ./mocko-cli/bin/main.js ./mocko-core/mocks --watch",
     "start": "npm run start:fast"
   },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.10"
+    }
+  },
   "workspaces": [
     "mocko-control",
     "mocko-core",
