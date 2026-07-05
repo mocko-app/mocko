@@ -11,7 +11,7 @@ import {
   DocsPage,
   DocsTitle,
   DocsUl,
-  ScreenshotPlaceholder,
+  DocsScreenshot,
 } from "@/components/docs/content";
 import { DocsSnippet } from "@/components/docs/snippet";
 
@@ -184,7 +184,10 @@ mock "GET /users/{id}" {
         the UI is often the quickest way to steer a scenario mid-test: flip the
         value and the very next request sees it.
       </DocsP>
-      <ScreenshotPlaceholder label="Flags panel with nested folder keys" />
+      <DocsScreenshot
+        src="https://cdn.codetunnel.net/mocko/flags-folders.png"
+        alt="The flags panel showing folders for users, reports, and orders next to a root-level maintenance-mode flag"
+      />
 
       <DocsH2>Flags from outside the instance</DocsH2>
       <DocsP>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -155,22 +156,23 @@ export function DocsLink({
   );
 }
 
-export function ScreenshotPlaceholder({
-  label,
+export function DocsScreenshot({
+  src,
+  alt,
   className,
 }: {
-  label: string;
+  src: string;
+  alt: string;
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "mb-4 flex items-center justify-center rounded-lg border border-dashed border-border bg-card/40 px-5 py-10 text-[13px] text-muted-foreground",
-        className,
-      )}
-    >
-      Screenshot placeholder: {label}
-    </div>
+    <Image
+      src={src}
+      alt={alt}
+      width={1902}
+      height={1082}
+      className={cn("mb-4 rounded-lg border border-border", className)}
+    />
   );
 }
 

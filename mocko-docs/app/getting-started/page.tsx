@@ -8,6 +8,7 @@ import {
   DocsLead,
   DocsPage,
   DocsP,
+  DocsScreenshot,
   DocsTitle,
 } from "@/components/docs/content";
 import { DocsSnippet } from "@/components/docs/snippet";
@@ -96,9 +97,10 @@ export default function GettingStartedPage() {
           Response body: <DocsCode>Hello from Mocko!</DocsCode>
         </li>
       </ul>
-      <div className="mb-4 flex items-center justify-center rounded-lg border border-dashed border-border bg-card/40 px-5 py-10 text-[13px] text-muted-foreground">
-        Screenshot placeholder: Mocko UI create-mock flow
-      </div>
+      <DocsScreenshot
+        src="https://cdn.codetunnel.net/mocko/getting-started-create-mock.png"
+        alt="Mocko control panel with the new mock form filled in: method GET, path /hello, and a plain text response body"
+      />
 
       {/* Step 4 */}
       <DocsH2>4. Test it</DocsH2>

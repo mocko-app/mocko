@@ -10,7 +10,7 @@ import {
   DocsPage,
   DocsTitle,
   DocsUl,
-  ScreenshotPlaceholder,
+  DocsScreenshot,
 } from "@/components/docs/content";
 import { DocsSnippet } from "@/components/docs/snippet";
 
@@ -51,7 +51,10 @@ export default function UiMocksPage() {
         use in the body. Pick a content type, write the response body, and save.
         The mock starts responding immediately.
       </DocsP>
-      <ScreenshotPlaceholder label="Mocko UI mock form" />
+      <DocsScreenshot
+        src="https://cdn.codetunnel.net/mocko/ui-mocks-form.png"
+        alt="The mock form in the control panel editing GET /users/{id} with a templated JSON body"
+      />
       <DocsP>
         The body is a template with the same power as file mock bodies:
         everything on the{" "}
@@ -72,7 +75,10 @@ export default function UiMocksPage() {
         quickest way to create a variation of an existing response, such as an
         error case for a route you already mock.
       </DocsP>
-      <ScreenshotPlaceholder label="Mock list with search and label filters" />
+      <DocsScreenshot
+        src="https://cdn.codetunnel.net/mocko/ui-mocks-list-filters.png"
+        alt="The mock list in the control panel with search and label filters above the mocks"
+      />
       <DocsP>
         If a mock&apos;s template fails to render for a request, the panel shows
         the failure on the mock, so you do not need to tail the server logs to

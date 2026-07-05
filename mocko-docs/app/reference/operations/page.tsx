@@ -10,7 +10,7 @@ import {
   DocsPage,
   DocsTitle,
   DocsUl,
-  ScreenshotPlaceholder,
+  DocsScreenshot,
 } from "@/components/docs/content";
 
 export const metadata: Metadata = {
@@ -52,7 +52,10 @@ export default function ReferenceOperationsPage() {
         Finished runs stay in the history on the same page, with their
         parameters and final counts.
       </DocsP>
-      <ScreenshotPlaceholder label="Management page with operation history" />
+      <DocsScreenshot
+        src="https://cdn.codetunnel.net/mocko/operations-history.png"
+        alt="The Management page listing finished operations with their parameters and final counts"
+      />
       <Callout variant="warning">
         Operations work directly on the Redis store, so they require{" "}
         <DocsLink href="/running/persistence">Redis mode</DocsLink>. On a
