@@ -130,6 +130,13 @@ export type CreateOperationPayload =
   | {
       type: "MATCHING_FLAGS";
       matchingFlagsData: { mode: MatchingFlagsMode; pattern: string };
+    }
+  | {
+      type: "V1_MIGRATION";
+      v1MigrationData: { sourcePrefix: string };
+    }
+  | {
+      type: "V1_PURGE";
     };
 
 export const createOperation = (payload: CreateOperationPayload) =>

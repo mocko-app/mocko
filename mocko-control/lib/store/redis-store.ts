@@ -1,4 +1,5 @@
 import Redis, { type Redis as RedisClient, type RedisOptions } from "ioredis";
+import { toV2Mock } from "@/lib/management/v1-mock.mapper";
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
@@ -7,12 +8,10 @@ import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
 import type { Mock } from "@/lib/types/mock";
 import type {
-  MatchingFlagsData,
   MatchingFlagsMode,
   Operation,
   OperationStatus,
   OperationUpdate,
-  StaleFlagsData,
 } from "@/lib/types/operation";
 
 const WORKSPACE_MOCKS_KEY = "workspace_mocks";
@@ -46,8 +45,8 @@ export class RedisStore extends Store {
   private readonly redis: RedisClient;
 
   constructor(
-    redisUrl: string | undefined,
-    redisOptions: RedisOptions,
+    private readonly redisUrl: string | undefined,
+    private readonly redisOptions: RedisOptions,
     private readonly redisPrefix: string,
     private readonly flagsListLimit: number,
     coreClient: CoreClient,
@@ -466,6 +465,284 @@ export class RedisStore extends Store {
     await this.updateOperation(operationId, update);
   }
 
+  async scanV1MigrationForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void> {
+    await this.withSourceClient(async (source) => {
+      const mocksFound = await source.hlen(
+        `${sourcePrefix}${WORKSPACE_MOCKS_KEY}`,
+      );
+      const flagsFound = await this.countSourceKeys(
+        source,
+        `${sourcePrefix}${FLAG_PREFIX}`,
+        async (count) => {
+          await this.updateOperation(operationId, {
+            v1MigrationData: { flagsFound: count },
+          });
+        },
+      );
+
+      await this.updateOperation(operationId, {
+        status: "READY",
+        v1MigrationData: { mocksFound, flagsFound },
+      });
+    });
+  }
+
+  async executeV1MigrationForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void> {
+    await this.withSourceClient(async (source) => {
+      const { flagsMigrated, flagsSkipped } = await this.migrateV1Flags(
+        operationId,
+        source,
+        sourcePrefix,
+      );
+      const mocksMigrated = await this.migrateV1Mocks(source, sourcePrefix);
+      await this.deploy();
+
+      await this.updateOperation(operationId, {
+        status: "DONE",
+        completedAt: new Date().toISOString(),
+        v1MigrationData: { mocksMigrated, flagsMigrated, flagsSkipped },
+      });
+    });
+  }
+
+  async scanV1PurgeForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void> {
+    await this.withSourceClient(async (source) => {
+      let keysFound = await source.exists(
+        `${sourcePrefix}${WORKSPACE_MOCKS_KEY}`,
+        `${sourcePrefix}${DEPLOYMENT_KEY}`,
+      );
+      for (const prefix of [FLAG_PREFIX, FAILURE_PREFIX]) {
+        const countedSoFar = keysFound;
+        keysFound += await this.countSourceKeys(
+          source,
+          `${sourcePrefix}${prefix}`,
+          async (count) => {
+            await this.updateOperation(operationId, {
+              v1PurgeData: { keysFound: countedSoFar + count },
+            });
+          },
+        );
+      }
+
+      await this.updateOperation(operationId, {
+        status: "READY",
+        v1PurgeData: { keysFound },
+      });
+    });
+  }
+
+  async executeV1PurgeForManagement(
+    operationId: string,
+    sourcePrefix: string,
+  ): Promise<void> {
+    await this.withSourceClient(async (source) => {
+      let purgedCount = await source.del(
+        `${sourcePrefix}${WORKSPACE_MOCKS_KEY}`,
+        `${sourcePrefix}${DEPLOYMENT_KEY}`,
+      );
+      let lastProgressUpdateAt = Date.now();
+
+      for (const prefix of [FLAG_PREFIX, FAILURE_PREFIX]) {
+        let cursor = "0";
+        do {
+          const [nextCursor, keys] = await source.scan(
+            cursor,
+            "MATCH",
+            `${escapeGlobPattern(`${sourcePrefix}${prefix}`)}*`,
+            "COUNT",
+            REDIS_SCAN_COUNT,
+          );
+          cursor = nextCursor;
+
+          for (
+            let index = 0;
+            index < keys.length;
+            index += OPERATIONS_BATCH_SIZE
+          ) {
+            purgedCount += await source.del(
+              ...keys.slice(index, index + OPERATIONS_BATCH_SIZE),
+            );
+          }
+
+          if (
+            Date.now() - lastProgressUpdateAt >=
+            PROGRESS_UPDATE_INTERVAL_MS
+          ) {
+            lastProgressUpdateAt = Date.now();
+            await this.updateOperation(operationId, {
+              v1PurgeData: { purgedCount },
+            });
+          }
+        } while (cursor !== "0");
+      }
+
+      await this.updateOperation(operationId, {
+        status: "DONE",
+        completedAt: new Date().toISOString(),
+        v1PurgeData: { purgedCount },
+      });
+    });
+  }
+
+  private async migrateV1Flags(
+    operationId: string,
+    source: RedisClient,
+    sourcePrefix: string,
+  ): Promise<{ flagsMigrated: number; flagsSkipped: number }> {
+    const sourceFlagPrefix = `${sourcePrefix}${FLAG_PREFIX}`;
+    let flagsMigrated = 0;
+    let flagsSkipped = 0;
+    let cursor = "0";
+    let lastProgressUpdateAt = Date.now();
+
+    do {
+      const [nextCursor, keys] = await source.scan(
+        cursor,
+        "MATCH",
+        `${escapeGlobPattern(sourceFlagPrefix)}*`,
+        "COUNT",
+        REDIS_SCAN_COUNT,
+      );
+      cursor = nextCursor;
+
+      for (let index = 0; index < keys.length; index += OPERATIONS_BATCH_SIZE) {
+        const batch = keys.slice(index, index + OPERATIONS_BATCH_SIZE);
+        const migrated = await this.copyV1FlagBatch(
+          source,
+          sourceFlagPrefix,
+          batch,
+        );
+        flagsMigrated += migrated;
+        flagsSkipped += batch.length - migrated;
+
+        if (Date.now() - lastProgressUpdateAt >= PROGRESS_UPDATE_INTERVAL_MS) {
+          lastProgressUpdateAt = Date.now();
+          await this.updateOperation(operationId, {
+            v1MigrationData: { flagsMigrated },
+          });
+        }
+      }
+    } while (cursor !== "0");
+
+    return { flagsMigrated, flagsSkipped };
+  }
+
+  private async copyV1FlagBatch(
+    source: RedisClient,
+    sourceFlagPrefix: string,
+    keys: string[],
+  ): Promise<number> {
+    const readPipeline = source.pipeline();
+    for (const key of keys) {
+      readPipeline.get(key);
+      readPipeline.pttl(key);
+    }
+    const results = await readPipeline.exec();
+
+    const writePipeline = this.redis.pipeline();
+    let migrated = 0;
+    keys.forEach((key, index) => {
+      const [getError, value] = results?.[index * 2] ?? [null, null];
+      const [pttlError, ttlMillis] = results?.[index * 2 + 1] ?? [null, -2];
+      if (getError) {
+        throw getError;
+      }
+      if (pttlError) {
+        throw pttlError;
+      }
+      if (typeof value !== "string") {
+        return;
+      }
+
+      const flagKey = `${FLAG_PREFIX}${key.slice(sourceFlagPrefix.length)}`;
+      writePipeline.del(flagKey);
+      writePipeline.hset(flagKey, this.serializeFlag(value, "MOCK"));
+      if (typeof ttlMillis === "number" && ttlMillis > 0) {
+        writePipeline.pexpire(flagKey, ttlMillis);
+      }
+      migrated += 1;
+    });
+
+    const writeResults = await writePipeline.exec();
+    writeResults?.forEach(([error]) => {
+      if (error) {
+        throw error;
+      }
+    });
+
+    return migrated;
+  }
+
+  private async migrateV1Mocks(
+    source: RedisClient,
+    sourcePrefix: string,
+  ): Promise<number> {
+    const entries = await source.hgetall(
+      `${sourcePrefix}${WORKSPACE_MOCKS_KEY}`,
+    );
+    const mocks = Object.values(entries).map((raw) =>
+      toV2Mock(JSON.parse(raw)),
+    );
+    await this.writeOwnMocks(mocks);
+    return mocks.length;
+  }
+
+  private async countSourceKeys(
+    source: RedisClient,
+    keyPrefix: string,
+    onProgress: (count: number) => Promise<void>,
+  ): Promise<number> {
+    let count = 0;
+    let cursor = "0";
+    let lastProgressUpdateAt = Date.now();
+
+    do {
+      const [nextCursor, keys] = await source.scan(
+        cursor,
+        "MATCH",
+        `${escapeGlobPattern(keyPrefix)}*`,
+        "COUNT",
+        REDIS_SCAN_COUNT,
+      );
+      cursor = nextCursor;
+      count += keys.length;
+
+      if (Date.now() - lastProgressUpdateAt >= PROGRESS_UPDATE_INTERVAL_MS) {
+        lastProgressUpdateAt = Date.now();
+        await onProgress(count);
+      }
+    } while (cursor !== "0");
+
+    return count;
+  }
+
+  private async withSourceClient(
+    action: (source: RedisClient) => Promise<void>,
+  ): Promise<void> {
+    const options: RedisOptions = {
+      ...this.redisOptions,
+      keyPrefix: undefined,
+    };
+    const source = this.redisUrl
+      ? new Redis(this.redisUrl, options)
+      : new Redis(options);
+
+    try {
+      await action(source);
+    } finally {
+      source.disconnect();
+    }
+  }
+
   private async readOwnMocks(): Promise<Mock[]> {
     const payload = await this.redis.get(WORKSPACE_MOCKS_KEY);
     if (!payload) {
@@ -641,16 +918,39 @@ export class RedisStore extends Store {
   }
 
   private serializeOperation(op: Operation): Record<string, string> {
-    return {
+    const data: Record<string, string> = {
       id: op.id,
       type: op.type,
       status: op.status,
       createdAt: op.createdAt,
       ...(op.completedAt ? { completedAt: op.completedAt } : {}),
-      ...(op.type === "STALE_FLAGS"
-        ? this.serializeStaleFlagsData(op.staleFlagsData)
-        : this.serializeMatchingFlagsData(op.matchingFlagsData)),
     };
+
+    switch (op.type) {
+      case "STALE_FLAGS":
+        return {
+          ...data,
+          ...this.serializeOperationData("staleFlagsData", op.staleFlagsData),
+        };
+      case "MATCHING_FLAGS":
+        return {
+          ...data,
+          ...this.serializeOperationData(
+            "matchingFlagsData",
+            op.matchingFlagsData,
+          ),
+        };
+      case "V1_MIGRATION":
+        return {
+          ...data,
+          ...this.serializeOperationData("v1MigrationData", op.v1MigrationData),
+        };
+      case "V1_PURGE":
+        return {
+          ...data,
+          ...this.serializeOperationData("v1PurgeData", op.v1PurgeData),
+        };
+    }
   }
 
   private serializeOperationUpdate(
@@ -667,30 +967,30 @@ export class RedisStore extends Store {
 
     return {
       ...payload,
-      ...this.serializeStaleFlagsData(fields.staleFlagsData ?? {}),
-      ...this.serializeMatchingFlagsData(fields.matchingFlagsData ?? {}),
+      ...this.serializeOperationData(
+        "staleFlagsData",
+        fields.staleFlagsData ?? {},
+      ),
+      ...this.serializeOperationData(
+        "matchingFlagsData",
+        fields.matchingFlagsData ?? {},
+      ),
+      ...this.serializeOperationData(
+        "v1MigrationData",
+        fields.v1MigrationData ?? {},
+      ),
+      ...this.serializeOperationData("v1PurgeData", fields.v1PurgeData ?? {}),
     };
   }
 
-  private serializeStaleFlagsData(
-    data: Partial<StaleFlagsData>,
+  private serializeOperationData(
+    field: string,
+    data: Record<string, string | number | undefined>,
   ): Record<string, string> {
     const payload: Record<string, string> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
-        payload[`staleFlagsData.${key}`] = String(value);
-      }
-    }
-    return payload;
-  }
-
-  private serializeMatchingFlagsData(
-    data: Partial<MatchingFlagsData>,
-  ): Record<string, string> {
-    const payload: Record<string, string> = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== undefined) {
-        payload[`matchingFlagsData.${key}`] = String(value);
+        payload[`${field}.${key}`] = String(value);
       }
     }
     return payload;
@@ -751,6 +1051,47 @@ export class RedisStore extends Store {
       };
     }
 
+    if (payload.type === "V1_MIGRATION") {
+      return {
+        ...baseOperation,
+        type: "V1_MIGRATION",
+        v1MigrationData: {
+          sourcePrefix: payload["v1MigrationData.sourcePrefix"] ?? "",
+          mocksFound: this.parseOptionalNumber(
+            payload["v1MigrationData.mocksFound"],
+          ),
+          flagsFound: this.parseOptionalNumber(
+            payload["v1MigrationData.flagsFound"],
+          ),
+          mocksMigrated: this.parseOptionalNumber(
+            payload["v1MigrationData.mocksMigrated"],
+          ),
+          flagsMigrated: this.parseOptionalNumber(
+            payload["v1MigrationData.flagsMigrated"],
+          ),
+          flagsSkipped: this.parseOptionalNumber(
+            payload["v1MigrationData.flagsSkipped"],
+          ),
+        },
+      };
+    }
+
+    if (payload.type === "V1_PURGE") {
+      return {
+        ...baseOperation,
+        type: "V1_PURGE",
+        v1PurgeData: {
+          sourcePrefix: payload["v1PurgeData.sourcePrefix"] ?? "",
+          migrationCompletedAt:
+            payload["v1PurgeData.migrationCompletedAt"] || undefined,
+          keysFound: this.parseOptionalNumber(payload["v1PurgeData.keysFound"]),
+          purgedCount: this.parseOptionalNumber(
+            payload["v1PurgeData.purgedCount"],
+          ),
+        },
+      };
+    }
+
     return null;
   }
 
@@ -761,4 +1102,8 @@ export class RedisStore extends Store {
   private parseOptionalNumber(value: string | undefined): number | undefined {
     return value === undefined ? undefined : Number(value);
   }
+}
+
+function escapeGlobPattern(value: string): string {
+  return value.replace(/[*?[\]\\]/g, "\\$&");
 }

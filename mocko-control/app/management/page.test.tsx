@@ -3,7 +3,12 @@ import { screen, waitFor, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import ManagementPage from "./page";
-import { aMatchingFlagsOperation, aStaleFlagsOperation } from "@/test/fixtures";
+import {
+  aMatchingFlagsOperation,
+  aStaleFlagsOperation,
+  aV1MigrationOperation,
+  aV1PurgeOperation,
+} from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
 import { renderWithProviders } from "@/test/render";
 import type { CreateOperationPayload } from "@/lib/frontend/api";
@@ -365,5 +370,222 @@ describe("management page failures", () => {
     expect(
       await screen.findByText("Failed to remove operation"),
     ).toBeInTheDocument();
+  });
+});
+
+describe("management page v1 migration", () => {
+  it("hides the migration and purge cards when the feature is off", async () => {
+    givenApi();
+    renderWithProviders(<ManagementPage />);
+
+    await screen.findByText("No runs yet. Start an operation above.");
+    expect(screen.queryByText("Migrate from V1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Purge V1 Data")).not.toBeInTheDocument();
+  });
+
+  it("shows the migration card when enabled, and the purge card only after a succeeded migration", async () => {
+    givenApi({
+      operations: {
+        operations: [],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    renderWithProviders(<ManagementPage />);
+
+    expect(await screen.findByText("Migrate from V1")).toBeInTheDocument();
+    expect(screen.queryByText("Purge V1 Data")).not.toBeInTheDocument();
+  });
+
+  it("shows the purge card once a migration run has succeeded", async () => {
+    givenApi({
+      operations: {
+        operations: [
+          aV1MigrationOperation({
+            status: "DONE",
+            completedAt: new Date().toISOString(),
+          }),
+        ],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    renderWithProviders(<ManagementPage />);
+
+    expect(await screen.findByText("Purge V1 Data")).toBeInTheDocument();
+  });
+
+  it("prefills the source prefix and sends the edited value when starting a migration", async () => {
+    givenApi({
+      operations: {
+        operations: [],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    const payloads = captureOperationStarts();
+    const { user } = renderWithProviders(<ManagementPage />);
+
+    await screen.findByText("Migrate from V1");
+    const startButtons = screen.getAllByRole("button", { name: "Start" });
+    await user.click(startButtons[2]);
+
+    const dialog = await screen.findByRole("dialog");
+    const prefix = within(dialog).getByLabelText("V1 Redis prefix");
+    expect(prefix).toHaveValue("mocko:");
+
+    await user.clear(prefix);
+    await user.type(prefix, "my-release:");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Start scan" }),
+    );
+
+    await waitFor(() => expect(payloads).toHaveLength(1));
+    expect(payloads[0]).toEqual({
+      type: "V1_MIGRATION",
+      v1MigrationData: { sourcePrefix: "my-release:" },
+    });
+  });
+
+  it("starts a purge without a dialog", async () => {
+    givenApi({
+      operations: {
+        operations: [
+          aV1MigrationOperation({
+            status: "DONE",
+            completedAt: new Date().toISOString(),
+          }),
+        ],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    const payloads = captureOperationStarts();
+    const { user } = renderWithProviders(<ManagementPage />);
+
+    await screen.findByText("Purge V1 Data");
+    const startButtons = screen.getAllByRole("button", { name: "Start" });
+    await user.click(startButtons[3]);
+
+    await waitFor(() => expect(payloads).toHaveLength(1));
+    expect(payloads[0]).toEqual({ type: "V1_PURGE" });
+  });
+
+  it("shows the found counts on a ready migration run and executes without confirmation", async () => {
+    givenApi({
+      operations: {
+        operations: [
+          aV1MigrationOperation({
+            id: "op-migration",
+            v1MigrationData: {
+              sourcePrefix: "mocko:",
+              mocksFound: 3,
+              flagsFound: 120,
+            },
+          }),
+        ],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    const executed: string[] = [];
+    server.use(
+      http.patch("/api/operations/:id", ({ params }) => {
+        executed.push(String(params.id));
+        return HttpResponse.json(
+          aV1MigrationOperation({ id: "op-migration", status: "EXECUTING" }),
+        );
+      }),
+    );
+    const { user } = renderWithProviders(<ManagementPage />);
+
+    const card = await screen.findByRole("listitem");
+    expect(card).toHaveTextContent("3 mocks and 120 flags will be migrated");
+
+    await user.click(within(card).getByRole("button", { name: "Migrate" }));
+    await waitFor(() => expect(executed).toEqual(["op-migration"]));
+  });
+
+  it("offers only cancel when the migration scan found nothing", async () => {
+    givenApi({
+      operations: {
+        operations: [
+          aV1MigrationOperation({
+            v1MigrationData: {
+              sourcePrefix: "wrong:",
+              mocksFound: 0,
+              flagsFound: 0,
+            },
+          }),
+        ],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    renderWithProviders(<ManagementPage />);
+
+    const card = await screen.findByRole("listitem");
+    expect(card).toHaveTextContent(
+      "No V1 mocks or flags found, check the source prefix",
+    );
+    expect(
+      within(card).queryByRole("button", { name: "Migrate" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(card).getByRole("button", { name: "Cancel" }),
+    ).toBeInTheDocument();
+  });
+
+  it("confirms a v1 purge with the migration date warning", async () => {
+    givenApi({
+      operations: {
+        operations: [
+          aV1PurgeOperation({
+            id: "op-purge",
+            v1PurgeData: {
+              sourcePrefix: "mocko:",
+              migrationCompletedAt: "2026-07-01T12:00:00.000Z",
+              keysFound: 42,
+            },
+          }),
+        ],
+        sentinelAgeSeconds: null,
+        managementSupported: true,
+        v1Migration: { defaultSourcePrefix: "mocko:" },
+      },
+    });
+    const executed: string[] = [];
+    server.use(
+      http.patch("/api/operations/:id", ({ params }) => {
+        executed.push(String(params.id));
+        return HttpResponse.json(
+          aV1PurgeOperation({ id: "op-purge", status: "EXECUTING" }),
+        );
+      }),
+    );
+    const { user } = renderWithProviders(<ManagementPage />);
+
+    const card = await screen.findByRole("listitem");
+    expect(card).toHaveTextContent("42 V1 keys will be deleted");
+
+    await user.click(within(card).getByRole("button", { name: "Purge" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Purge V1 data");
+    expect(dialog).toHaveTextContent(
+      "Flags written by V1 after that date will be lost",
+    );
+    expect(dialog).toHaveTextContent("make sure Mocko V1 is decommissioned");
+    expect(executed).toHaveLength(0);
+
+    await user.click(
+      within(dialog).getByRole("button", { name: /Confirm deletion of/ }),
+    );
+    await waitFor(() => expect(executed).toEqual(["op-purge"]));
   });
 });

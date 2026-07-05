@@ -4,6 +4,8 @@ import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type {
   MatchingFlagsOperation,
   StaleFlagsOperation,
+  V1MigrationOperation,
+  V1PurgeOperation,
 } from "@/lib/types/operation";
 
 let mockCounter = 0;
@@ -95,6 +97,40 @@ export function aMatchingFlagsOperation(
     status: "READY",
     createdAt: new Date().toISOString(),
     matchingFlagsData: { mode: "PREFIX", pattern: "temp:" },
+    ...overrides,
+  };
+}
+
+export function aV1MigrationOperation(
+  overrides: Partial<V1MigrationOperation> = {},
+): V1MigrationOperation {
+  operationCounter += 1;
+
+  return {
+    id: `operation-${operationCounter}`,
+    type: "V1_MIGRATION",
+    status: "READY",
+    createdAt: new Date().toISOString(),
+    v1MigrationData: { sourcePrefix: "mocko:", mocksFound: 3, flagsFound: 120 },
+    ...overrides,
+  };
+}
+
+export function aV1PurgeOperation(
+  overrides: Partial<V1PurgeOperation> = {},
+): V1PurgeOperation {
+  operationCounter += 1;
+
+  return {
+    id: `operation-${operationCounter}`,
+    type: "V1_PURGE",
+    status: "READY",
+    createdAt: new Date().toISOString(),
+    v1PurgeData: {
+      sourcePrefix: "mocko:",
+      migrationCompletedAt: "2026-07-01T12:00:00.000Z",
+      keysFound: 42,
+    },
     ...overrides,
   };
 }

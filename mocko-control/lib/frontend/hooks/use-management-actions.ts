@@ -77,11 +77,46 @@ export function useManagementActions({
     }
   }
 
+  async function startV1Migration(sourcePrefix: string): Promise<boolean> {
+    setIsStarting(true);
+    try {
+      await createOperation({
+        type: "V1_MIGRATION",
+        v1MigrationData: { sourcePrefix },
+      });
+      await onChanged();
+      return true;
+    } catch (startError) {
+      console.error("Failed to start operation", startError);
+      toast.error("Failed to start operation");
+      return false;
+    } finally {
+      setIsStarting(false);
+    }
+  }
+
+  async function startV1Purge(): Promise<boolean> {
+    setIsStarting(true);
+    try {
+      await createOperation({ type: "V1_PURGE" });
+      await onChanged();
+      return true;
+    } catch (startError) {
+      console.error("Failed to start operation", startError);
+      toast.error("Failed to start operation");
+      return false;
+    } finally {
+      setIsStarting(false);
+    }
+  }
+
   return {
     isStarting,
     remove,
     purge,
     startStaleFlags,
     startMatchingFlags,
+    startV1Migration,
+    startV1Purge,
   };
 }

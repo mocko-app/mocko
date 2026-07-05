@@ -184,6 +184,42 @@ export class MemoryStore extends Store {
     throw new StoreNotSupportedError();
   }
 
+  async scanV1MigrationForManagement(
+    _operationId: string,
+    _sourcePrefix: string,
+  ): Promise<void> {
+    void _operationId;
+    void _sourcePrefix;
+    throw new StoreNotSupportedError();
+  }
+
+  async executeV1MigrationForManagement(
+    _operationId: string,
+    _sourcePrefix: string,
+  ): Promise<void> {
+    void _operationId;
+    void _sourcePrefix;
+    throw new StoreNotSupportedError();
+  }
+
+  async scanV1PurgeForManagement(
+    _operationId: string,
+    _sourcePrefix: string,
+  ): Promise<void> {
+    void _operationId;
+    void _sourcePrefix;
+    throw new StoreNotSupportedError();
+  }
+
+  async executeV1PurgeForManagement(
+    _operationId: string,
+    _sourcePrefix: string,
+  ): Promise<void> {
+    void _operationId;
+    void _sourcePrefix;
+    throw new StoreNotSupportedError();
+  }
+
   private toFlagKey(flagKey: {
     type: string;
     name: string;

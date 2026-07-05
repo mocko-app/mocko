@@ -84,7 +84,9 @@ export class MockService {
             headers: { ...data.response.headers },
           }
         : currentMock.response,
-      annotations: [...currentMock.annotations],
+      annotations: currentMock.annotations.filter(
+        (annotation) => annotation !== "INVALID_TEMPLATE",
+      ),
     };
 
     this.assertTemplateIsValid(mock.response.body);

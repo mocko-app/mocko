@@ -59,6 +59,10 @@ spec:
               value: {{ .Values.persistence.redis.prefix | quote }}
             {{- include "mocko.redis.envVars" . | trim | nindent 12 }}
             {{- end }}
+            {{- if .Values.control.v1Migration.enabled }}
+            - name: MOCKO_V1_MIGRATION_ENABLED
+              value: "true"
+            {{- end }}
           {{- with .Values.control.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
