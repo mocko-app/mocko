@@ -61,9 +61,9 @@ export default function GettingStartedPage() {
 
       {/* Step 2 */}
       <DocsH2>2. Start Mocko</DocsH2>
-      <DocsSnippet command="mocko --ui" className="mb-4" />
+      <DocsSnippet command="mocko" className="mb-4" />
       <DocsP>
-        A folder argument is optional. Use <DocsCode>mocko --ui .</DocsCode> if
+        A folder argument is optional. Use <DocsCode>mocko ./</DocsCode> if
         you also want to load file mocks from the current directory. Without a
         folder, Mocko starts with no pre-loaded file mocks.
       </DocsP>
