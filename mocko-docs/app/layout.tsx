@@ -10,12 +10,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mocko.dev/docs"),
   title: {
     default: "Mocko Docs",
     template: "%s | Mocko Docs",
   },
   description:
     "Documentation for Mocko, the dynamic HTTP mocking tool for local development, self-hosting, and Mocko Cloud.",
+  alternates: {
+    canonical: "./",
+  },
   icons: {
     icon: "https://cdn.codetunnel.net/mocko/icon.png",
     shortcut: "https://cdn.codetunnel.net/mocko/icon.png",

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CloudIcon, MenuIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocsSearch } from "@/components/docs/search";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -55,6 +56,7 @@ export function DocsTopbar({
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
+        <DocsSearch />
         <a
           href="https://github.com/mocko-app/mocko"
           target="_blank"

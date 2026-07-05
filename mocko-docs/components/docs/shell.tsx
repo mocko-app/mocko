@@ -33,7 +33,10 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-3xl px-6 py-10 lg:px-10">
+          <div
+            data-pagefind-body
+            className="mx-auto max-w-3xl px-6 py-10 lg:px-10"
+          >
             {children}
           </div>
         </main>

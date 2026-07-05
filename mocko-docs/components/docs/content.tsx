@@ -174,6 +174,66 @@ export function ScreenshotPlaceholder({
   );
 }
 
+export function DocsTable({
+  className,
+  children,
+}: React.HTMLAttributes<HTMLTableElement>) {
+  return (
+    <div className="mb-4 overflow-x-auto rounded-lg border border-border">
+      <table
+        className={cn(
+          "w-full border-collapse text-left text-[13px] leading-6",
+          className,
+        )}
+      >
+        {children}
+      </table>
+    </div>
+  );
+}
+
+export function DocsThead(
+  props: React.HTMLAttributes<HTMLTableSectionElement>,
+) {
+  return <thead className="bg-card" {...props} />;
+}
+
+export function DocsTbody(
+  props: React.HTMLAttributes<HTMLTableSectionElement>,
+) {
+  return <tbody className="[&>tr:last-child>td]:border-b-0" {...props} />;
+}
+
+export function DocsTh({
+  className,
+  ...props
+}: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <th
+      className={cn(
+        "whitespace-nowrap border-b border-border px-3.5 py-2 text-[12px] font-semibold text-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function DocsTd({
+  className,
+  ...props
+}: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <td
+      className={cn(
+        "border-b border-border px-3.5 py-2 align-top text-fg-2",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 export function DocsSectionTitle({
   className,
   ...props

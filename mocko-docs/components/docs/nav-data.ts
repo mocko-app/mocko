@@ -99,22 +99,6 @@ export const docsNavItems = [
   docsLegacyItem,
 ];
 
-const implementedPrefixes = [
-  "/getting-started",
-  "/creating-mocks",
-  "/recipes",
-  "/running",
-];
-
-export const placeholderNavItems = docsNavGroups
-  .flatMap((group) => group.items)
-  .filter(
-    (item) =>
-      !implementedPrefixes.some(
-        (prefix) => item.href === prefix || item.href.startsWith(`${prefix}/`),
-      ),
-  );
-
 export function isNavItemActive(pathname: string, href: string) {
   if (pathname === href) {
     return true;
@@ -136,15 +120,6 @@ function allNavHrefs() {
     ...docsNavItems.map((item) => item.href),
     ...docsV1NavGroups.flatMap((group) => group.items.map((item) => item.href)),
   ];
-}
-
-export function findNavItemBySlug(slug: string[]) {
-  const href = `/${slug.join("/")}`;
-  return docsNavItems.find((item) => item.href === href);
-}
-
-export function getTitleFromSlug(slug: string[]) {
-  return findNavItemBySlug(slug)?.title ?? "Documentation";
 }
 
 // ── v1 nav ────────────────────────────────────────────────────────────────────
@@ -185,17 +160,3 @@ export const docsV1NavGroups: DocsNavGroup[] = [
     ],
   },
 ];
-
-export function getNavGroupTitleForHref(href: string) {
-  if (href === "/") {
-    return "Overview";
-  }
-
-  if (href === docsLegacyItem.href) {
-    return "Legacy";
-  }
-
-  return docsNavGroups.find((group) =>
-    group.items.some((item) => item.href === href),
-  )?.title;
-}
