@@ -1,6 +1,6 @@
 {
   "name": "@mocko/core",
-  "version": "2.0.0-beta.11",
+  "version": "2.0.0-beta.12",
   "description": "Mocko proxy service, serves mocks or proxies requests to your endpoint when no mock is defined.",
   "main": "dist/main",
   "scripts": {
@@ -42,7 +42,7 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "@types/hapi__h2o2": "^8.3.2",
+    "@types/hapi__h2o2": "^10.0.4",
     "@types/ioredis": "^4.17.10",
     "@types/node": "^22.17.1",
     "@types/uuid": "^10.0.0",
