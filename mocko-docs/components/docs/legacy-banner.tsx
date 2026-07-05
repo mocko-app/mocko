@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TriangleAlertIcon } from "lucide-react";
 
-export function LegacyBanner({ v2href = "/docs" }: { v2href?: string }) {
+export function LegacyBanner({ v2href = "/" }: { v2href?: string }) {
   return (
     <div className="mb-8 flex gap-3 rounded-lg bg-amber-500/10 px-4 py-3.5 text-[13px] leading-[1.75] text-fg-2">
       <TriangleAlertIcon

@@ -11,68 +11,86 @@ export type DocsNavGroup = {
 export const docsNavGroups: DocsNavGroup[] = [
   {
     title: "Getting Started",
-    items: [{ title: "Getting Started", href: "/docs/getting-started" }],
+    items: [{ title: "Getting Started", href: "/getting-started" }],
   },
   {
     title: "Creating Mocks",
     items: [
-      { title: "File Mocks", href: "/docs/creating-mocks/file-mocks" },
-      { title: "UI Mocks", href: "/docs/creating-mocks/ui-mocks" },
-      { title: "How Matching Works", href: "/docs/creating-mocks/matching" },
-      { title: "Templating", href: "/docs/creating-mocks/templating" },
-      { title: "Flags", href: "/docs/creating-mocks/flags" },
+      { title: "File Mocks", href: "/creating-mocks/file-mocks" },
+      { title: "UI Mocks", href: "/creating-mocks/ui-mocks" },
+      { title: "Templating", href: "/creating-mocks/templating" },
+      { title: "How Matching Works", href: "/creating-mocks/matching" },
+      { title: "Flags", href: "/creating-mocks/flags" },
       {
         title: "Proxying and Hosts",
-        href: "/docs/creating-mocks/proxying-and-hosts",
+        href: "/creating-mocks/proxying-and-hosts",
       },
-      { title: "Data Blocks", href: "/docs/creating-mocks/data-blocks" },
-      { title: "Recipes", href: "/docs/creating-mocks/recipes" },
+      { title: "Data Blocks", href: "/creating-mocks/data-blocks" },
     ],
   },
   {
-    title: "Local Dev",
+    title: "Recipes",
     items: [
-      { title: "CLI with UI", href: "/docs/local/cli-ui" },
-      { title: "CLI with File Mocks", href: "/docs/local/cli-file-mocks" },
-      { title: "Docker Compose", href: "/docs/local/compose" },
+      { title: "Overview", href: "/recipes" },
+      { title: "Stateful CRUD", href: "/recipes/stateful-crud" },
+      {
+        title: "List and Detail From Data",
+        href: "/recipes/list-and-detail",
+      },
+      { title: "Append to a List", href: "/recipes/append-to-list" },
+      { title: "Mock One Edge Case", href: "/recipes/mock-one-edge-case" },
+      {
+        title: "Simulate Slow or Unstable APIs",
+        href: "/recipes/slow-unstable-apis",
+      },
+      { title: "Polling Status Flow", href: "/recipes/polling-status" },
+      { title: "Debug Broken JSON", href: "/recipes/debug-broken-json" },
+      {
+        title: "Mock Microservices by Host",
+        href: "/recipes/microservices-by-host",
+      },
     ],
   },
   {
-    title: "Self-hosted",
+    title: "Testing with the SDK",
     items: [
-      { title: "Docker image", href: "/docs/self-hosted/docker" },
-      { title: "Helm / Kubernetes", href: "/docs/self-hosted/helm" },
-      { title: "With Redis", href: "/docs/self-hosted/redis" },
+      { title: "Getting Started", href: "/sdk/getting-started" },
+      { title: "Flag Definitions", href: "/sdk/flag-definitions" },
+      { title: "Auth and Deployment", href: "/sdk/auth" },
     ],
   },
   {
-    title: "Mocko Cloud",
+    title: "Running Mocko",
     items: [
-      { title: "Overview", href: "/docs/cloud/overview" },
-      { title: "Public mocks", href: "/docs/cloud/public-mocks" },
-      { title: "Webhooks", href: "/docs/cloud/webhooks" },
+      { title: "CLI", href: "/running/cli" },
+      { title: "Docker Compose", href: "/running/compose" },
+      { title: "Docker Images", href: "/running/docker" },
+      { title: "Kubernetes with Helm", href: "/running/helm" },
+      { title: "Persistence and Redis", href: "/running/persistence" },
     ],
   },
   {
     title: "Reference",
     items: [
-      { title: "HCL syntax", href: "/docs/reference/hcl" },
-      { title: "Bigodon syntax", href: "/docs/reference/bigodon" },
-      { title: "Template helpers", href: "/docs/reference/helpers" },
-      { title: "CLI reference", href: "/docs/reference/cli" },
-      { title: "v1 to v2 migration", href: "/docs/reference/v1-to-v2" },
+      { title: "Configuration", href: "/reference/configuration" },
+      { title: "CLI", href: "/reference/cli" },
+      { title: "Mock Files (HCL)", href: "/reference/mock-files" },
+      { title: "Template Helpers", href: "/reference/helpers" },
+      { title: "Bigodon", href: "/reference/bigodon" },
+      { title: "Operations", href: "/reference/operations" },
+      { title: "Migrating from v1", href: "/reference/v1-migration" },
     ],
   },
 ];
 
 export const docsHomeItem: DocsNavItem = {
   title: "Overview",
-  href: "/docs",
+  href: "/",
 };
 
 export const docsLegacyItem: DocsNavItem = {
   title: "Legacy v1 docs",
-  href: "/docs/v1",
+  href: "/v1",
 };
 
 export const docsNavItems = [
@@ -81,8 +99,22 @@ export const docsNavItems = [
   docsLegacyItem,
 ];
 
+const implementedHrefs = new Set([
+  docsHomeItem.href,
+  "/getting-started",
+  "/recipes",
+]);
+
+export const placeholderNavItems = docsNavGroups
+  .flatMap((group) => group.items)
+  .filter(
+    (item) =>
+      !implementedHrefs.has(item.href) &&
+      !item.href.startsWith("/creating-mocks"),
+  );
+
 export function isNavItemActive(pathname: string, href: string) {
-  if (href === "/docs") {
+  if (href === "/") {
     return pathname === href;
   }
 
@@ -90,7 +122,7 @@ export function isNavItemActive(pathname: string, href: string) {
 }
 
 export function findNavItemBySlug(slug: string[]) {
-  const href = `/docs/${slug.join("/")}`;
+  const href = `/${slug.join("/")}`;
   return docsNavItems.find((item) => item.href === href);
 }
 
@@ -102,7 +134,7 @@ export function getTitleFromSlug(slug: string[]) {
 
 export const docsV1HomeItem: DocsNavItem = {
   title: "Overview",
-  href: "/docs/v1",
+  href: "/v1",
 };
 
 export const docsV1NavGroups: DocsNavGroup[] = [
@@ -111,34 +143,34 @@ export const docsV1NavGroups: DocsNavGroup[] = [
     items: [
       {
         title: "Standalone",
-        href: "/docs/v1/getting-started/standalone",
+        href: "/v1/getting-started/standalone",
       },
       {
         title: "Complete Stack",
-        href: "/docs/v1/getting-started/complete",
+        href: "/v1/getting-started/complete",
       },
     ],
   },
   {
     title: "Templating",
     items: [
-      { title: "Getting Started", href: "/docs/v1/templating" },
-      { title: "Helpers", href: "/docs/v1/templating/helpers" },
-      { title: "Persistence", href: "/docs/v1/templating/persistence" },
-      { title: "Variables", href: "/docs/v1/templating/variables" },
+      { title: "Getting Started", href: "/v1/templating" },
+      { title: "Helpers", href: "/v1/templating/helpers" },
+      { title: "Persistence", href: "/v1/templating/persistence" },
+      { title: "Variables", href: "/v1/templating/variables" },
     ],
   },
   {
     title: "Reference",
     items: [
-      { title: "Deploying", href: "/docs/v1/deploying" },
-      { title: "Updating Node", href: "/docs/v1/updating-node" },
+      { title: "Deploying", href: "/v1/deploying" },
+      { title: "Updating Node", href: "/v1/updating-node" },
     ],
   },
 ];
 
 export function getNavGroupTitleForHref(href: string) {
-  if (href === "/docs") {
+  if (href === "/") {
     return "Overview";
   }
 

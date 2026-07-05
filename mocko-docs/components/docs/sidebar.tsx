@@ -20,7 +20,7 @@ type Props = {
 
 export function DocsSidebar({ onNavigate, mobile = false }: Props) {
   const pathname = usePathname();
-  const isV1 = pathname.startsWith("/docs/v1");
+  const isV1 = pathname.startsWith("/v1");
 
   const linkClass = (active: boolean) =>
     cn(
@@ -39,7 +39,7 @@ export function DocsSidebar({ onNavigate, mobile = false }: Props) {
         {/* Back to v2 */}
         <div className="flex flex-col gap-0.5">
           <Link
-            href="/docs"
+            href="/"
             onClick={onNavigate}
             className="flex items-center gap-1.5 rounded-md px-3 py-[7px] text-[13px] text-[#909096] transition-colors hover:bg-border hover:text-foreground"
           >

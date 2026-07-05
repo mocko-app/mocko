@@ -35,7 +35,7 @@ export function DocsTopbar({
           <MenuIcon className="size-4" aria-hidden />
         </Button>
 
-        <Link href="/docs" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="https://cdn.codetunnel.net/mocko/logo-white.svg"
             alt="Mocko"

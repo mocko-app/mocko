@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { DocsShell } from "@/components/docs/shell";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full dark`}>
       <body className="h-full bg-background text-foreground antialiased">
-        {children}
+        <DocsShell>{children}</DocsShell>
       </body>
     </html>
   );
