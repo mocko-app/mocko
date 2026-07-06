@@ -94,7 +94,18 @@ const HostsPage: React.FC = () => {
           actionHref="/hosts/new"
           actionLabel="Add host"
         >
-          Route requests to different upstreams based on the http Host.
+          <>
+            Route requests to different upstreams based on the http Host. See{" "}
+            <a
+              href="https://mocko.dev/docs/creating-mocks/proxying-and-hosts"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              docs
+            </a>
+            .
+          </>
         </EmptyState>
       ) : (
         <div

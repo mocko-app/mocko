@@ -9,7 +9,7 @@ export function EmptyFlags() {
       <>
         Flags are set by mocks using Bigodon templating. See{" "}
         <a
-          href="https://mocko.dev/docs/templating/persistence/"
+          href="https://mocko.dev/docs/creating-mocks/flags"
           target="_blank"
           rel="noreferrer"
           className="underline underline-offset-2 hover:text-foreground"
