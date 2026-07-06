@@ -21,7 +21,14 @@ fi
 MAJOR_VERSION="${BASH_REMATCH[1]}"
 MINOR_VERSION="${BASH_REMATCH[2]}"
 MAJOR_MINOR_VERSION="${MAJOR_VERSION}.${MINOR_VERSION}"
-DOCKER_TAGS=("${VERSION}" "${MAJOR_MINOR_VERSION}" "${MAJOR_VERSION}" "latest")
+
+if [[ "${VERSION}" == *-* ]]; then
+  NPM_TAG="beta"
+  DOCKER_TAGS=("${VERSION}")
+else
+  NPM_TAG="latest"
+  DOCKER_TAGS=("${VERSION}" "${MAJOR_MINOR_VERSION}" "${MAJOR_VERSION}" "latest")
+fi
 
 log() {
   echo
@@ -36,9 +43,11 @@ publish_package() {
   pushd "${ROOT_DIR}/${package_dir}" >/dev/null
   npm version "${VERSION}" --no-git-tag-version --allow-same-version
   npm install
-  npm publish --tag beta
+  npm publish --tag "${NPM_TAG}"
   package_name=$(node -p "require('./package.json').name")
-  npm dist-tag add "${package_name}@${VERSION}" alpha
+  if [[ "${NPM_TAG}" == "beta" ]]; then
+    npm dist-tag add "${package_name}@${VERSION}" alpha
+  fi
   popd >/dev/null
 }
 
@@ -83,8 +92,10 @@ npm pkg set "dependencies.@mocko/core=${VERSION}" "dependencies.@mocko/control=$
 npm install
 npm version "${VERSION}" --no-git-tag-version --allow-same-version
 npm install
-npm publish --tag beta
-npm dist-tag add "@mocko/cli@${VERSION}" alpha
+npm publish --tag "${NPM_TAG}"
+if [[ "${NPM_TAG}" == "beta" ]]; then
+  npm dist-tag add "@mocko/cli@${VERSION}" alpha
+fi
 popd >/dev/null
 
 log "Updating standalone Dockerfile"
