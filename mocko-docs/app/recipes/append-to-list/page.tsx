@@ -34,7 +34,7 @@ export default function AppendToListPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`mock "POST /purchases" {
+      <DocsCodeBlock language="hcl">{`mock "POST /purchases" {
   format = "json"
   body = <<-EOF
     {{= $id (uuid)}}

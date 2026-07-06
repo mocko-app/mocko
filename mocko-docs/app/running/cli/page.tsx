@@ -118,7 +118,7 @@ export default function RunningCliPage() {
       </Callout>
 
       <DocsH2>All options</DocsH2>
-      <DocsCodeBlock>{`Usage: mocko [options] [path to mocks folder]
+      <DocsCodeBlock language="text">{`Usage: mocko [options] [path to mocks folder]
 Example: mocko -p 4000 mocks
 
   -h, --help       Shows this screen

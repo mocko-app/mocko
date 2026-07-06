@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { highlightCode, type CodeLanguage } from "@/lib/highlight";
 import { cn } from "@/lib/utils";
 
 export function DocsH2({
@@ -44,20 +45,27 @@ export function DocsCode({
   );
 }
 
-export function DocsCodeBlock({
+export async function DocsCodeBlock({
   className,
+  language = "text",
   children,
   ...props
-}: React.HTMLAttributes<HTMLPreElement>) {
+}: React.HTMLAttributes<HTMLPreElement> & { language?: CodeLanguage }) {
+  const preClassName = cn(
+    "mb-4 overflow-x-auto rounded-lg border border-border bg-card p-4 font-mono text-[13px] leading-6 text-foreground",
+    className,
+  );
+  if (language === "text" || typeof children !== "string") {
+    return (
+      <pre className={preClassName} {...props}>
+        <code>{children}</code>
+      </pre>
+    );
+  }
+  const html = await highlightCode(children, language);
   return (
-    <pre
-      className={cn(
-        "mb-4 overflow-x-auto rounded-lg border border-border bg-card p-4 font-mono text-[13px] leading-6 text-foreground",
-        className,
-      )}
-      {...props}
-    >
-      <code>{children}</code>
+    <pre className={preClassName} {...props}>
+      <code dangerouslySetInnerHTML={{ __html: html }} />
     </pre>
   );
 }

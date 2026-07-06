@@ -34,7 +34,7 @@ export default function SlowUnstableApisPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`mock "GET /reports/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /reports/{id}" {
   delay = 1000
   body = <<-EOF
     {{#lt (random 0 100) 30}}
@@ -79,7 +79,7 @@ export default function SlowUnstableApisPage() {
         Crank the delay past your client&apos;s timeout budget.{" "}
         <DocsCode>delay</DocsCode> goes up to 300000 milliseconds:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /reports/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /reports/{id}" {
   delay = 30000
   body = "{{proxy}}"
 }`}</DocsCodeBlock>
@@ -88,7 +88,7 @@ export default function SlowUnstableApisPage() {
         disabled mock in the file and flip it on when you want the dependency
         down. Enable it from the file or the UI:
       </DocsP>
-      <DocsCodeBlock>{`mock "* /reports/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "* /reports/{id}" {
   enabled = false
   status  = 503
   format  = "json"

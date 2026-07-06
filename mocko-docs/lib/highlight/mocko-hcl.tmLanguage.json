@@ -1,0 +1,168 @@
+{
+  "name": "mocko-hcl",
+  "scopeName": "source.mocko-hcl",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#heredoc"
+    },
+    {
+      "include": "#block-header"
+    },
+    {
+      "include": "#attribute"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#boolean"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "match": "#.*$",
+          "name": "comment.line.number-sign.mocko-hcl"
+        },
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash.mocko-hcl"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.mocko-hcl"
+        }
+      ]
+    },
+    "block-header": {
+      "match": "\\b([A-Za-z_][\\w-]*)((?:\\s+\"[^\"]*\")*)\\s*(?=\\{)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.mocko-hcl"
+        },
+        "2": {
+          "patterns": [
+            {
+              "include": "#label-string"
+            }
+          ]
+        }
+      }
+    },
+    "label-string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.mocko-hcl",
+      "patterns": [
+        {
+          "match": "\\{[\\w-]+\\}",
+          "name": "variable.parameter.mocko-hcl"
+        }
+      ]
+    },
+    "attribute": {
+      "match": "\\b([A-Za-z_][\\w-]*)\\s*(=)(?!=)",
+      "captures": {
+        "1": {
+          "name": "support.type.property-name.mocko-hcl"
+        },
+        "2": {
+          "name": "punctuation.separator.key-value.mocko-hcl"
+        }
+      }
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.mocko-hcl",
+      "patterns": [
+        {
+          "match": "\\\\\\\\\\{\\{|\\\\\\\\\\}\\}",
+          "name": "constant.character.escape.mocko-hcl"
+        },
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.mocko-hcl"
+        },
+        {
+          "include": "source.bigodon"
+        },
+        {
+          "match": "\\{[\\w-]+\\}",
+          "name": "variable.parameter.mocko-hcl"
+        }
+      ]
+    },
+    "number": {
+      "match": "(?<![\\w.])-?\\d+(?:\\.\\d+)?\\b",
+      "name": "constant.numeric.mocko-hcl"
+    },
+    "boolean": {
+      "match": "\\b(?:true|false|null)\\b",
+      "name": "constant.language.mocko-hcl"
+    },
+    "heredoc": {
+      "begin": "(<<-?)([A-Za-z_]\\w*)\\s*$",
+      "end": "^\\s*(\\2)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.heredoc.mocko-hcl"
+        },
+        "2": {
+          "name": "keyword.operator.heredoc.mocko-hcl"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "keyword.operator.heredoc.mocko-hcl"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.bigodon"
+        },
+        {
+          "include": "#body-content"
+        }
+      ]
+    },
+    "body-content": {
+      "patterns": [
+        {
+          "match": "\"[^\"{}]*\"(?=\\s*:)",
+          "name": "support.type.property-name.json.mocko-hcl"
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.mocko-hcl",
+          "patterns": [
+            {
+              "include": "source.bigodon"
+            },
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.mocko-hcl"
+            }
+          ]
+        },
+        {
+          "match": "(?<![\\w.])-?\\d+(?:\\.\\d+)?\\b",
+          "name": "constant.numeric.mocko-hcl"
+        },
+        {
+          "match": "\\b(?:true|false|null)\\b",
+          "name": "constant.language.mocko-hcl"
+        }
+      ]
+    }
+  }
+}

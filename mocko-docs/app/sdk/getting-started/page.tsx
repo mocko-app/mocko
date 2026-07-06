@@ -50,7 +50,7 @@ export default function SdkGettingStartedPage() {
         Create one client for the Mocko instance your tests run against,
         typically in a shared test fixture module:
       </DocsP>
-      <DocsCodeBlock>{`import { MockoClient } from '@mocko/sdk';
+      <DocsCodeBlock language="ts">{`import { MockoClient } from '@mocko/sdk';
 
 export const mocko = new MockoClient('http://localhost:8080');`}</DocsCodeBlock>
       <Callout variant="warning">
@@ -64,7 +64,7 @@ export const mocko = new MockoClient('http://localhost:8080');`}</DocsCodeBlock>
         The raw flag methods cover ad-hoc state. Values are serialized as JSON,
         so strings, numbers, booleans, arrays, and objects all work:
       </DocsP>
-      <DocsCodeBlock>{`await mocko.setFlag('users:123:status', 'active');
+      <DocsCodeBlock language="ts">{`await mocko.setFlag('users:123:status', 'active');
 
 const status = await mocko.getFlag<string>('users:123:status');
 
@@ -86,7 +86,7 @@ await mocko.deleteFlag('users:123:status');`}</DocsCodeBlock>
         SDK, the mock template reacts to it, and the system under test never
         knows the difference. Given this mock:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /users/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
     {{= $statusKey (append 'users:' request.params.id ':status')}}
@@ -97,7 +97,7 @@ await mocko.deleteFlag('users:123:status');`}</DocsCodeBlock>
   EOF
 }`}</DocsCodeBlock>
       <DocsP>a test can drive both sides of the scenario:</DocsP>
-      <DocsCodeBlock>{`import { mocko } from './fixtures/mocko';
+      <DocsCodeBlock language="ts">{`import { mocko } from './fixtures/mocko';
 
 it('locks out suspended users', async () => {
   await mocko.setFlag('users:123:status', 'suspended');

@@ -31,7 +31,7 @@ export default function RunningComposePage() {
       </DocsLead>
 
       <DocsH2>A minimal setup</DocsH2>
-      <DocsCodeBlock>{`services:
+      <DocsCodeBlock language="yaml">{`services:
   mocko:
     image: ghcr.io/mocko-app/standalone:2
     ports:
@@ -57,7 +57,7 @@ export default function RunningComposePage() {
         (<DocsCode>-t</DocsCode>, default 30000). Compose service names resolve
         inside the network, so the target is usually another service:
       </DocsP>
-      <DocsCodeBlock>{`services:
+      <DocsCodeBlock language="yaml">{`services:
   api:
     build: ./api
 
@@ -86,7 +86,7 @@ export default function RunningComposePage() {
         UI-created mocks, hosts, and flags survive{" "}
         <DocsCode>docker compose down</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>{`services:
+      <DocsCodeBlock language="yaml">{`services:
   redis:
     image: redis:6-alpine
     volumes:
@@ -120,7 +120,7 @@ export default function RunningComposePage() {
         in compose, give the Mocko container the hostnames your app already
         calls, using network aliases:
       </DocsP>
-      <DocsCodeBlock>{`services:
+      <DocsCodeBlock language="yaml">{`services:
   mocko:
     image: ghcr.io/mocko-app/standalone:2
     networks:

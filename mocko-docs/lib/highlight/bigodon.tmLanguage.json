@@ -1,0 +1,257 @@
+{
+  "name": "bigodon",
+  "scopeName": "source.bigodon",
+  "patterns": [
+    {
+      "include": "#template"
+    }
+  ],
+  "repository": {
+    "template": {
+      "patterns": [
+        {
+          "include": "#escaped"
+        },
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#assignment"
+        },
+        {
+          "include": "#block-close"
+        },
+        {
+          "include": "#block-open"
+        },
+        {
+          "include": "#else"
+        },
+        {
+          "include": "#mustache"
+        }
+      ]
+    },
+    "escaped": {
+      "match": "\\\\\\{\\{|\\\\\\}\\}",
+      "name": "constant.character.escape.bigodon"
+    },
+    "comment": {
+      "begin": "\\{\\{!",
+      "end": "\\}\\}",
+      "name": "comment.block.bigodon"
+    },
+    "assignment": {
+      "begin": "(\\{\\{)(=)\\s*(\\$[A-Za-z_]\\w*)?",
+      "end": "\\}\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "support.constant.delimiter.bigodon"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.bigodon"
+        },
+        "3": {
+          "name": "variable.parameter.bigodon"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "support.constant.delimiter.bigodon"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "block-close": {
+      "match": "(\\{\\{)(/[$\\w][\\w.$-]*)\\s*(\\}\\})",
+      "captures": {
+        "1": {
+          "name": "support.constant.delimiter.bigodon"
+        },
+        "2": {
+          "name": "keyword.control.bigodon"
+        },
+        "3": {
+          "name": "support.constant.delimiter.bigodon"
+        }
+      }
+    },
+    "block-open": {
+      "begin": "(\\{\\{)([#^][$\\w][\\w.$-]*)",
+      "end": "\\}\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "support.constant.delimiter.bigodon"
+        },
+        "2": {
+          "name": "keyword.control.bigodon"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "support.constant.delimiter.bigodon"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "else": {
+      "begin": "(\\{\\{)(else)\\b(?:\\s+([A-Za-z_]\\w*))?",
+      "end": "\\}\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "support.constant.delimiter.bigodon"
+        },
+        "2": {
+          "name": "keyword.control.bigodon"
+        },
+        "3": {
+          "name": "entity.name.function.bigodon"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "support.constant.delimiter.bigodon"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "mustache": {
+      "begin": "(\\{\\{)\\s*(?:([A-Za-z_]\\w*)(?=\\s+[^\\s}]))?",
+      "end": "\\}\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "support.constant.delimiter.bigodon"
+        },
+        "2": {
+          "name": "entity.name.function.bigodon"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "support.constant.delimiter.bigodon"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "expression": {
+      "patterns": [
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#number"
+        },
+        {
+          "include": "#boolean"
+        },
+        {
+          "include": "#special-variable"
+        },
+        {
+          "include": "#variable"
+        },
+        {
+          "include": "#subexpression"
+        },
+        {
+          "include": "#path"
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.bigodon",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.bigodon"
+            }
+          ]
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.bigodon",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.bigodon"
+            }
+          ]
+        },
+        {
+          "begin": "`",
+          "end": "`",
+          "name": "string.quoted.other.bigodon",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.bigodon"
+            }
+          ]
+        }
+      ]
+    },
+    "number": {
+      "match": "(?<![\\w.])-?\\d+(?:\\.\\d+)?\\b",
+      "name": "constant.numeric.bigodon"
+    },
+    "boolean": {
+      "match": "\\b(?:true|false|null|undefined)\\b",
+      "name": "constant.language.bigodon"
+    },
+    "special-variable": {
+      "match": "\\$(?:this|parent|root)\\b",
+      "name": "variable.language.bigodon"
+    },
+    "variable": {
+      "match": "\\$[A-Za-z_]\\w*",
+      "name": "variable.parameter.bigodon"
+    },
+    "subexpression": {
+      "begin": "(\\()\\s*(?:([A-Za-z_]\\w*)(?=\\s))?",
+      "end": "\\)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.parens.begin.bigodon"
+        },
+        "2": {
+          "name": "entity.name.function.bigodon"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.parens.end.bigodon"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "path": {
+      "match": "[A-Za-z_][\\w-]*(?:\\.[\\w$-]+)*",
+      "name": "variable.parameter.bigodon"
+    }
+  }
+}

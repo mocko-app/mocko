@@ -43,14 +43,14 @@ export default function V1TemplatingPage() {
         as its templating language. In a{" "}
         <DocsCode>GET /cats/{"{name}"}</DocsCode> mock, this template:
       </DocsP>
-      <DocsCodeBlock>{`{
+      <DocsCodeBlock language="bigodon">{`{
   "id": 1,
   "name": "{{ request.params.name }}"
 }`}</DocsCodeBlock>
       <DocsP>
         Produces this response on <DocsCode>GET /cats/george</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>{`{
+      <DocsCodeBlock language="json">{`{
   "id": 1,
   "name": "george"
 }`}</DocsCodeBlock>
@@ -66,7 +66,7 @@ export default function V1TemplatingPage() {
         </a>
         :
       </DocsP>
-      <DocsCodeBlock>{`{
+      <DocsCodeBlock language="bigodon">{`{
   "id": 1,
   "name": "{{capitalizeAll request.params.name }}"
 }`}</DocsCodeBlock>
@@ -94,7 +94,7 @@ export default function V1TemplatingPage() {
         <DocsCode>#</DocsCode> and close with <DocsCode>/</DocsCode>. Blocks
         support <DocsCode>else</DocsCode> and can be nested using parentheses:
       </DocsP>
-      <DocsCodeBlock>{`{{#startsWith 'g' (downcase request.params.name) }}
+      <DocsCodeBlock language="bigodon">{`{{#startsWith 'g' (downcase request.params.name) }}
   {
     "id": 1,
     "name": "{{capitalizeAll request.params.name }}"
@@ -115,7 +115,7 @@ export default function V1TemplatingPage() {
       <DocsP>
         Use the <DocsCode>log</DocsCode> helper to log to Mocko&apos;s console:
       </DocsP>
-      <DocsCodeBlock>{`{{log 'Received a request for cat id ' request.params.id }}
+      <DocsCodeBlock language="bigodon">{`{{log 'Received a request for cat id ' request.params.id }}
 {{log (JSONstringify request)}}`}</DocsCodeBlock>
 
       <DocsH2>Next steps</DocsH2>

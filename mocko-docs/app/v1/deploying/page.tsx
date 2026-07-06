@@ -27,19 +27,19 @@ export default function V1DeployingPage() {
         using <DocsCode>gabrielctpinheiro/mocko-proxy</DocsCode> as a base.
         Create this structure:
       </DocsP>
-      <DocsCodeBlock>{`mocko-project
+      <DocsCodeBlock language="text">{`mocko-project
 ├── Dockerfile
 └── mocks
     └── main.hcl`}</DocsCodeBlock>
       <DocsP>
         In your <DocsCode>Dockerfile</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>{`FROM 'gabrielctpinheiro/mocko-proxy'
+      <DocsCodeBlock language="dockerfile">{`FROM 'gabrielctpinheiro/mocko-proxy'
 COPY ./mocks ./mocks`}</DocsCodeBlock>
       <DocsP>
         To override settings, set environment variables in the Dockerfile:
       </DocsP>
-      <DocsCodeBlock>{`FROM 'gabrielctpinheiro/mocko-proxy'
+      <DocsCodeBlock language="dockerfile">{`FROM 'gabrielctpinheiro/mocko-proxy'
 COPY ./mocks ./mocks
 ENV PROXY_BASE-URI=https://my-real-api.tld/v1`}</DocsCodeBlock>
       <DocsP>
@@ -61,7 +61,7 @@ ENV PROXY_BASE-URI=https://my-real-api.tld/v1`}</DocsCodeBlock>
         with three commands.
       </DocsP>
       <DocsP>Helm 3:</DocsP>
-      <DocsCodeBlock>{`$ git clone https://github.com/mocko-app/mocko.git
+      <DocsCodeBlock language="bash">{`$ git clone https://github.com/mocko-app/mocko.git
 $ cd mocko
 
 $ helm install mocko ./mocko-helm --set \\
@@ -69,7 +69,7 @@ $ helm install mocko ./mocko-helm --set \\
   redis.password=YOUR_REDIS_PASSWORD,\\
   proxy.uri=http://your-real-api.url/v1`}</DocsCodeBlock>
       <DocsP>Helm 2:</DocsP>
-      <DocsCodeBlock>{`$ git clone https://github.com/mocko-app/mocko.git
+      <DocsCodeBlock language="bash">{`$ git clone https://github.com/mocko-app/mocko.git
 $ cd mocko
 
 $ helm install ./mocko-helm -n mocko --set \\

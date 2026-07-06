@@ -69,7 +69,7 @@ export default function RunningHelmPage() {
         A values file for a typical staging install, with the settings you are
         most likely to touch:
       </DocsP>
-      <DocsCodeBlock>{`core:
+      <DocsCodeBlock language="yaml">{`core:
   replicas: 2
   # Proxy unmatched requests to the real backend (empty disables proxying).
   proxyUrl: "http://my-api.staging.svc.cluster.local"
@@ -128,7 +128,7 @@ persistence:
         Disable the internal Redis and point the chart at an existing instance.
         Credentials can come from a Secret instead of values:
       </DocsP>
-      <DocsCodeBlock>{`persistence:
+      <DocsCodeBlock language="yaml">{`persistence:
   redis:
     enabled: true
     internal:

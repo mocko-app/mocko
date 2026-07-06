@@ -25,7 +25,7 @@ export default function V1CompletePage() {
         You need Docker and docker-compose for this installation.
       </Callout>
       <DocsP>Clone the Mocko repository and enter it:</DocsP>
-      <DocsCodeBlock>{`git clone https://github.com/mocko-app/mocko.git
+      <DocsCodeBlock language="bash">{`git clone https://github.com/mocko-app/mocko.git
 cd mocko`}</DocsCodeBlock>
       <DocsP>
         Start the stack. On Linux or Mac you may need{" "}
@@ -38,7 +38,7 @@ cd mocko`}</DocsCodeBlock>
         </code>{" "}
         group:
       </DocsP>
-      <DocsCodeBlock>docker-compose up</DocsCodeBlock>
+      <DocsCodeBlock language="bash">docker-compose up</DocsCodeBlock>
       <DocsP>
         That&apos;s it. Access{" "}
         <code className="rounded border border-border bg-card px-1.5 py-0.5 font-mono text-[13px] text-foreground">

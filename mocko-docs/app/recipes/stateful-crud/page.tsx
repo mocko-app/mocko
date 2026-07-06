@@ -34,7 +34,7 @@ export default function StatefulCrudPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`mock "POST /users" {
+      <DocsCodeBlock language="hcl">{`mock "POST /users" {
   format = "json"
   body = <<-EOF
     {{= $id (uuid)}}

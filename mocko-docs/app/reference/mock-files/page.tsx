@@ -35,7 +35,7 @@ export default function ReferenceMockFilesPage() {
       </DocsLead>
 
       <DocsH2>mock block</DocsH2>
-      <DocsCodeBlock>{`mock "METHOD /path/{param}" {
+      <DocsCodeBlock language="hcl">{`mock "METHOD /path/{param}" {
   # fields
 }`}</DocsCodeBlock>
       <DocsP>
@@ -181,7 +181,7 @@ export default function ReferenceMockFilesPage() {
       </DocsTable>
 
       <DocsH2>Multi-line bodies (heredocs)</DocsH2>
-      <DocsCodeBlock>{`# Strips leading indentation (preferred)
+      <DocsCodeBlock language="hcl">{`# Strips leading indentation (preferred)
 body = <<-EOF
   { "name": "{{request.params.name}}" }
 EOF
@@ -198,7 +198,7 @@ EOF`}</DocsCodeBlock>
       </DocsP>
 
       <DocsH2>host block</DocsH2>
-      <DocsCodeBlock>{`host "slug" {
+      <DocsCodeBlock language="hcl">{`host "slug" {
   name        = "Billing Service"
   source      = "billing.local"
   destination = "https://demo-billing.mockoapp.net"
@@ -249,7 +249,7 @@ EOF`}</DocsCodeBlock>
       </DocsP>
 
       <DocsH2>data block</DocsH2>
-      <DocsCodeBlock>{`data "settings" {
+      <DocsCodeBlock language="hcl">{`data "settings" {
   base_url = "https://api.example.com"   # flat value
 
   environment {                          # named sub-block

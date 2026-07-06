@@ -36,7 +36,7 @@ export default function SdkFlagDefinitionsPage() {
         <DocsCode>defineFlag</DocsCode> takes a human description and a key
         pattern. Placeholders in braces become parameters:
       </DocsP>
-      <DocsCodeBlock>{`const userStatus = mocko
+      <DocsCodeBlock language="ts">{`const userStatus = mocko
   .defineFlag<string>('User status')
   .pattern('users:{id}:status');
 
@@ -57,7 +57,7 @@ await userStatus.delete('123');`}</DocsCodeBlock>
         The pattern decides the call shape. No placeholders means no key
         arguments:
       </DocsP>
-      <DocsCodeBlock>{`const checkoutEnabled = mocko
+      <DocsCodeBlock language="ts">{`const checkoutEnabled = mocko
   .defineFlag<boolean>('Checkout enabled')
   .pattern('features:checkout');
 
@@ -68,7 +68,7 @@ expect(await checkoutEnabled.get()).toBe(true);`}</DocsCodeBlock>
         <DocsCode>userStatus</DocsCode> above. Two or more take a params object,
         so call sites stay unambiguous:
       </DocsP>
-      <DocsCodeBlock>{`const userPreference = mocko
+      <DocsCodeBlock language="ts">{`const userPreference = mocko
   .defineFlag<string>('User preference')
   .pattern('users:{id}:preferences:{preference}');
 
@@ -80,7 +80,7 @@ await userPreference.set({ id: '123', preference: 'language' }, 'en');`}</DocsCo
         client. It reads like a catalog of everything your mocked environment
         can simulate:
       </DocsP>
-      <DocsCodeBlock>{`// fixtures/mocko.ts
+      <DocsCodeBlock language="ts">{`// fixtures/mocko.ts
 import { MockoClient } from '@mocko/sdk';
 
 export const mocko = new MockoClient('http://localhost:8080');
@@ -92,7 +92,7 @@ export const userStatus = mocko
 export const paymentOutage = mocko
   .defineFlag<boolean>('Forces 503 on all payment endpoints')
   .pattern('outages:payments');`}</DocsCodeBlock>
-      <DocsCodeBlock>{`import { paymentOutage } from './fixtures/mocko';
+      <DocsCodeBlock language="ts">{`import { paymentOutage } from './fixtures/mocko';
 
 it('retries when the payment provider is down', async () => {
   await paymentOutage.set(true);
@@ -112,7 +112,7 @@ it('retries when the payment provider is down', async () => {
         SDK-written flags default to a 300 second TTL, so test state cleans
         itself up. Override it at whichever level fits:
       </DocsP>
-      <DocsCodeBlock>{`// Client-wide default, in seconds
+      <DocsCodeBlock language="ts">{`// Client-wide default, in seconds
 const mocko = new MockoClient('http://localhost:8080', {
   defaultFlagTtl: 60,
 });
