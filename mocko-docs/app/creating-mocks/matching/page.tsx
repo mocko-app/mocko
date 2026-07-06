@@ -38,7 +38,7 @@ export default function MatchingPage() {
         a request, the more specific one wins, regardless of the order they were
         defined in:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /users/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
     { "id": {{request.params.id}}, "role": "member" }
@@ -89,7 +89,7 @@ mock "GET /users/me" {
         <DocsCode>GET</DocsCode> mock on the same path takes precedence over the
         wildcard for GET requests.
       </DocsP>
-      <DocsCodeBlock>{`mock "* /maintenance-mode" {
+      <DocsCodeBlock language="hcl">{`mock "* /maintenance-mode" {
   status = 503
   format = "json"
   body = <<-EOF

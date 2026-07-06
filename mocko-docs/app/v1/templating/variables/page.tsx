@@ -35,7 +35,7 @@ export default function V1VariablesPage() {
         Use <DocsCode>set</DocsCode> to store a value under a name, and{" "}
         <DocsCode>get</DocsCode> to retrieve it:
       </DocsP>
-      <DocsCodeBlock>{`{{set 'id' (uuid)}}
+      <DocsCodeBlock language="bigodon">{`{{set 'id' (uuid)}}
 {
   "id": "{{get 'id'}}",
   "link": "/users/{{get 'id'}}"
@@ -52,7 +52,7 @@ export default function V1VariablesPage() {
         UUID for a new resource, persist the resource data in flags, and return
         the ID in the response:
       </DocsP>
-      <DocsCodeBlock>{`mock "POST /items" {
+      <DocsCodeBlock language="hcl">{`mock "POST /items" {
   headers {
     Content-Type = "application/json"
   }

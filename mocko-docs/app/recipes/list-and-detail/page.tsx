@@ -33,7 +33,7 @@ export default function ListAndDetailPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`data "products" {
+      <DocsCodeBlock language="hcl">{`data "products" {
   product {
     id      = 1
     content = <<-EOF

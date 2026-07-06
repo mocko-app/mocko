@@ -36,7 +36,7 @@ export default function ReferenceCliPage() {
       </DocsLead>
 
       <DocsH2>Usage</DocsH2>
-      <DocsCodeBlock>{`mocko [options] [path to mocks folder]`}</DocsCodeBlock>
+      <DocsCodeBlock language="bash">{`mocko [options] [path to mocks folder]`}</DocsCodeBlock>
       <DocsP>
         The mocks folder is optional; without it, file mocks are disabled for
         the session. Requires Node.js 20.19 or newer, installed with{" "}

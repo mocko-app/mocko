@@ -48,7 +48,7 @@ export default function DebugBrokenJsonPage() {
         <DocsCode>{"{{^isLast}},{{/isLast}}"}</DocsCode> renders its comma on{" "}
         <em>every</em> iteration, including the last:
       </DocsP>
-      <DocsCodeBlock>{`{{! BROKEN: renders [1,2,3,] }}
+      <DocsCodeBlock language="bigodon">{`{{! BROKEN: renders [1,2,3,] }}
 [
   {{#each data.catalog.product}}
     {{$this.id}}{{^isLast}},{{/isLast}}
@@ -75,7 +75,7 @@ export default function DebugBrokenJsonPage() {
         <DocsCode>each</DocsCode>, <DocsCode>with</DocsCode>, or a direct object
         block:
       </DocsP>
-      <DocsCodeBlock>{`{{! BROKEN: request is out of scope inside the loop }}
+      <DocsCodeBlock language="bigodon">{`{{! BROKEN: request is out of scope inside the loop }}
 {{#forEach data.catalog.product}}
   { "id": {{item.id}}, "requestedBy": "{{request.headers.x-user}}" }{{^isLast}},{{/isLast}}
 {{/forEach}}

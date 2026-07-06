@@ -26,14 +26,14 @@ export default function V1UpdatingNodePage() {
         Install <DocsCode>n</DocsCode> globally with npm. On Linux or Mac you
         may need <DocsCode>sudo</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>sudo npm i -g n</DocsCodeBlock>
+      <DocsCodeBlock language="bash">sudo npm i -g n</DocsCodeBlock>
 
       <DocsH2>Update Node</DocsH2>
       <DocsP>
         Use <DocsCode>n</DocsCode> to install the stable release. On Linux or
         Mac you may need <DocsCode>sudo</DocsCode> again:
       </DocsP>
-      <DocsCodeBlock>sudo n stable</DocsCodeBlock>
+      <DocsCodeBlock language="bash">sudo n stable</DocsCodeBlock>
       <DocsP>Now you are ready to mock.</DocsP>
     </DocsPage>
   );

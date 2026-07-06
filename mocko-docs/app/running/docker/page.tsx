@@ -122,7 +122,7 @@ export default function RunningDockerPage() {
         environments baking them in wins: the image becomes a versioned,
         rollback-able artifact of your team&apos;s mock behavior.
       </DocsP>
-      <DocsCodeBlock>{`FROM ghcr.io/mocko-app/core:2
+      <DocsCodeBlock language="dockerfile">{`FROM ghcr.io/mocko-app/core:2
 COPY mocks/ /var/mocks/`}</DocsCodeBlock>
 
       <DocsH2>Behavior details</DocsH2>

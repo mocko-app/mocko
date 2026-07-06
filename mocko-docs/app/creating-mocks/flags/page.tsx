@@ -39,7 +39,7 @@ export default function FlagsPage() {
         The fastest way to understand flags is to build a switch. One mock flips
         it, another changes behavior based on it:
       </DocsP>
-      <DocsCodeBlock>{`mock "POST /outage/{state}" {
+      <DocsCodeBlock language="hcl">{`mock "POST /outage/{state}" {
   format = "json"
   body = <<-EOF
     {{#is request.params.state 'on'}}
@@ -133,7 +133,7 @@ mock "GET /payments/{id}" {
         <DocsCode>append</DocsCode> and store them in a variable so each key is
         written once:
       </DocsP>
-      <DocsCodeBlock>{`{{= $nameKey (append 'users:' request.params.id ':name')}}
+      <DocsCodeBlock language="bigodon">{`{{= $nameKey (append 'users:' request.params.id ':name')}}
 {{setFlag $nameKey request.body.name}}
 "{{getFlag $nameKey}}"`}</DocsCodeBlock>
 
@@ -144,7 +144,7 @@ mock "GET /payments/{id}" {
         <DocsCode>GET</DocsCode> serves them with defaults until an update
         happens:
       </DocsP>
-      <DocsCodeBlock>{`mock "PUT /users/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "PUT /users/{id}" {
   format = "json"
   body = <<-EOF
     {{= $nameKey  (append 'users:' request.params.id ':name')}}

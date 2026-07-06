@@ -145,7 +145,7 @@ export default function ReferenceBigodonPage() {
         context; helpers like <DocsCode>if</DocsCode> and comparison blocks do
         not change context at all:
       </DocsP>
-      <DocsCodeBlock>{`{{#is status 'active'}}Active{{else is status 'pending'}}Pending{{else}}Unknown{{/is}}
+      <DocsCodeBlock language="bigodon">{`{{#is status 'active'}}Active{{else is status 'pending'}}Pending{{else}}Unknown{{/is}}
 
 {{#forEach items}}
   {{index}}: {{item.name}}{{^isLast}},{{/isLast}}

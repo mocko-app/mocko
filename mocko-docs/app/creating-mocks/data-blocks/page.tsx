@@ -38,7 +38,7 @@ export default function DataBlocksPage() {
         The simplest data block is a set of key-value pairs, available to all
         mocks under <DocsCode>{"data.<block>.<key>"}</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>{`data "settings" {
+      <DocsCodeBlock language="hcl">{`data "settings" {
   environment = "staging"
   base_url    = "https://api.example.com"
 }
@@ -63,7 +63,7 @@ mock "GET /info" {
         For collections, repeat a named sub-block. Each repetition becomes an
         element of an array:
       </DocsP>
-      <DocsCodeBlock>{`data "catalog" {
+      <DocsCodeBlock language="hcl">{`data "catalog" {
   product {
     id    = 1
     name  = "Widget"
@@ -115,7 +115,7 @@ mock "GET /products" {
         <DocsCode>id</DocsCode> for lookups plus a <DocsCode>content</DocsCode>{" "}
         field holding the payload:
       </DocsP>
-      <DocsCodeBlock>{`data "products" {
+      <DocsCodeBlock language="hcl">{`data "products" {
   product {
     id      = 1
     content = <<-EOF
@@ -153,7 +153,7 @@ mock "GET /products" {
         loads, so fixtures usually live in their own file, away from the routes
         that consume them:
       </DocsP>
-      <DocsCodeBlock>{`mocks/
+      <DocsCodeBlock language="text">{`mocks/
   products.hcl       # mocks reading data.catalog
   users.hcl
   shared/

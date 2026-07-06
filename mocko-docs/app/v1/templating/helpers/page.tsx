@@ -32,7 +32,7 @@ export default function V1HelpersPage() {
 
       <DocsH2>setStatus</DocsH2>
       <DocsP>Sets the response status dynamically or conditionally.</DocsP>
-      <DocsCodeBlock>{`{{#is request.params.id '1'}}
+      <DocsCodeBlock language="bigodon">{`{{#is request.params.id '1'}}
   { "id": 1, "name": "George" }
 {{else is request.params.id '2'}}
   { "id": 2, "name": "Alice" }
@@ -43,7 +43,7 @@ export default function V1HelpersPage() {
 
       <DocsH2>setHeader</DocsH2>
       <DocsP>Sets response headers dynamically or conditionally.</DocsP>
-      <DocsCodeBlock>{`{{#gt (toInt request.params.id) 10}}
+      <DocsCodeBlock language="bigodon">{`{{#gt (toInt request.params.id) 10}}
   {{setStatus 303}}
   {{setHeader 'Location' (append '/purchases/' request.params.id)}}
 {{else}}
@@ -59,13 +59,13 @@ export default function V1HelpersPage() {
         URL with <DocsCode>PROXY_BASE-URI</DocsCode> in the env config, or with
         the <DocsCode>--url</DocsCode> / <DocsCode>-u</DocsCode> CLI flag.
       </DocsP>
-      <DocsCodeBlock>{`{{#is request.query.userId 1}}
+      <DocsCodeBlock language="bigodon">{`{{#is request.query.userId 1}}
   []
 {{else}}
   {{proxy}}
 {{/is}}`}</DocsCodeBlock>
       <DocsP>You can also override the proxy URI for a specific mock:</DocsP>
-      <DocsCodeBlock>{`{{#is request.params.id '1'}}
+      <DocsCodeBlock language="bigodon">{`{{#is request.params.id '1'}}
   {{proxy 'http://localhost:8082'}}
 {{else}}
   {{proxy 'http://localhost:8081'}}
@@ -73,7 +73,7 @@ export default function V1HelpersPage() {
 
       <DocsH2>append</DocsH2>
       <DocsP>Concatenates parameters into a string.</DocsP>
-      <DocsCodeBlock>{`{{append 'users:' request.params.id ':name'}}`}</DocsCodeBlock>
+      <DocsCodeBlock language="bigodon">{`{{append 'users:' request.params.id ':name'}}`}</DocsCodeBlock>
 
       <DocsH2>uuid</DocsH2>
       <DocsP>Generates a UUID v4. No parameters required.</DocsP>
@@ -91,7 +91,7 @@ export default function V1HelpersPage() {
         </a>
         .
       </DocsP>
-      <DocsCodeBlock>{`{{substring 'Lorem ipsum' 0 4}}
+      <DocsCodeBlock language="bigodon">{`{{substring 'Lorem ipsum' 0 4}}
 {{! Produces 'Lore' }}`}</DocsCodeBlock>
 
       <DocsH2>setFlag, getFlag, delFlag, hasFlag</DocsH2>

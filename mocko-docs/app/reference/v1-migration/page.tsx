@@ -48,7 +48,7 @@ export default function ReferenceV1MigrationPage() {
         <DocsLink href="/running/helm">Helm</DocsLink>, that means disabling the
         chart&apos;s bundled Redis and configuring the external one:
       </DocsP>
-      <DocsCodeBlock>{`persistence:
+      <DocsCodeBlock language="yaml">{`persistence:
   redis:
     enabled: true
     internal:

@@ -74,13 +74,13 @@ export default function RunningPersistencePage() {
 
       <DocsH2>Enabling Redis in each run mode</DocsH2>
       <DocsP>On the CLI, pass a Redis URL:</DocsP>
-      <DocsCodeBlock>{`mocko -r redis://localhost:6379 --watch mocks`}</DocsCodeBlock>
+      <DocsCodeBlock language="bash">{`mocko -r redis://localhost:6379 --watch mocks`}</DocsCodeBlock>
       <DocsP>
         In containers (<DocsLink href="/running/compose">Compose</DocsLink> or
         the <DocsLink href="/running/docker">split images</DocsLink>), set the
         environment variables:
       </DocsP>
-      <DocsCodeBlock>{`REDIS_ENABLED: "true"
+      <DocsCodeBlock language="yaml">{`REDIS_ENABLED: "true"
 REDIS_URL: redis://redis:6379
 # or discrete settings: REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DATABASE`}</DocsCodeBlock>
       <DocsP>

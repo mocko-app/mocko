@@ -56,7 +56,7 @@ export default function ProxyingAndHostsPage() {
         The <DocsCode>proxy</DocsCode> helper moves that decision into the body,
         so a single route can be partly real and partly mocked:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /posts" {
+      <DocsCodeBlock language="hcl">{`mock "GET /posts" {
   body = <<-EOF
     {{#is request.query.userId 1}}
       []
@@ -94,7 +94,7 @@ export default function ProxyingAndHostsPage() {
         This is how one Mocko instance stands in for several microservices at
         once:
       </DocsP>
-      <DocsCodeBlock>{`host "billing" {
+      <DocsCodeBlock language="hcl">{`host "billing" {
   name        = "Billing Service"
   source      = "billing.local"
   destination = "https://demo-billing.mockoapp.net"
@@ -146,7 +146,7 @@ mock "GET /invoices/{id}" {
         Templates can proxy to a named host by its slug, which keeps destination
         URLs out of mock bodies:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /passthrough" {
+      <DocsCodeBlock language="hcl">{`mock "GET /passthrough" {
   body = "{{proxy 'billing'}}"
 }`}</DocsCodeBlock>
 

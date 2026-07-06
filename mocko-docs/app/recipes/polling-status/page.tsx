@@ -34,7 +34,7 @@ export default function PollingStatusPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`mock "GET /exports/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /exports/{id}" {
   format = "json"
   body = <<-EOF
     {{= $key (append 'exports:' request.params.id ':polls')}}
@@ -92,7 +92,7 @@ export default function PollingStatusPage() {
         once finished. Reset it to run the flow again: delete the flag in the
         flags panel, or add the reset mock below.
       </Callout>
-      <DocsCodeBlock>{`mock "DELETE /exports/{id}/polls" {
+      <DocsCodeBlock language="hcl">{`mock "DELETE /exports/{id}/polls" {
   format = "json"
   body = <<-EOF
     {{delFlag (append 'exports:' request.params.id ':polls')}}

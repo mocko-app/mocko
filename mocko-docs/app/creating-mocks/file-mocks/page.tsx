@@ -38,9 +38,9 @@ export default function FileMocksPage() {
         Create a folder for your mocks and add a file to it. The file name is up
         to you, only the <DocsCode>.hcl</DocsCode> extension matters.
       </DocsP>
-      <DocsCodeBlock>{`mocks/
+      <DocsCodeBlock language="text">{`mocks/
   users.hcl`}</DocsCodeBlock>
-      <DocsCodeBlock>{`mock "GET /users/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
     {
@@ -89,7 +89,7 @@ export default function FileMocksPage() {
         no fields is already a valid 200 response. These are the fields you will
         use most:
       </DocsP>
-      <DocsCodeBlock>{`mock "POST /users" {
+      <DocsCodeBlock language="hcl">{`mock "POST /users" {
   status = 201
   delay  = 300
   format = "json"
@@ -129,7 +129,7 @@ export default function FileMocksPage() {
         When you need headers beyond Content-Type, add a{" "}
         <DocsCode>headers</DocsCode> block:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /users/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /users/{id}" {
   headers {
     Content-Type    = "application/json"
     Cache-Control   = "no-store"
@@ -155,7 +155,7 @@ export default function FileMocksPage() {
         <DocsCode>&lt;&lt;EOF</DocsCode> form preserves whitespace exactly as
         written.
       </DocsP>
-      <DocsCodeBlock>{`# Strips leading indentation (use this one)
+      <DocsCodeBlock language="hcl">{`# Strips leading indentation (use this one)
 body = <<-EOF
   { "name": "Alice" }
 EOF
@@ -198,7 +198,7 @@ EOF`}</DocsCodeBlock>
         pass to the CLI and merges them. Nested folders are purely
         organizational, so structure them however reads best for your project:
       </DocsP>
-      <DocsCodeBlock>{`mocks/
+      <DocsCodeBlock language="text">{`mocks/
   users.hcl          # mocks for /users routes
   orders.hcl         # mocks for /orders routes
   shared/

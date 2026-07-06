@@ -30,13 +30,13 @@ export default function V1StandalonePage() {
         if needed.
       </Callout>
       <DocsP>Install the Mocko CLI with npm:</DocsP>
-      <DocsCodeBlock>npm i -g @mocko/cli</DocsCodeBlock>
+      <DocsCodeBlock language="bash">npm i -g @mocko/cli</DocsCodeBlock>
       <DocsP>
         On Linux or Mac you might need <DocsCode>sudo</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>sudo npm i -g @mocko/cli</DocsCodeBlock>
+      <DocsCodeBlock language="bash">sudo npm i -g @mocko/cli</DocsCodeBlock>
       <DocsP>Check the installation with the help flag:</DocsP>
-      <DocsCodeBlock>{`$ mocko --help
+      <DocsCodeBlock language="text">{`$ mocko --help
 Usage: mocko [options] <path to mocks folder>
 Example: mocko -p 4000 mocks
 
@@ -52,13 +52,13 @@ Options:
       <DocsP>
         Create a folder with a <DocsCode>.hcl</DocsCode> file inside:
       </DocsP>
-      <DocsCodeBlock>{`hello-mocko
+      <DocsCodeBlock language="text">{`hello-mocko
 └── first-mocks.hcl`}</DocsCodeBlock>
       <DocsP>
         In your <DocsCode>.hcl</DocsCode> file, create your first mock with the{" "}
         <DocsCode>mock</DocsCode> stanza:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /hello" {
+      <DocsCodeBlock language="hcl">{`mock "GET /hello" {
   body = "Hello from Mocko!"
 }`}</DocsCodeBlock>
       <Callout variant="info">
@@ -70,13 +70,13 @@ Options:
       <DocsP>
         Inside your project folder, start Mocko with the watch flag:
       </DocsP>
-      <DocsCodeBlock>mocko --watch ./</DocsCodeBlock>
+      <DocsCodeBlock language="bash">mocko --watch ./</DocsCodeBlock>
       <DocsP>
         Your mocks are now served on port 8080. Use <DocsCode>--port</DocsCode>{" "}
         to change the port. The <DocsCode>--watch</DocsCode> flag auto-reloads
         changes to your mock files. Test it with curl:
       </DocsP>
-      <DocsCodeBlock>{`$ curl http://localhost:8080/hello
+      <DocsCodeBlock language="text">{`$ curl http://localhost:8080/hello
 Hello from Mocko!`}</DocsCodeBlock>
 
       <DocsH2>The mock stanza</DocsH2>
@@ -84,7 +84,7 @@ Hello from Mocko!`}</DocsCodeBlock>
         You can define multiple mocks in a single file with status codes,
         headers, and multi-line bodies:
       </DocsP>
-      <DocsCodeBlock>{`# Our first, simple, hello mock
+      <DocsCodeBlock language="hcl">{`# Our first, simple, hello mock
 mock "GET /hello" {
   body = "Hello from Mocko!"
 }
@@ -134,7 +134,7 @@ mock "GET /cats/george" {
         Mocks can be in nested folders at any depth. The folder structure is
         purely organizational and does not affect routing.
       </DocsP>
-      <DocsCodeBlock>{`.
+      <DocsCodeBlock language="text">{`.
 ├── user
 │   ├── homepage.hcl
 │   └── profile.hcl

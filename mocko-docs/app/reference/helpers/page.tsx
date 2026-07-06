@@ -102,7 +102,7 @@ export default function ReferenceHelpersPage() {
       </DocsTable>
 
       <DocsH2>proxy variants</DocsH2>
-      <DocsCodeBlock>{`{{proxy}}                                    {{! default backend (-u / PROXY_BASE-URI) }}
+      <DocsCodeBlock language="bigodon">{`{{proxy}}                                    {{! default backend (-u / PROXY_BASE-URI) }}
 {{proxy 'https://demo-api.mockoapp.net'}}    {{! URL used as base; request path appended }}
 {{proxy 'billing'}}                          {{! destination of the named host block }}`}</DocsCodeBlock>
       <DocsP>

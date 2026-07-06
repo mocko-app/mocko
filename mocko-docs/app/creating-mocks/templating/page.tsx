@@ -39,7 +39,7 @@ export default function TemplatingPage() {
         <DocsCode>{"}}"}</DocsCode> is a template expression, evaluated on every
         request. The simplest expression is a path into the request:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /orders/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /orders/{id}" {
   format = "json"
   body = <<-EOF
     {
@@ -93,7 +93,7 @@ export default function TemplatingPage() {
         helper name and the rest are arguments, which can be context paths,
         quoted literals, or numbers:
       </DocsP>
-      <DocsCodeBlock>{`{{capitalize request.params.name}}
+      <DocsCodeBlock language="bigodon">{`{{capitalize request.params.name}}
 {{default request.query.page 1}}
 {{add request.query.page 1}}`}</DocsCodeBlock>
       <DocsP>
@@ -101,7 +101,7 @@ export default function TemplatingPage() {
         missing, then falls back to the second. To pass one helper&apos;s result
         to another, wrap the inner call in parentheses:
       </DocsP>
-      <DocsCodeBlock>{`{{capitalize (default request.query.name 'stranger')}}`}</DocsCodeBlock>
+      <DocsCodeBlock language="bigodon">{`{{capitalize (default request.query.name 'stranger')}}`}</DocsCodeBlock>
       <DocsP>
         Bigodon ships helpers for strings, math, arrays, dates, and comparisons,
         and Mocko adds its own on top. This page introduces the ones you will
@@ -122,7 +122,7 @@ export default function TemplatingPage() {
         compares two values with loose equality, which is usually what you want
         because path parameters and query values arrive as strings:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /orders/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /orders/{id}" {
   format = "json"
   body = <<-EOF
     {{#is request.params.id 1}}
@@ -136,7 +136,7 @@ export default function TemplatingPage() {
         Chain more cases with <DocsCode>{"{{else is ...}}"}</DocsCode>, closing
         only the outermost block:
       </DocsP>
-      <DocsCodeBlock>{`{{#is request.params.id 1}}
+      <DocsCodeBlock language="bigodon">{`{{#is request.params.id 1}}
   { "status": "shipped" }
 {{else is request.params.id 2}}
   { "status": "cancelled" }
@@ -159,7 +159,7 @@ export default function TemplatingPage() {
         as an empty string, so it never pollutes the body. This is the standard
         way to mock error branches:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /orders/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /orders/{id}" {
   format = "json"
   body = <<-EOF
     {{#gt (toInt request.params.id) 100}}
@@ -198,7 +198,7 @@ export default function TemplatingPage() {
         readable when a value is used more than once, and they become essential
         inside loops, as you will see next:
       </DocsP>
-      <DocsCodeBlock>{`body = <<-EOF
+      <DocsCodeBlock language="hcl">{`body = <<-EOF
   {{= $page (toInt (default request.query.page 1))}}
   {
     "page": {{$page}},
@@ -222,7 +222,7 @@ EOF`}</DocsCodeBlock>
         comma after every element except the last one, which is exactly what
         JSON arrays need:
       </DocsP>
-      <DocsCodeBlock>{`mock "POST /orders" {
+      <DocsCodeBlock language="hcl">{`mock "POST /orders" {
   format = "json"
   body = <<-EOF
     {
@@ -266,7 +266,7 @@ EOF`}</DocsCodeBlock>
         renders an empty string, which is one of the most common template bugs.
         There are two fixes:
       </DocsP>
-      <DocsCodeBlock>{`{{! 1. Extract to a variable before the loop (variables stay accessible) }}
+      <DocsCodeBlock language="bigodon">{`{{! 1. Extract to a variable before the loop (variables stay accessible) }}
 {{= $currency request.query.currency}}
 {{#forEach request.body.items}}
   { "sku": "{{item.sku}}", "currency": "{{$currency}}" }{{^isLast}},{{/isLast}}

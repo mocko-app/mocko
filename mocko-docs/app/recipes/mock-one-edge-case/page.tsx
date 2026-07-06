@@ -44,7 +44,7 @@ export default function MockOneEdgeCasePage() {
         command="mocko -u https://demo-api.mockoapp.net mocks"
         className="mb-4"
       />
-      <DocsCodeBlock>{`mock "GET /posts" {
+      <DocsCodeBlock language="hcl">{`mock "GET /posts" {
   body = <<-EOF
     {{#is request.query.userId 1}}
       []
@@ -100,7 +100,7 @@ export default function MockOneEdgeCasePage() {
         Exact paths beat parameterized ones, and mocked routes beat the proxy
         fallback, so you can break a single record while all others stay real:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /posts/99" {
+      <DocsCodeBlock language="hcl">{`mock "GET /posts/99" {
   status = 500
   format = "json"
   body = <<-EOF
@@ -114,7 +114,7 @@ export default function MockOneEdgeCasePage() {
         Let the mock stay dormant until a client asks for the scenario, which is
         great on shared instances where other people use the same routes:
       </DocsP>
-      <DocsCodeBlock>{`mock "GET /posts/{id}" {
+      <DocsCodeBlock language="hcl">{`mock "GET /posts/{id}" {
   body = <<-EOF
     {{#is request.headers.x-scenario 'deleted'}}
       {{setStatus 410}}

@@ -67,7 +67,7 @@ export default function SdkAuthPage() {
         <DocsCode>Authorization: Bearer &lt;secret&gt;</DocsCode> on flag
         requests:
       </DocsP>
-      <DocsCodeBlock>{`export const mocko = new MockoClient('https://mocks.staging.example.com', {
+      <DocsCodeBlock language="ts">{`export const mocko = new MockoClient('https://mocks.staging.example.com', {
   secret: process.env.MOCKO_SECRET,
 });`}</DocsCodeBlock>
       <DocsP>

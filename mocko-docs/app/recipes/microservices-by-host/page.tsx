@@ -37,7 +37,7 @@ export default function MicroservicesByHostPage() {
       </DocsLead>
 
       <DocsH2>The recipe</DocsH2>
-      <DocsCodeBlock>{`host "billing" {
+      <DocsCodeBlock language="hcl">{`host "billing" {
   name        = "Billing Service"
   source      = "billing.local"
   destination = "https://demo-billing.mockoapp.net"

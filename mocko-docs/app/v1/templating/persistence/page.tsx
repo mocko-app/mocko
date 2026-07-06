@@ -28,7 +28,7 @@ export default function V1PersistencePage() {
         Create a <DocsCode>PUT /message/{"{message}"}</DocsCode> that saves a
         flag and a <DocsCode>GET /message</DocsCode> that returns it:
       </DocsP>
-      <DocsCodeBlock>{`mock "PUT /message/{message}" {
+      <DocsCodeBlock language="hcl">{`mock "PUT /message/{message}" {
   body = <<EOF
     {{! Setting the flag 'msg' to the value of the 'message' param }}
     {{setFlag 'msg' request.params.message}}
@@ -41,9 +41,9 @@ mock "GET /message" {
   EOF
 }`}</DocsCodeBlock>
       <DocsP>Set the message:</DocsP>
-      <DocsCodeBlock>{`$ curl -X PUT http://localhost:8080/message/potato`}</DocsCodeBlock>
+      <DocsCodeBlock language="bash">{`$ curl -X PUT http://localhost:8080/message/potato`}</DocsCodeBlock>
       <DocsP>Get the message back:</DocsP>
-      <DocsCodeBlock>{`$ curl http://localhost:8080/message
+      <DocsCodeBlock language="text">{`$ curl http://localhost:8080/message
 potato`}</DocsCodeBlock>
 
       <DocsH2>More helpers</DocsH2>
@@ -52,7 +52,7 @@ potato`}</DocsCodeBlock>
         previous example extended with <DocsCode>hasFlag</DocsCode> and{" "}
         <DocsCode>delFlag</DocsCode>:
       </DocsP>
-      <DocsCodeBlock>{`mock "PUT /message/{message}" {
+      <DocsCodeBlock language="hcl">{`mock "PUT /message/{message}" {
   body = "{{setFlag 'msg' request.params.message}}"
 }
 
@@ -71,9 +71,9 @@ mock "DELETE /message" {
   body = "{{delFlag 'msg'}}"
 }`}</DocsCodeBlock>
       <DocsP>Delete the flag:</DocsP>
-      <DocsCodeBlock>{`$ curl -X DELETE http://localhost:8080/message`}</DocsCodeBlock>
+      <DocsCodeBlock language="bash">{`$ curl -X DELETE http://localhost:8080/message`}</DocsCodeBlock>
       <DocsP>Now GET returns 404:</DocsP>
-      <DocsCodeBlock>{`$ curl -D - http://localhost:8080/message
+      <DocsCodeBlock language="text">{`$ curl -D - http://localhost:8080/message
 
 HTTP/1.1 404 Not Found
 No message is set`}</DocsCodeBlock>
@@ -84,7 +84,7 @@ No message is set`}</DocsCodeBlock>
         resources. The <DocsCode>:</DocsCode> separator renders as folder groups
         in the UI:
       </DocsP>
-      <DocsCodeBlock>{`mock "POST /users" {
+      <DocsCodeBlock language="hcl">{`mock "POST /users" {
   headers {
     Content-Type = "application/json"
   }
@@ -109,14 +109,14 @@ mock "GET /users/{id}" {
   EOF
 }`}</DocsCodeBlock>
       <DocsP>Create a user:</DocsP>
-      <DocsCodeBlock>{`$ curl -X POST http://localhost:8080/users \\
+      <DocsCodeBlock language="text">{`$ curl -X POST http://localhost:8080/users \\
   -d '{"name": "George", "age": 95}' \\
   -H 'Content-Type: application/json'
 {
   "id": "8dfad38d-56e9-4210-8dfa-1c8f9da213f2"
 }`}</DocsCodeBlock>
       <DocsP>Retrieve by ID:</DocsP>
-      <DocsCodeBlock>{`$ curl http://localhost:8080/users/8dfad38d-56e9-4210-8dfa-1c8f9da213f2
+      <DocsCodeBlock language="text">{`$ curl http://localhost:8080/users/8dfad38d-56e9-4210-8dfa-1c8f9da213f2
 Hello! My name is George
 and I'm 95 years old`}</DocsCodeBlock>
       <DocsP>
