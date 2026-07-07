@@ -204,6 +204,20 @@ describe("new mock page validation", () => {
     expect(payloads[0].response.code).toBe(599);
   });
 
+  it("shows the reason phrase beside the status code", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewMockPage />);
+
+    await findCreateForm();
+    expect(screen.getByText("OK")).toBeInTheDocument();
+
+    await setStatusCode(user, "404");
+    expect(screen.getByText("Not Found")).toBeInTheDocument();
+
+    await setStatusCode(user, "678");
+    expect(screen.queryByText("Not Found")).not.toBeInTheDocument();
+  });
+
   it("blocks out-of-range delays and sends the 300000 boundary", async () => {
     givenApi();
     const payloads = capturePosts();

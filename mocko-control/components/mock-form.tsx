@@ -30,6 +30,7 @@ import {
 import { useMockListParams } from "@/lib/frontend/hooks/use-mock-list-params";
 import { buildMockListUrl, buildNewMockUrl } from "@/lib/mock/mock-list-url";
 import { getAvailableLabels } from "@/lib/utils/labels";
+import { statusReasonPhrase } from "@/lib/http-status";
 import { LabelPicker } from "@/components/label-picker";
 import type {
   CreateMockDto,
@@ -312,19 +313,27 @@ export function MockForm({
           </div>
         </div>
 
-        <div className="flex w-36 flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="mock-status">Status code</Label>
-          <Input
-            id="mock-status"
-            type="number"
-            value={form.statusCode}
-            onChange={(e) => set("statusCode", e.target.value)}
-            placeholder="200"
-            min={200}
-            max={599}
-            aria-required="true"
-            aria-invalid={showErrors && Boolean(errors.statusCode)}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              id="mock-status"
+              type="number"
+              value={form.statusCode}
+              onChange={(e) => set("statusCode", e.target.value)}
+              placeholder="200"
+              min={200}
+              max={599}
+              aria-required="true"
+              aria-invalid={showErrors && Boolean(errors.statusCode)}
+              className="w-36"
+            />
+            {statusReasonPhrase(Number(form.statusCode)) && (
+              <span className="text-sm text-muted-foreground">
+                {statusReasonPhrase(Number(form.statusCode))}
+              </span>
+            )}
+          </div>
           {showErrors && errors.statusCode && (
             <p className="text-xs text-destructive">{errors.statusCode}</p>
           )}
