@@ -21,6 +21,7 @@ import { MockConflictNotice } from "@/components/mock-conflict-notice";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
 import { MockFormAdvancedOptions } from "@/components/mock-form-advanced-options";
 import { BodyEditor } from "@/components/monaco-editor";
+import { FormatJsonButton } from "@/components/format-json-button";
 import {
   CONTENT_TYPES,
   type ContentType,
@@ -345,22 +346,32 @@ export function MockForm({
         <div className="flex w-full flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <Label>Response body</Label>
-            <ToggleGroup
-              value={[form.contentType]}
-              onValueChange={(values) => {
-                if (values.length > 0) {
-                  set("contentType", values[0] as ContentType);
-                }
-              }}
-              variant="default"
-              size="sm"
-            >
-              {CONTENT_TYPES.map((ct) => (
-                <ToggleGroupItem key={ct.id} value={ct.id}>
-                  {ct.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <div className="flex items-center gap-2">
+              {form.contentType === "json" &&
+                !isReadOnly &&
+                !form.body.includes("{{") && (
+                  <FormatJsonButton
+                    value={form.body}
+                    onFormat={(formatted) => set("body", formatted)}
+                  />
+                )}
+              <ToggleGroup
+                value={[form.contentType]}
+                onValueChange={(values) => {
+                  if (values.length > 0) {
+                    set("contentType", values[0] as ContentType);
+                  }
+                }}
+                variant="default"
+                size="sm"
+              >
+                {CONTENT_TYPES.map((ct) => (
+                  <ToggleGroupItem key={ct.id} value={ct.id}>
+                    {ct.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
           </div>
           {bodyError && (
             <Callout

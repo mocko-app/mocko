@@ -320,6 +320,55 @@ describe("new mock page content types", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("formats the JSON body, hides Format for other formats, and when it holds a template", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewMockPage />);
+
+    await findCreateForm();
+    const body = await screen.findByRole("textbox", { name: "Code editor" });
+    await user.click(body);
+    await user.paste('{"id":1,"tags":["a","b"]}');
+
+    await user.click(screen.getByRole("button", { name: "Format JSON" }));
+    expect(body).toHaveValue(
+      '{\n  "id": 1,\n  "tags": [\n    "a",\n    "b"\n  ]\n}',
+    );
+
+    await user.click(screen.getByRole("button", { name: "XML" }));
+    expect(
+      screen.queryByRole("button", { name: "Format JSON" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "JSON" }));
+    expect(
+      screen.getByRole("button", { name: "Format JSON" }),
+    ).toBeInTheDocument();
+
+    await user.clear(body);
+    await user.click(body);
+    await user.paste('{"id":{{id}}}');
+    expect(
+      screen.queryByRole("button", { name: "Format JSON" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("toasts and leaves the JSON body untouched when it is invalid", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewMockPage />);
+
+    await findCreateForm();
+    const body = await screen.findByRole("textbox", { name: "Code editor" });
+    await user.click(body);
+    await user.paste("{not json}");
+
+    await user.click(screen.getByRole("button", { name: "Format JSON" }));
+
+    expect(
+      await screen.findByText("Can't format: content is not valid JSON."),
+    ).toBeInTheDocument();
+    expect(body).toHaveValue("{not json}");
+  });
+
   it("hints when a manual Content-Type header conflicts with the format", async () => {
     givenApi();
     const { user } = renderWithProviders(<NewMockPage />);

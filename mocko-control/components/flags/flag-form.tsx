@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlagEditor } from "@/components/monaco-editor";
+import { FormatJsonButton } from "@/components/format-json-button";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag, putFlag, toApiError } from "@/lib/frontend/api";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
@@ -287,7 +288,10 @@ export function FlagForm(props: FlagFormProps) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label>Value</Label>
+        <div className="flex items-center justify-between">
+          <Label>Value</Label>
+          <FormatJsonButton value={value} onFormat={setValue} />
+        </div>
         <p className="text-xs text-muted-foreground">
           Value must be valid JSON. To store a string, wrap it in double quotes.
         </p>
