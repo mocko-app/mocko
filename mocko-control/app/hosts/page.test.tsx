@@ -6,6 +6,27 @@ import { aHost } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
 import { renderWithProviders } from "@/test/render";
 
+describe("hosts page loading state", () => {
+  it("shows the loading state instead of the empty state while hosts are loading", async () => {
+    givenApi();
+    let resolveHosts: () => void = () => {};
+    const hostsResponse = new Promise<Response>((resolve) => {
+      resolveHosts = () => resolve(HttpResponse.json([]));
+    });
+    server.use(http.get("/api/hosts", () => hostsResponse));
+
+    renderWithProviders(<HostsPage />);
+
+    expect(
+      await screen.findByRole("status", { name: "Loading hosts" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No hosts yet")).not.toBeInTheDocument();
+
+    resolveHosts();
+    expect(await screen.findByText("No hosts yet")).toBeInTheDocument();
+  });
+});
+
 describe("hosts page delete flow", () => {
   it("asks for confirmation before deleting a host", async () => {
     const state = givenApi({
