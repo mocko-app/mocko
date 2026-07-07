@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Callout } from "@/components/callout";
+import { MockFormSkeleton } from "@/components/detail-form-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { MockForm } from "@/components/mock-form";
 import { ApiError } from "@/lib/frontend/api";
@@ -64,11 +65,7 @@ function NewMockPageInner() {
   }
 
   if (isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto text-sm text-muted-foreground">
-        Loading mock...
-      </div>
-    );
+    return <MockFormSkeleton />;
   }
 
   if (error instanceof ApiError && error.status === 404) {
