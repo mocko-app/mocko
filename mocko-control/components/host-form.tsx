@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { CircleHelpIcon, XIcon } from "lucide-react";
+import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +34,18 @@ function getFormTitle(mode: HostFormProps["mode"], isReadOnly: boolean) {
 export function HostForm({ initial, mode }: HostFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
-  const { errors, form, isSubmitting, set, showErrors, handleSubmit } =
-    useHostForm(initial, mode);
+  const {
+    confirmDiscard,
+    errors,
+    form,
+    isConfirmingDiscard,
+    isSubmitting,
+    keepEditing,
+    navigateWithGuard,
+    set,
+    showErrors,
+    handleSubmit,
+  } = useHostForm(initial, mode);
 
   return (
     <form
@@ -55,8 +65,9 @@ export function HostForm({ initial, mode }: HostFormProps) {
         <Button
           variant="ghost"
           size="icon-lg"
-          nativeButton={false}
-          render={<Link href="/hosts" aria-label="Close and return to hosts" />}
+          type="button"
+          onClick={() => navigateWithGuard("/hosts")}
+          aria-label="Close and return to hosts"
         >
           <XIcon aria-hidden="true" />
         </Button>
@@ -234,8 +245,8 @@ export function HostForm({ initial, mode }: HostFormProps) {
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          nativeButton={false}
-          render={<Link href="/hosts" />}
+          type="button"
+          onClick={() => navigateWithGuard("/hosts")}
         >
           {isReadOnly ? "Close" : "Cancel"}
         </Button>
@@ -245,6 +256,12 @@ export function HostForm({ initial, mode }: HostFormProps) {
           </Button>
         )}
       </div>
+
+      <ConfirmDiscardDialog
+        open={isConfirmingDiscard}
+        onDiscard={confirmDiscard}
+        onKeepEditing={keepEditing}
+      />
     </form>
   );
 }

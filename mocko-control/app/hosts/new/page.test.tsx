@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import NewHostPage from "./page";
@@ -23,6 +23,12 @@ function capturePosts(): CreateHostDto[] {
 async function fillValidHost(user: UserEvent) {
   await user.type(screen.getByLabelText("Slug"), "payments");
   await user.type(screen.getByLabelText("Source"), "payments.local");
+}
+
+function dispatchBeforeUnload() {
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  return event;
 }
 
 describe("new host page focus", () => {
@@ -144,5 +150,72 @@ describe("new host page submission", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Add host" })).toBeEnabled(),
     );
+  });
+});
+
+describe("new host page unsaved changes guard", () => {
+  it("closes an untouched form without asking", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewHostPage />);
+    await screen.findByLabelText("Slug");
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to hosts" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/hosts");
+  });
+
+  it("asks before closing with unsaved input and keeps it on cancel", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewHostPage />);
+    await screen.findByLabelText("Slug");
+
+    await user.type(screen.getByLabelText("Slug"), "payments");
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to hosts" }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Unsaved changes");
+
+    await user.click(
+      within(dialog).getByRole("button", { name: "Keep editing" }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText("Slug")).toHaveValue("payments");
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("discards unsaved input from cancel when confirmed", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewHostPage />);
+    await screen.findByLabelText("Slug");
+
+    await user.type(screen.getByLabelText("Slug"), "payments");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/hosts"));
+  });
+
+  it("warns before unload only while dirty", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewHostPage />);
+    await screen.findByLabelText("Slug");
+
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
+
+    await user.type(screen.getByLabelText("Slug"), "x");
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(true);
+
+    await user.type(screen.getByLabelText("Slug"), "{Backspace}");
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
   });
 });
