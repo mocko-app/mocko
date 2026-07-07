@@ -105,6 +105,7 @@ export function FlagForm(props: FlagFormProps) {
         setIsSubmitting(true);
         await deleteFlag(flagKey);
         await revalidateFlagCaches();
+        toast.success("Flag deleted.");
         router.push(parentHref);
       } catch (error) {
         console.error("Failed to delete flag", error);
@@ -128,6 +129,7 @@ export function FlagForm(props: FlagFormProps) {
       setShowDeleteDialog(false);
       await deleteFlag(flagKey);
       await revalidateFlagCaches();
+      toast.success("Flag deleted.");
       router.push(parentHref);
     } catch (error) {
       console.error("Failed to delete flag", error);
