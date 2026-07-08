@@ -345,6 +345,42 @@ describe("edit mock page unsaved changes guard", () => {
     await user.type(screen.getByLabelText("Name"), "{Backspace}");
     expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
   });
+
+  it("stops warning before unload after saved edits while returning to the list", async () => {
+    const mock = aMockDetails({ id: "mock-1", name: "Mock one" });
+    givenEditPage(mock);
+    capturePatches({ ...mock, name: "Mock one!" });
+
+    let resolveListRefresh: () => void = () => {};
+    const listRefresh = new Promise<void>((resolve) => {
+      resolveListRefresh = resolve;
+    });
+    let listRequests = 0;
+    server.use(
+      http.get("/api/mocks", async () => {
+        listRequests += 1;
+        if (listRequests > 1) {
+          await listRefresh;
+        }
+        return HttpResponse.json([]);
+      }),
+    );
+
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Mock updated.")).toBeInTheDocument();
+    expect(router.push).not.toHaveBeenCalled();
+    expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
+
+    resolveListRefresh();
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/mocks"));
+  });
 });
 
 describe("edit mock page conflict notice", () => {
