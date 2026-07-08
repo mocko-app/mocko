@@ -447,6 +447,7 @@ describe("flags page delete flow", () => {
     );
 
     await waitFor(() => expect(deletedKeys).toEqual(["one"]));
+    expect(await screen.findByText("Flag deleted.")).toBeInTheDocument();
     await waitFor(() =>
       expect(
         screen.queryByRole("button", { name: "Actions for one" }),
@@ -494,6 +495,7 @@ describe("flags page delete flow", () => {
     expect(
       await screen.findByText("No flags exist for this prefix yet."),
     ).toBeInTheDocument();
+    expect(await screen.findByText("Flag deleted.")).toBeInTheDocument();
     expect(deletedKeys).toEqual(["payments:checkout"]);
     expect(
       screen.queryByRole("list", { name: "Flags and folders" }),

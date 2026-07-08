@@ -212,6 +212,7 @@ describe("flag detail page delete flow", () => {
     );
 
     await waitFor(() => expect(deletedKeys).toEqual(["payments:checkout"]));
+    expect(await screen.findByText("Flag deleted.")).toBeInTheDocument();
     expect(router.push).toHaveBeenCalledWith("/flags?prefix=payments%3A");
   });
 

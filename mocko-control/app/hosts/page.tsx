@@ -17,6 +17,35 @@ import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { Host } from "@/lib/types/host";
 
+const HostsListSkeleton: React.FC = () => {
+  return (
+    <div
+      className="flex flex-col gap-2"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading hosts"
+    >
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={index}
+          className="rounded-lg border border-border bg-card px-4 py-3.5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="mb-2 flex items-center gap-2.5">
+                <div className="h-4 w-36 rounded bg-muted animate-pulse" />
+                <div className="h-4 w-16 rounded bg-muted animate-pulse" />
+              </div>
+              <div className="h-3 w-52 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="h-7 w-7 rounded bg-muted animate-pulse shrink-0" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const HostsPage: React.FC = () => {
   useDocumentTitle("Hosts");
   const router = useRouter();
@@ -88,7 +117,9 @@ const HostsPage: React.FC = () => {
         </div>
       )}
 
-      {hosts.length === 0 ? (
+      {isLoading && <HostsListSkeleton />}
+
+      {!isLoading && hosts.length === 0 && (
         <EmptyState
           title="No hosts yet"
           actionHref="/hosts/new"
@@ -107,7 +138,9 @@ const HostsPage: React.FC = () => {
             .
           </>
         </EmptyState>
-      ) : (
+      )}
+
+      {!isLoading && hosts.length > 0 && (
         <div
           className="flex flex-col gap-2"
           role="list"

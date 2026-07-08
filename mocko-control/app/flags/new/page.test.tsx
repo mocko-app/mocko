@@ -160,6 +160,33 @@ describe("new flag page", () => {
     );
   });
 
+  it("pretty-prints valid JSON in the value editor", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewFlagPage />);
+
+    const editor = await screen.findByRole("textbox", { name: "Code editor" });
+    await user.click(editor);
+    await user.paste('{"a":1,"b":[2,3]}');
+    await user.click(screen.getByRole("button", { name: "Format JSON" }));
+
+    expect(editor).toHaveValue('{\n  "a": 1,\n  "b": [\n    2,\n    3\n  ]\n}');
+  });
+
+  it("toasts and leaves the value untouched when JSON is invalid", async () => {
+    givenApi();
+    const { user } = renderWithProviders(<NewFlagPage />);
+
+    const editor = await screen.findByRole("textbox", { name: "Code editor" });
+    await user.click(editor);
+    await user.paste("{not json}");
+    await user.click(screen.getByRole("button", { name: "Format JSON" }));
+
+    expect(
+      await screen.findByText("Can't format: content is not valid JSON."),
+    ).toBeInTheDocument();
+    expect(editor).toHaveValue("{not json}");
+  });
+
   it("surfaces the API message when saving fails", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     givenApi();

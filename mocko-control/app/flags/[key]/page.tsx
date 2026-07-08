@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Callout } from "@/components/callout";
+import { FlagFormSkeleton } from "@/components/detail-form-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { FlagForm } from "@/components/flags/flag-form";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
@@ -38,11 +39,7 @@ function FlagDetailPageInner() {
   }
 
   if (isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto text-sm text-muted-foreground">
-        Loading flag...
-      </div>
-    );
+    return <FlagFormSkeleton />;
   }
 
   if (error instanceof ApiError && error.status === 404) {

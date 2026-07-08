@@ -96,6 +96,7 @@ const FlagsPage: React.FC = () => {
       try {
         await deleteFlag(flagKey);
         await revalidateFlagCaches();
+        toast.success("Flag deleted.");
       } catch (deleteError) {
         console.error("Failed to delete flag", deleteError);
         toast.error("Failed to delete flag");
@@ -115,6 +116,7 @@ const FlagsPage: React.FC = () => {
       await deleteFlag(deleteTarget.key);
       await revalidateFlagCaches();
       setDeleteTarget(undefined);
+      toast.success("Flag deleted.");
     } catch (deleteError) {
       console.error("Failed to delete flag", deleteError);
       toast.error("Failed to delete flag");

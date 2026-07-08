@@ -209,7 +209,7 @@ export function useMockForm(
   const [form, setForm] = useState<MockFormState>(() =>
     getInitialFormState(initial),
   );
-  const [baselineJson] = useState(() =>
+  const [baselineJson, setBaselineJson] = useState(() =>
     JSON.stringify(getInitialFormState(initial)),
   );
   const [hideErrors, setHideErrors] = useState(true);
@@ -301,6 +301,9 @@ export function useMockForm(
         await mutate(`/api/mocks/${initial.id}`, updatedMock, {
           revalidate: false,
         });
+        const savedForm = getInitialFormState(updatedMock);
+        setForm(savedForm);
+        setBaselineJson(JSON.stringify(savedForm));
         toast.success("Mock updated.");
       }
 

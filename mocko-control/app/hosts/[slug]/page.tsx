@@ -1,6 +1,7 @@
 "use client";
 
 import { Callout } from "@/components/callout";
+import { HostFormSkeleton } from "@/components/detail-form-skeleton";
 import { HostForm } from "@/components/host-form";
 import { ApiError } from "@/lib/frontend/api";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
@@ -13,7 +14,7 @@ export default function HostDetailPage() {
   useDocumentTitle(slug ? `Edit: ${slug}` : "Edit host");
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading host...</div>;
+    return <HostFormSkeleton />;
   }
 
   if (error instanceof ApiError && error.code === "HOST_NOT_FOUND") {

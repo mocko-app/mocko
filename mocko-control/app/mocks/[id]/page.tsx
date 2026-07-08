@@ -6,6 +6,7 @@ import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Callout } from "@/components/callout";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { MockFormSkeleton } from "@/components/detail-form-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { MockForm } from "@/components/mock-form";
 import { ApiError, deleteMock, patchMock } from "@/lib/frontend/api";
@@ -44,11 +45,7 @@ function EditMockPageInner() {
   }
 
   if (isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto text-sm text-muted-foreground">
-        Loading mock...
-      </div>
-    );
+    return <MockFormSkeleton />;
   }
 
   if (error instanceof ApiError && error.status === 404) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -10,6 +10,7 @@ import {
   patchHost,
   toFormValidationErrors,
 } from "@/lib/frontend/api";
+import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import type { HostDto } from "@/lib/types/host-dtos";
 
 type HostFormMode = "create" | "edit";
@@ -75,6 +76,11 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
   const [serverErrors, setServerErrors] = useState<HostFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const baselineJson = useMemo(
+    () => JSON.stringify(getInitialFormState(initial)),
+    [initial],
+  );
   const localErrors = getFormErrors(form, mode);
   const errors: HostFormErrors = {
     form: serverErrors.form,
@@ -83,6 +89,16 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
     destination: localErrors.destination ?? serverErrors.destination,
   };
   const hasErrors = Boolean(errors.slug || errors.source || errors.destination);
+  const isDirty = useMemo(
+    () => !isReadOnly && JSON.stringify(form) !== baselineJson,
+    [baselineJson, form, isReadOnly],
+  );
+  const {
+    isConfirmingDiscard,
+    confirmDiscard,
+    keepEditing,
+    navigateWithGuard,
+  } = useUnsavedChangesGuard(isDirty);
 
   useEffect(() => {
     setForm(getInitialFormState(initial));
@@ -166,7 +182,12 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
   return {
     errors,
     form,
+    confirmDiscard,
+    isConfirmingDiscard,
+    isDirty,
     isSubmitting,
+    keepEditing,
+    navigateWithGuard,
     set,
     showErrors,
     handleSubmit,
