@@ -118,6 +118,7 @@ export function MockForm({
     confirmDiscard,
     errors,
     form,
+    hasServerDrift,
     handleSubmit,
     isConfirmingDiscard,
     isDirty,
@@ -129,6 +130,7 @@ export function MockForm({
     set,
     showErrors,
     templateError,
+    loadServerValue,
   } = useMockForm(initial, mode);
   const listParams = useMockListParams();
   const availableLabels = getAvailableLabels(mocksData ?? []);
@@ -212,6 +214,27 @@ export function MockForm({
       )}
       {mode === "edit" && initial?.conflict && (
         <MockConflictNotice conflict={initial.conflict} />
+      )}
+      {mode === "edit" && initial && hasServerDrift && (
+        <Callout
+          title="This mock changed on the server"
+          message="Your unsaved edits are based on an older value. Saving will overwrite the server value."
+          action={
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={loadServerValue}>
+                Load server value
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link href={`/mocks/${initial.id}`} target="_blank" />}
+              >
+                View in new tab
+              </Button>
+            </div>
+          }
+        />
       )}
       {showErrors && errors.form && (
         <div

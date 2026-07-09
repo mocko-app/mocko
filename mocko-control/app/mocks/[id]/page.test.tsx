@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import EditMockPage from "./page";
 import { aMockDetails } from "@/test/fixtures";
@@ -143,6 +143,74 @@ describe("edit mock page enable and disable", () => {
     await waitFor(() =>
       expect(screen.queryByText("Disabled")).not.toBeInTheDocument(),
     );
+  });
+});
+
+describe("edit mock page server updates", () => {
+  it("applies server changes while pristine", async () => {
+    const mock = aMockDetails({
+      id: "mock-1",
+      name: "Mock one",
+      path: "/original",
+    });
+    const state = givenEditPage(mock);
+    renderWithProviders(<EditMockPage />);
+    await findEditForm();
+    expect(screen.getByLabelText("Name")).toHaveValue("Mock one");
+
+    state.mockDetails[0] = {
+      ...mock,
+      name: "Server mock",
+      path: "/server",
+    };
+    fireEvent(window, new Event("focus"));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Name")).toHaveValue("Server mock"),
+    );
+    expect(screen.getByLabelText("Path")).toHaveValue("/server");
+    expect(
+      screen.queryByText("This mock changed on the server"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("warns when the mock changed on the server while dirty", async () => {
+    const mock = aMockDetails({
+      id: "mock-1",
+      name: "Mock one",
+      path: "/original",
+    });
+    const state = givenEditPage(mock);
+    const { user } = renderWithProviders(<EditMockPage />);
+    await findEditForm();
+
+    await user.type(screen.getByLabelText("Name"), "!");
+
+    state.mockDetails[0] = {
+      ...mock,
+      name: "Server mock",
+      path: "/server",
+    };
+    fireEvent(window, new Event("focus"));
+
+    expect(
+      await screen.findByText("This mock changed on the server"),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toHaveValue("Mock one!");
+    const newTabButton = screen.getByRole("button", {
+      name: "View in new tab",
+    });
+    expect(newTabButton).toHaveAttribute("href", "/mocks/mock-1");
+    expect(newTabButton).toHaveAttribute("target", "_blank");
+
+    await user.click(screen.getByRole("button", { name: "Load server value" }));
+
+    expect(screen.getByLabelText("Name")).toHaveValue("Server mock");
+    expect(screen.getByLabelText("Path")).toHaveValue("/server");
+    expect(
+      screen.queryByText("This mock changed on the server"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
   });
 });
 
