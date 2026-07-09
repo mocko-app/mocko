@@ -14,6 +14,8 @@ type Header = {
   value: string;
 };
 
+const VALID_HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+
 type HeadersEditorProps = {
   headers: Header[];
   onChange: (headers: Header[]) => void;
@@ -28,6 +30,12 @@ export function HeadersEditor({
   const hasLockedContentType = lockedHeaders.some(
     (header) => header.key.toLowerCase() === "content-type",
   );
+
+  const keyCounts = headers.reduce<Record<string, number>>((counts, header) => {
+    const key = header.key.trim().toLowerCase();
+    if (key) counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
 
   function addRow() {
     onChange([...headers, { key: "", value: "" }]);
@@ -81,9 +89,13 @@ export function HeadersEditor({
         </div>
       ))}
       {headers.map((header, i) => {
+        const trimmedKey = header.key.trim();
+        const normalizedKey = trimmedKey.toLowerCase();
         const hasContentTypeConflict =
-          hasLockedContentType &&
-          header.key.trim().toLowerCase() === "content-type";
+          hasLockedContentType && normalizedKey === "content-type";
+        const isDuplicate = keyCounts[normalizedKey] > 1;
+        const hasInvalidChars =
+          trimmedKey !== "" && !VALID_HEADER_NAME.test(trimmedKey);
 
         return (
           <div key={i} className="flex flex-col gap-1">
@@ -116,6 +128,15 @@ export function HeadersEditor({
               <p className="text-xs text-amber-400">
                 Content-Type is already set by the selected body format.
               </p>
+            )}
+            {hasInvalidChars && (
+              <p className="text-xs text-amber-400">
+                Header names may only contain letters, digits, and{" "}
+                {"!#$%&'*+-.^_`|~"}.
+              </p>
+            )}
+            {isDuplicate && !hasContentTypeConflict && (
+              <p className="text-xs text-amber-400">Duplicate header name.</p>
             )}
           </div>
         );
