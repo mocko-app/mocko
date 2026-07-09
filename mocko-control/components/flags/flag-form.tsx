@@ -150,7 +150,7 @@ export function FlagForm(props: FlagFormProps) {
     const targetKey = isCreate ? keyInput.trim() : flagKey;
     if (!targetKey) {
       if (isCreate) {
-        toast.error("Flag key is required");
+        setKeyError("Flag key is required");
       }
       return;
     }
