@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangleIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { AnnotationBadge } from "@/components/annotation-badge";
+import { CopyButton } from "@/components/copy-button";
 import { Button } from "@/components/ui/button";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
 import type { MockDto } from "@/lib/types/mock-dtos";
@@ -47,7 +47,6 @@ export const MockCard: React.FC<{
   onDuplicate,
   onToggleEnabled,
 }) => {
-  const isReadOnly = mock.annotations.includes("READ_ONLY");
   const hostLabel = getHostLabel(mock.host, hostSlugs);
 
   return (
@@ -74,32 +73,26 @@ export const MockCard: React.FC<{
                 </span>
               )}
             </div>
-            {mock.annotations.includes("TEMPORARY") && (
-              <Badge variant="annotationTemporary">Temporary</Badge>
-            )}
-            {isReadOnly && (
-              <Badge variant="annotationReadOnly">Read Only</Badge>
-            )}
-            {mock.annotations.includes("SHADOWED") && (
-              <Badge variant="annotationShadowed">Shadowed</Badge>
-            )}
-            {mock.annotations.includes("CONFLICT") && (
-              <Badge variant="annotationConflict">
-                <AlertTriangleIcon aria-hidden="true" />
-                Conflict
-              </Badge>
-            )}
-            {mock.annotations.includes("INVALID_TEMPLATE") && (
-              <Badge variant="annotationInvalidTemplate">
-                <AlertTriangleIcon aria-hidden="true" />
-                Invalid Template
-              </Badge>
-            )}
+            {mock.annotations.map((annotation) => (
+              <AnnotationBadge
+                key={annotation}
+                annotation={annotation}
+                className="relative z-10 pointer-events-auto"
+              />
+            ))}
           </div>
           {mock.filePath && (
-            <p className="truncate text-xs text-muted-foreground">
-              {mock.filePath}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-xs text-muted-foreground">
+                {mock.filePath}
+              </p>
+              <CopyButton
+                value={mock.filePath}
+                label="Source file"
+                revealOnHover
+                className="relative z-10 pointer-events-auto"
+              />
+            </div>
           )}
           {mock.labels.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -124,6 +117,12 @@ export const MockCard: React.FC<{
               {mock.method}
             </span>
             <span className="text-muted-foreground truncate">{mock.path}</span>
+            <CopyButton
+              value={mock.path}
+              label="Path"
+              revealOnHover
+              className="relative z-10 pointer-events-auto"
+            />
           </div>
         </div>
 

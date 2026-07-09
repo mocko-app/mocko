@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Callout } from "@/components/callout";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
+import { CopyButton } from "@/components/copy-button";
 import { SaveChangesButton } from "@/components/save-changes-button";
 import { FlagBreadcrumb } from "@/components/flags/flag-breadcrumb";
 import {
@@ -149,7 +150,7 @@ export function FlagForm(props: FlagFormProps) {
     const targetKey = isCreate ? keyInput.trim() : flagKey;
     if (!targetKey) {
       if (isCreate) {
-        toast.error("Flag key is required");
+        setKeyError("Flag key is required");
       }
       return;
     }
@@ -276,10 +277,13 @@ export function FlagForm(props: FlagFormProps) {
           />
         ) : (
           <div
-            className="px-3 py-2 rounded-lg bg-muted border border-border font-mono text-sm text-muted-foreground select-all"
+            className="flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-lg bg-muted border border-border font-mono text-sm text-muted-foreground"
             aria-label={`Flag key: ${flagKey}`}
           >
-            {flagKey}
+            <span className="min-w-0 flex-1 truncate select-all">
+              {flagKey}
+            </span>
+            <CopyButton value={flagKey!} label="Flag key" size="icon-sm" />
           </div>
         )}
         {isCreate && keyError && (

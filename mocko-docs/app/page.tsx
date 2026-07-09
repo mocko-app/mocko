@@ -58,7 +58,7 @@ const useCases: UseCaseCard[] = [
 export default function DocsHomePage() {
   return (
     <DocsPage>
-      <DocsEyebrow>Documentation</DocsEyebrow>
+      <DocsEyebrow>Docs</DocsEyebrow>
       <DocsTitle>Everything you need to run Mocko</DocsTitle>
       <DocsLead>
         Create dynamic HTTP mocks, proxy the endpoints you are not replacing,

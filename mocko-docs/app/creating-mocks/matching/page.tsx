@@ -68,6 +68,43 @@ mock "GET /users/me" {
         recipe builds on.
       </DocsP>
 
+      <DocsH2>Catch-all paths</DocsH2>
+      <DocsP>
+        A normal parameter like <DocsCode>{"{id}"}</DocsCode> matches exactly
+        one segment. Add a <DocsCode>*</DocsCode> to make it a{" "}
+        <em>catch-all</em> that swallows the rest of the path, however many
+        segments it spans. The captured value arrives in{" "}
+        <DocsCode>request.params</DocsCode> as a single string with the slashes
+        intact:
+      </DocsP>
+      <DocsCodeBlock language="hcl">{`mock "GET /files/{path*}" {
+  format = "json"
+  body = <<-EOF
+    { "requested": "{{request.params.path}}" }
+  EOF
+}`}</DocsCodeBlock>
+      <DocsSnippet
+        command="curl http://localhost:8080/files/images/logo.png"
+        output={`{
+  "requested": "images/logo.png"
+}`}
+        className="mb-4"
+      />
+      <DocsP>
+        A catch-all is the least specific way to match a path, so it loses to
+        every literal segment and single-segment parameter it competes with.
+        That makes <DocsCode>{"/{any*}"}</DocsCode> a natural fallback: pair it
+        with more specific mocks and it answers only the requests nothing else
+        claimed, an in-file alternative to the proxy pass-through described{" "}
+        <DocsLink href="#when-nothing-matches">below</DocsLink>.
+      </DocsP>
+      <Callout variant="info">
+        The <DocsCode>*</DocsCode> segment has to be the last one in the path.{" "}
+        <DocsCode>{"/{any*}"}</DocsCode> matches any path (including{" "}
+        <DocsCode>/</DocsCode> itself), while <DocsCode>{"/{path*2}"}</DocsCode>{" "}
+        matches exactly two segments and nothing shorter or longer.
+      </Callout>
+
       <DocsH2>Deployed mocks beat file mocks</DocsH2>
       <DocsP>
         When a mock created in the UI and a mock loaded from a file declare the
@@ -106,7 +143,7 @@ mock "GET /users/me" {
         below.
       </DocsP>
 
-      <DocsH2>When nothing matches</DocsH2>
+      <DocsH2 id="when-nothing-matches">When nothing matches</DocsH2>
       <DocsP>
         A request that no mock matches gets a <DocsCode>404</DocsCode> with a
         message explaining that no mock was found. But if Mocko was started with
