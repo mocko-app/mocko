@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangleIcon } from "lucide-react";
+import { CopyButton } from "@/components/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
@@ -97,9 +98,17 @@ export const MockCard: React.FC<{
             )}
           </div>
           {mock.filePath && (
-            <p className="truncate text-xs text-muted-foreground">
-              {mock.filePath}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-xs text-muted-foreground">
+                {mock.filePath}
+              </p>
+              <CopyButton
+                value={mock.filePath}
+                label="Source file"
+                revealOnHover
+                className="relative z-10 pointer-events-auto"
+              />
+            </div>
           )}
           {mock.labels.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -124,6 +133,12 @@ export const MockCard: React.FC<{
               {mock.method}
             </span>
             <span className="text-muted-foreground truncate">{mock.path}</span>
+            <CopyButton
+              value={mock.path}
+              label="Path"
+              revealOnHover
+              className="relative z-10 pointer-events-auto"
+            />
           </div>
         </div>
 

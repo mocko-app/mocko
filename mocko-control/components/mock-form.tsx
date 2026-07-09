@@ -5,6 +5,11 @@ import { AlertTriangleIcon, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -16,6 +21,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Callout } from "@/components/callout";
 import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
+import { CopyButton } from "@/components/copy-button";
 import { SaveChangesButton } from "@/components/save-changes-button";
 import { MockConflictNotice } from "@/components/mock-conflict-notice";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
@@ -258,7 +264,16 @@ export function MockForm({
         {initial?.filePath && (
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="mock-source-file">Source file</Label>
-            <Input id="mock-source-file" value={initial.filePath} readOnly />
+            <InputGroup>
+              <InputGroupInput
+                id="mock-source-file"
+                value={initial.filePath}
+                readOnly
+              />
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={initial.filePath} label="Source file" />
+              </InputGroupAddon>
+            </InputGroup>
           </div>
         )}
 
@@ -288,20 +303,28 @@ export function MockForm({
 
           <div className="flex flex-1 flex-col gap-1.5">
             <Label htmlFor="mock-path">Path</Label>
-            <Input
-              id="mock-path"
-              value={form.path}
-              onChange={(e) => set("path", e.target.value)}
-              placeholder="/users/{id}"
-              aria-required="true"
-              aria-invalid={showErrors && Boolean(errors.path)}
+            <InputGroup
               className={cn(
-                "font-mono text-sm",
                 !errors.path &&
                   hasNestPathParams &&
-                  "border-amber-500/60 focus-visible:border-amber-500 focus-visible:ring-amber-500/20",
+                  "border-amber-500/60 has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/20",
               )}
-            />
+            >
+              <InputGroupInput
+                id="mock-path"
+                value={form.path}
+                onChange={(e) => set("path", e.target.value)}
+                placeholder="/users/{id}"
+                aria-required="true"
+                aria-invalid={showErrors && Boolean(errors.path)}
+                className="font-mono text-sm"
+              />
+              {form.path && (
+                <InputGroupAddon align="inline-end">
+                  <CopyButton value={form.path} label="Path" />
+                </InputGroupAddon>
+              )}
+            </InputGroup>
             {showErrors && errors.path && (
               <p className="text-xs text-destructive">{errors.path}</p>
             )}

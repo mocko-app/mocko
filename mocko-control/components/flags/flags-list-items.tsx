@@ -9,6 +9,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from "lucide-react";
+import { CopyButton } from "@/components/copy-button";
 import { Button } from "@/components/ui/button";
 import { handleSameRouteClick } from "@/lib/frontend/replace-url";
 import {
@@ -117,9 +118,17 @@ export function FlagItem({
         className="size-4 shrink-0 text-primary/70"
         aria-hidden="true"
       />
-      <span className="flex-1 text-sm font-medium text-white truncate font-mono relative z-10 pointer-events-none">
-        {item.name}
-      </span>
+      <div className="flex flex-1 min-w-0 items-center gap-2 relative z-10 pointer-events-none">
+        <span className="text-sm font-medium text-white truncate font-mono">
+          {item.name}
+        </span>
+        <CopyButton
+          value={flagKey}
+          label="Flag key"
+          revealOnHover
+          className="pointer-events-auto"
+        />
+      </div>
       <div className="relative z-10 pointer-events-auto">
         <DropdownMenu>
           <DropdownMenuTrigger

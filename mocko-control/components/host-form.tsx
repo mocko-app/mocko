@@ -2,9 +2,15 @@
 
 import { CircleHelpIcon, XIcon } from "lucide-react";
 import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
+import { CopyButton } from "@/components/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Tooltip,
@@ -191,15 +197,22 @@ export function HostForm({ initial, mode }: HostFormProps) {
               </TooltipContent>
             </Tooltip>
           </div>
-          <Input
-            id="host-source"
-            value={form.source}
-            onChange={(e) => set("source", e.target.value)}
-            placeholder="payments.local"
-            aria-required="true"
-            className="font-mono text-sm"
-            readOnly={isReadOnly}
-          />
+          <InputGroup>
+            <InputGroupInput
+              id="host-source"
+              value={form.source}
+              onChange={(e) => set("source", e.target.value)}
+              placeholder="payments.local"
+              aria-required="true"
+              className="font-mono text-sm"
+              readOnly={isReadOnly}
+            />
+            {form.source && (
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={form.source} label="Source" />
+              </InputGroupAddon>
+            )}
+          </InputGroup>
           {showErrors && errors.source ? (
             <p className="text-xs text-destructive">{errors.source}</p>
           ) : null}
@@ -228,14 +241,21 @@ export function HostForm({ initial, mode }: HostFormProps) {
               </TooltipContent>
             </Tooltip>
           </div>
-          <Input
-            id="host-destination"
-            value={form.destination}
-            onChange={(e) => set("destination", e.target.value)}
-            placeholder="http://localhost:9001"
-            className="font-mono text-sm"
-            readOnly={isReadOnly}
-          />
+          <InputGroup>
+            <InputGroupInput
+              id="host-destination"
+              value={form.destination}
+              onChange={(e) => set("destination", e.target.value)}
+              placeholder="http://localhost:9001"
+              className="font-mono text-sm"
+              readOnly={isReadOnly}
+            />
+            {form.destination && (
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={form.destination} label="Destination" />
+              </InputGroupAddon>
+            )}
+          </InputGroup>
           {showErrors && errors.destination ? (
             <p className="text-xs text-destructive">{errors.destination}</p>
           ) : null}
