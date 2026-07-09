@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangleIcon } from "lucide-react";
+import { AnnotationBadge } from "@/components/annotation-badge";
 import { CopyButton } from "@/components/copy-button";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MockActionsMenu } from "@/components/mock-actions-menu";
 import type { MockDto } from "@/lib/types/mock-dtos";
@@ -48,7 +47,6 @@ export const MockCard: React.FC<{
   onDuplicate,
   onToggleEnabled,
 }) => {
-  const isReadOnly = mock.annotations.includes("READ_ONLY");
   const hostLabel = getHostLabel(mock.host, hostSlugs);
 
   return (
@@ -75,27 +73,13 @@ export const MockCard: React.FC<{
                 </span>
               )}
             </div>
-            {mock.annotations.includes("TEMPORARY") && (
-              <Badge variant="annotationTemporary">Temporary</Badge>
-            )}
-            {isReadOnly && (
-              <Badge variant="annotationReadOnly">Read Only</Badge>
-            )}
-            {mock.annotations.includes("SHADOWED") && (
-              <Badge variant="annotationShadowed">Shadowed</Badge>
-            )}
-            {mock.annotations.includes("CONFLICT") && (
-              <Badge variant="annotationConflict">
-                <AlertTriangleIcon aria-hidden="true" />
-                Conflict
-              </Badge>
-            )}
-            {mock.annotations.includes("INVALID_TEMPLATE") && (
-              <Badge variant="annotationInvalidTemplate">
-                <AlertTriangleIcon aria-hidden="true" />
-                Invalid Template
-              </Badge>
-            )}
+            {mock.annotations.map((annotation) => (
+              <AnnotationBadge
+                key={annotation}
+                annotation={annotation}
+                className="relative z-10 pointer-events-auto"
+              />
+            ))}
           </div>
           {mock.filePath && (
             <div className="flex items-center gap-1.5">

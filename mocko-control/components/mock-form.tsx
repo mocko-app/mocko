@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangleIcon, XIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { XIcon } from "lucide-react";
+import { AnnotationBadge } from "@/components/annotation-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -77,25 +77,16 @@ const MockFormHeader: React.FC<{
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">{title}</h1>
           {isReadOnly && (
-            <Badge variant="annotationReadOnly" className="text-xs">
-              Read Only
-            </Badge>
+            <AnnotationBadge annotation="READ_ONLY" className="text-xs" />
           )}
           {isDisabled && (
-            <Badge variant="annotationDisabled" className="text-xs">
-              Disabled
-            </Badge>
+            <AnnotationBadge annotation="DISABLED" className="text-xs" />
           )}
           {conflictRole === "shadowed" && (
-            <Badge variant="annotationShadowed" className="text-xs">
-              Shadowed
-            </Badge>
+            <AnnotationBadge annotation="SHADOWED" className="text-xs" />
           )}
           {conflictRole === "conflict" && (
-            <Badge variant="annotationConflict">
-              <AlertTriangleIcon aria-hidden="true" />
-              Conflict
-            </Badge>
+            <AnnotationBadge annotation="CONFLICT" />
           )}
         </div>
         {actions}
