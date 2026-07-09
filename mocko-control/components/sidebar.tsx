@@ -138,10 +138,10 @@ export function Sidebar() {
             className="flex items-center justify-center lg:justify-start gap-2.5 px-0 lg:px-3 py-2 rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <BookOpenIcon className="size-[14px] shrink-0" aria-hidden="true" />
-            <span className="hidden lg:block">Documentation</span>
+            <span className="hidden lg:block">Docs</span>
           </TooltipTrigger>
           <TooltipContent side="right" className="lg:hidden">
-            Documentation
+            Docs
           </TooltipContent>
         </Tooltip>
         <Tooltip>
