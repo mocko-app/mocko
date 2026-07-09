@@ -70,6 +70,17 @@ export const docsNavGroups: DocsNavGroup[] = [
     ],
   },
   {
+    title: "Mocko Cloud",
+    items: [
+      { title: "Overview", href: "/cloud" },
+      { title: "Getting Started", href: "/cloud/getting-started" },
+      { title: "Projects and URLs", href: "/cloud/projects" },
+      { title: "Local Tunnels", href: "/cloud/tunnels" },
+      { title: "Request Logs", href: "/cloud/logs" },
+      { title: "Team Members", href: "/cloud/team" },
+    ],
+  },
+  {
     title: "Reference",
     items: [
       { title: "Configuration", href: "/reference/configuration" },
