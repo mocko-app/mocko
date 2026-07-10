@@ -287,6 +287,24 @@ export default function ReferenceConfigurationPage() {
           </tr>
           <tr>
             <DocsTd>
+              <DocsCode>MOCKO_PUBLIC_URL</DocsCode>
+            </DocsTd>
+            <DocsTd>
+              <DocsCode>MOCKO_CORE_URL</DocsCode>, else{" "}
+              <DocsCode>http://localhost:8080</DocsCode>
+            </DocsTd>
+            <DocsTd>
+              Base URL the panel&apos;s <DocsCode>Copy as curl</DocsCode>{" "}
+              commands point at. Set it to where your mocks are reachable from
+              wherever you run curl, such as an ingress or load balancer.
+              Trailing slashes are stripped. When unset it falls back to{" "}
+              <DocsCode>MOCKO_CORE_URL</DocsCode>, which is right locally but is
+              often an in-cluster address a curl outside the cluster cannot
+              reach.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
               <DocsCode>MOCKO_DEPLOY_SECRET</DocsCode>
             </DocsTd>
             <DocsTd>empty</DocsTd>

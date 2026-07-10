@@ -2,6 +2,7 @@ import type { RedisOptions } from "ioredis";
 
 export type StoreConfig = {
   coreUrl: string;
+  publicUrl: string;
   deploySecret: string;
   redisEnabled: boolean;
   redisUrl?: string;
@@ -19,6 +20,7 @@ const DEFAULT_FLAGS_LIST_LIMIT = 200;
 export function getStoreConfig(env = process.env): StoreConfig {
   return {
     coreUrl: (env["MOCKO_CORE_URL"] ?? "").replace(/\/+$/, ""),
+    publicUrl: (env["MOCKO_PUBLIC_URL"] ?? "").replace(/\/+$/, ""),
     deploySecret: env["MOCKO_DEPLOY_SECRET"] ?? "",
     redisEnabled: env["REDIS_ENABLED"] === "true",
     redisUrl: env["REDIS_URL"] || undefined,

@@ -74,6 +74,12 @@ control:
     type: ClusterIP
     port: 6625
 
+  # Base URL the UI puts in "Copy as curl" commands, e.g. the ingress URL
+  # mocks are served on (https://mocks.example.com). When empty, the UI
+  # falls back to the in-cluster core service address, which only works for
+  # curls run from inside the cluster.
+  publicUrl: ""
+
   # Reveals the "Migrate from V1" and "Purge V1 Data" operations on the
   # Management page. Enable only while migrating a Mocko V1 installation
   # that shares this Redis; disable again once the migration is done.

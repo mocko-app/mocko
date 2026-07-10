@@ -163,6 +163,13 @@ persistence:
           before giving a whole team access.
         </li>
         <li>
+          <DocsCode>control.publicUrl</DocsCode> (default empty) sets the base
+          URL the panel&apos;s <DocsCode>Copy as curl</DocsCode> commands point
+          at. Left empty, they use the in-cluster core service, which only works
+          for curls run from inside the cluster; set it to your ingress URL so
+          the commands run anywhere.
+        </li>
+        <li>
           <DocsCode>control.v1Migration.enabled</DocsCode> reveals the v1
           migration operations in the management page. Leave it off unless you
           are actively migrating; see{" "}

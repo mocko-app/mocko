@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import type { VersionsDto } from "@/app/api/versions/route";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
@@ -14,6 +15,7 @@ export type ApiState = {
   flagList: FlagListDto;
   flagValues: Record<string, FlagDto>;
   operations: OperationsResponse;
+  versions: VersionsDto;
 };
 
 export function givenApi(initial: Partial<ApiState> = {}): ApiState {
@@ -27,6 +29,11 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
       operations: [],
       sentinelAgeSeconds: null,
       managementSupported: true,
+    },
+    versions: initial.versions ?? {
+      control: "0.0.0-test",
+      core: "0.0.0-test",
+      mockBaseUrl: "http://localhost:8080",
     },
   };
 
@@ -72,6 +79,7 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
       return HttpResponse.json(flag);
     }),
     http.get("/api/operations", () => HttpResponse.json(state.operations)),
+    http.get("/api/versions", () => HttpResponse.json(state.versions)),
   );
 
   return state;
