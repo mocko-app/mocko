@@ -24,6 +24,10 @@ import { FlagEditor } from "@/components/monaco-editor";
 import { FormatJsonButton } from "@/components/format-json-button";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag, putFlag, toApiError } from "@/lib/frontend/api";
+import {
+  shouldSkipConfirmation,
+  skipConfirmation,
+} from "@/lib/frontend/confirmation-preferences";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import { getFlagKeyValidationError } from "@/lib/validation/flag.schema";
 
@@ -43,7 +47,6 @@ export function FlagForm(props: FlagFormProps) {
   const prefix = isCreate ? (props.prefix ?? "") : "";
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
   const [value, setValue] = useState(serverValue);
   const [baseline, setBaseline] = useState(serverValue);
   const [keyInput, setKeyInput] = useState(prefix);
@@ -102,7 +105,7 @@ export function FlagForm(props: FlagFormProps) {
       return;
     }
 
-    if (skipDeleteConfirm) {
+    if (shouldSkipConfirmation("flags", "delete")) {
       try {
         setIsSubmitting(true);
         await deleteFlag(flagKey);
@@ -323,7 +326,7 @@ export function FlagForm(props: FlagFormProps) {
           itemLabel={flagKey}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setShowDeleteDialog(false)}
-          onDontAskAgain={() => setSkipDeleteConfirm(true)}
+          onDontAskAgain={() => skipConfirmation("flags", "delete")}
         >
           Are you sure you want to delete{" "}
           <span className="font-medium text-foreground font-mono">

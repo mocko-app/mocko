@@ -23,6 +23,10 @@ import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deleteMock, patchMock } from "@/lib/frontend/api";
+import {
+  shouldSkipConfirmation,
+  skipConfirmation,
+} from "@/lib/frontend/confirmation-preferences";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts, useMocks } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
@@ -49,7 +53,6 @@ const MocksPage: React.FC = () => {
   );
   const [searchInputValue, setSearchInputValue] = useState(search);
   const [deleteTarget, setDeleteTarget] = useState<MockDto>();
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
 
   const { data, error, isLoading, mutate } = useMocks();
   const { data: hosts = [] } = useHosts();
@@ -114,7 +117,7 @@ const MocksPage: React.FC = () => {
   }
 
   async function handleDelete(mock: MockDto) {
-    if (skipDeleteConfirm) {
+    if (shouldSkipConfirmation("mocks", "delete")) {
       try {
         await deleteMock(mock.id);
         await mutate();
@@ -253,7 +256,7 @@ const MocksPage: React.FC = () => {
           itemLabel={deleteTarget.name}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(undefined)}
-          onDontAskAgain={() => setSkipDeleteConfirm(true)}
+          onDontAskAgain={() => skipConfirmation("mocks", "delete")}
         >
           Are you sure you want to delete{" "}
           <span className="font-medium text-foreground">

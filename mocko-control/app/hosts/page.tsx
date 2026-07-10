@@ -13,6 +13,10 @@ import { ListPageHeader } from "@/components/list-page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deleteHost } from "@/lib/frontend/api";
+import {
+  shouldSkipConfirmation,
+  skipConfirmation,
+} from "@/lib/frontend/confirmation-preferences";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { Host } from "@/lib/types/host";
@@ -52,7 +56,6 @@ const HostsPage: React.FC = () => {
   const { data, error, isLoading, mutate } = useHosts();
   const hosts = data ?? [];
   const [deleteTarget, setDeleteTarget] = useState<Host>();
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const countsDescription = data ? (
@@ -80,7 +83,7 @@ const HostsPage: React.FC = () => {
   }
 
   function handleDelete(host: Host) {
-    if (skipDeleteConfirm) {
+    if (shouldSkipConfirmation("hosts", "delete")) {
       void deleteSelectedHost(host);
       return;
     }
@@ -164,7 +167,7 @@ const HostsPage: React.FC = () => {
           itemLabel={deleteTarget.slug}
           onConfirm={handleDeleteConfirm}
           onCancel={() => !isDeleting && setDeleteTarget(undefined)}
-          onDontAskAgain={() => setSkipDeleteConfirm(true)}
+          onDontAskAgain={() => skipConfirmation("hosts", "delete")}
         >
           Are you sure you want to delete{" "}
           <span className="font-medium text-foreground font-mono">

@@ -51,7 +51,10 @@ vi.mock("@monaco-editor/react", () => import("./monaco-stub"));
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 
-beforeEach(() => installHistorySync());
+beforeEach(() => {
+  installHistorySync();
+  window.sessionStorage.clear();
+});
 
 afterEach(() => {
   server.resetHandlers();

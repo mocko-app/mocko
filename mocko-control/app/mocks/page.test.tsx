@@ -749,7 +749,7 @@ describe("mocks page duplicate flow", () => {
 });
 
 describe("mocks page delete flow", () => {
-  it("asks for confirmation and skips it after don't ask again", async () => {
+  it("skips confirmation for the rest of the browser session", async () => {
     const first = aMock({ id: "first-mock", name: "First mock" });
     const second = aMock({ id: "second-mock", name: "Second mock" });
     const state = givenApi({ mocks: [first, second] });
@@ -764,7 +764,7 @@ describe("mocks page delete flow", () => {
       }),
     );
 
-    const { user } = renderWithProviders(<MocksPage />);
+    const { user, unmount } = renderWithProviders(<MocksPage />);
     await findMocksList();
 
     await user.click(
@@ -792,10 +792,16 @@ describe("mocks page delete flow", () => {
     expect(deletedIds).toEqual(["first-mock"]);
     expect(await screen.findByText("Mock deleted.")).toBeInTheDocument();
 
-    await user.click(
+    unmount();
+    const { user: remountedUser } = renderWithProviders(<MocksPage />);
+    await findMocksList();
+
+    await remountedUser.click(
       screen.getByRole("button", { name: "Actions for Second mock" }),
     );
-    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    await remountedUser.click(
+      await screen.findByRole("menuitem", { name: "Delete" }),
+    );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await waitFor(() =>

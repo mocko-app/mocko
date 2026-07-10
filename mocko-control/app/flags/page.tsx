@@ -22,6 +22,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatFlagListCounts } from "@/lib/flag/flag-list-counts";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import { deleteFlag } from "@/lib/frontend/api";
+import {
+  shouldSkipConfirmation,
+  skipConfirmation,
+} from "@/lib/frontend/confirmation-preferences";
 import { replaceUrl } from "@/lib/frontend/replace-url";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useFlags } from "@/lib/frontend/hooks/resources";
@@ -42,7 +46,6 @@ const FlagsPage: React.FC = () => {
   const search = searchParams.get("q") ?? "";
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>();
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
   const [searchInputValue, setSearchInputValue] = useState(search);
 
   const { data, error, isLoading } = useFlags(prefix, search || undefined);
@@ -92,7 +95,7 @@ const FlagsPage: React.FC = () => {
   }, [search]);
 
   async function handleDelete(flagKey: string) {
-    if (skipDeleteConfirm) {
+    if (shouldSkipConfirmation("flags", "delete")) {
       try {
         await deleteFlag(flagKey);
         await revalidateFlagCaches();
@@ -231,7 +234,7 @@ const FlagsPage: React.FC = () => {
           itemLabel={deleteTarget.key}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(undefined)}
-          onDontAskAgain={() => setSkipDeleteConfirm(true)}
+          onDontAskAgain={() => skipConfirmation("flags", "delete")}
         >
           Are you sure you want to delete{" "}
           <span className="font-medium text-foreground font-mono">
