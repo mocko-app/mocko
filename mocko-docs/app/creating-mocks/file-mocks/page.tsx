@@ -44,7 +44,7 @@ export default function FileMocksPage() {
   format = "json"
   body = <<-EOF
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "Alice Martins",
       "email": "alice@example.com"
     }
@@ -136,7 +136,7 @@ export default function FileMocksPage() {
     X-Request-Trace = "mocked"
   }
   body = <<-EOF
-    { "id": {{request.params.id}} }
+    { "id": "{{request.params.id}}" }
   EOF
 }`}</DocsCodeBlock>
       <Callout variant="warning">

@@ -8,7 +8,7 @@ These helpers render as empty string — they're side-effect only and won't add 
 
 | Helper | Signature | Description |
 |--------|-----------|-------------|
-| `setStatus` | `setStatus code` | Override the response status code; accepts number or numeric string |
+| `setStatus` | `setStatus code` | Override the response status code; accepts number or numeric string, 200–599 only (anything else → generic 500 to the client, reason in the server log) |
 | `setHeader` | `setHeader 'name' 'value'` | Add or override a response header; case-insensitive, merges with `headers {}` block |
 | `proxy` | `proxy ['url']` | Forward the current request (same method, headers, body, **path**, query) to the default backend, or to a URL/named host used as the **base** — the request path is appended. **Halts template execution.** |
 | `log` | `log 'message'` | Print to server console; useful for debugging templates |
@@ -62,7 +62,7 @@ mock "PUT /users/{id}" {
     {{setFlag $nameKey  request.body.name}}
     {{setFlag $emailKey request.body.email}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{getFlag $nameKey}}",
       "email": "{{getFlag $emailKey}}"
     }
@@ -75,7 +75,7 @@ mock "GET /users/{id}" {
     {{= $nameKey  (append 'users:' request.params.id ':name')}}
     {{= $emailKey (append 'users:' request.params.id ':email')}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{default (getFlag $nameKey) 'John Doe'}}",
       "email": "{{default (getFlag $emailKey) 'john@example.com'}}"
     }

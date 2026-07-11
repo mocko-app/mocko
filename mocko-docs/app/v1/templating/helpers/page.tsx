@@ -48,7 +48,7 @@ export default function V1HelpersPage() {
   {{setHeader 'Location' (append '/purchases/' request.params.id)}}
 {{else}}
   {
-    "id": {{request.params.id}},
+    "id": "{{request.params.id}}",
     "progress": {{random 0 100}}
   }
 {{/gt}}`}</DocsCodeBlock>

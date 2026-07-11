@@ -36,7 +36,7 @@ mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "Alice"
     }
   EOF
@@ -74,7 +74,7 @@ Inside `body`, the following context is available:
 
 ```hbs
 {{request.params.id}}          {{! path parameter }}
-{{request.query.page}}         {{! query string }}
+{{request.query.page}}         {{! query param (string; array if the key repeats — see Gotchas) }}
 {{request.headers.x-token}}    {{! request header (lowercase) }}
 {{request.body.field}}         {{! parsed request body field }}
 {{data.myblock.key}}           {{! data block values }}
@@ -171,7 +171,7 @@ mock "PUT /users/{id}" {
     {{setFlag $nameKey request.body.name}}
     {{setFlag $emailKey request.body.email}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{getFlag $nameKey}}",
       "email": "{{getFlag $emailKey}}"
     }
@@ -184,7 +184,7 @@ mock "GET /users/{id}" {
     {{= $nameKey (append 'users:' request.params.id ':name')}}
     {{= $emailKey (append 'users:' request.params.id ':email')}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{default (getFlag $nameKey) 'John Doe'}}",
       "email": "{{default (getFlag $emailKey) 'john@example.com'}}"
     }
@@ -285,15 +285,21 @@ mock "GET /products/{id}" {
 
 When a mock isn't doing what you expect, work through these in order:
 
-1. **Check mocko's stdout.** Template compile errors print with a line/column pointer at load time — if a mock isn't being served, the error is there.
+1. **Check mocko's stdout at load time.** Every load problem prints a `warn`, but the server starts and reports "Serving mocks" regardless — confirm your route appears in the `Mapping 'GET /path'` lines. The failure modes behave differently:
+   - **Template compile error** (unclosed block, bad expression): warned with a line/column pointer, but the route **is still mapped** and returns a diagnostic 500 (`This mock has an invalid template body: …`) on every request.
+   - **Invalid field value** (`status` outside 200–599, `delay` outside 0–300000): warned, and the mock is **silently not mapped** — requests fall through to the default proxy or 404, which is easy to misread as a routing problem.
+   - **HCL syntax error**: a single terse `Failed to parse file 'path:line:col'` warn and **every mock in that file** is silently not mapped.
+   - **Unknown helper names are not caught at load** — they fail per-request (see #2).
 
-2. **Output comes back unformatted / not pretty-printed.** The rendered body isn't valid JSON. Mocko logs an error line — `Response declared a JSON Content-Type, but the rendered body was not valid JSON…` — and returns the raw text. Usual causes: a stray trailing comma (classic `{{^isLast}}` inside `{{#each}}` — see Gotchas), missing quotes around a string, or an empty field because a path resolved to undefined (see #4).
+2. **Generic 500 (`An internal server error occurred`) on request.** A template error at render time: an unknown helper, `setStatus` given a non-number or a value outside 200–599, etc. The client body says nothing useful; the real message (`Helper foo not found`, `Status must be between 200 and 599`) is printed to the server log at request time.
 
-3. **Sprinkle `{{log '...'}}`.** Prints to the server console at `info` level. Useful for confirming a branch was taken, bisecting a template, or dumping a value: `{{log (json someValue)}}`.
+3. **Output comes back unformatted / not pretty-printed.** The rendered body isn't valid JSON. Mocko logs an error line — `Response declared a JSON Content-Type, but the rendered body was not valid JSON…` — and returns the raw text. Usual causes: a stray trailing comma (classic `{{^isLast}}` inside `{{#each}}` — see Gotchas), missing quotes around a string, or an empty field because a path resolved to undefined (see #5).
 
-4. **Empty string where a value should be.** Usually the context changed under you. Look for a surrounding `{{#forEach}}`, `{{#each}}`, `{{#with}}`, or a direct object/array block (`{{#request.body}}…{{/request.body}}`). Inside those, `request`, `data`, etc. are out of scope — extract to `$variables` before entering, or use `$root.request...`.
+4. **Sprinkle `{{log '...'}}`.** Prints to the server console at `info` level. Useful for confirming a branch was taken, bisecting a template, or dumping a value: `{{log (json someValue)}}`.
 
-5. **Wrong mock matched.** Exact paths beat parameterized paths; within the same specificity, first declaration wins. A deployed (UI/API) mock on the same route beats file mocks.
+5. **Empty string where a value should be.** Usually the context changed under you. Look for a surrounding `{{#forEach}}`, `{{#each}}`, `{{#with}}`, or a direct object/array block (`{{#request.body}}…{{/request.body}}`). Inside those, `request`, `data`, etc. are out of scope — extract to `$variables` before entering, or use `$root.request...`.
+
+6. **Wrong mock matched.** Exact paths beat parameterized paths; within the same specificity, first declaration wins. A deployed (UI/API) mock on the same route beats file mocks. A POST to a GET-only route is a plain 404 (not 405) — same symptom as no route at all.
 
 ## v1 → v2 migration
 
@@ -326,5 +332,7 @@ See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 - `{{#each}}` and `{{#forEach}}` are **not interchangeable**: `isLast`/`isFirst`/`index`/`total` only exist inside `{{#forEach}}`; using `{{^isLast}}` inside `{{#each}}` silently always renders (isLast is undefined → falsy → negated block fires every iteration → trailing comma). Also, `$this` inside `{{#forEach}}` is the entire context object `{item, index, …}`, not the current element — use `{{item}}` instead. **Always use `forEach` in mock bodies that produce comma-separated output** (i.e. almost any JSON array).
 - Any block that changes context (`{{#forEach}}`, `{{#each}}`, `{{#with}}`, and direct object/array blocks like `{{#request.body}}{{name}}{{/request.body}}`) puts `request`, `data`, etc. out of scope inside the block; extract values to variables before entering (`{{= $id request.params.id}}`) or use `$root.request.params.id`
 - Valid JSON bodies are automatically pretty-printed — don't worry about whitespace and indentation in the template. If the rendered body isn't valid JSON, mocko logs an error and returns the raw text untouched (a useful signal that your template has a JSON bug — usually a stray comma or an empty field)
-- Bare `{{` or `}}` in a body that isn't part of a template expression will fail to parse. Easy to hit by accident when a JSON payload ends in nested closing braces (`{"user":{"id":1}}`). Escape with `\{{` and `\}}` — in HCL string literals, write `\\{{` and `\\}}` because HCL itself consumes one `\`
+- Interpolation does **no escaping**: `"name": "{{request.body.name}}"` breaks (invalid JSON, see Debugging #3) if the value contains a quote or newline. Fine when you control the data; when echoing arbitrary input (request bodies, proxied data), use `"name": {{json request.body.name}}` — **without** surrounding quotes, `json` emits its own. Also remember path params are always strings: write `"id": "{{request.params.id}}"`, quoted; unquoted only parses when the value happens to be numeric
+- Bare `{{` or `}}` in a body that isn't part of a template expression will fail to parse. Easy to hit by accident when a JSON payload ends in nested closing braces (`{"user":{"id":1}}`). The template needs to see `\{{` / `\}}`, and the backslash count depends on the HCL body form: in a heredoc (`<<-EOF`), write `\{{` and `\}}` as-is; in a double-quoted string, write `\\{{` and `\\}}` because quoted HCL strings consume one `\` (heredocs don't). Getting it backwards fails either way: the doubled form in a heredoc is a template compile error (500), and the single form in a quoted string is an HCL parse error that silently drops the whole file
+- A repeated query key produces an **array**: with `?tag=a&tag=b`, `request.query.tag` is `["a","b"]` — but with a single `?tag=a` it's a plain string. Direct interpolation of the array renders the literal text `[object Array]`, while array helpers misbehave on the string case (`join`/`itemAt` render empty, `length` counts characters). `{{#forEach}}` handles both shapes — it wraps a scalar into a single iteration: `[{{#forEach request.query.tag}}"{{item}}"{{^isLast}},{{/isLast}}{{/forEach}}]` renders `["a","b"]` and `["only"]`. To branch on shape, `{{typeof request.query.tag}}` is `object` for an array, `string` for a single value
 - `{{default a b}}` only falls back to `b` when `a` is `null` or `undefined`. Empty strings (`""`) and `0` pass through — so `{{default request.query.foo 'x'}}` on `?foo=` renders empty, not `'x'`. Use `{{#unless}}` or a length check for "blank" semantics
