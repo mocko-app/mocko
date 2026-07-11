@@ -13,7 +13,7 @@ import { DocsSnippet } from "@/components/docs/snippet";
 import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Overview",
+  title: "Overview | Mocko Docs",
   description:
     "Start with Mocko docs for local development, self-hosting, and Mocko Cloud workflows.",
 };
