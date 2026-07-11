@@ -10,6 +10,8 @@ You're on Mocko, a dynamic HTTP mocking tool.
 
 ./package.json is the root workspace package.json file which defines the workspaces and dependencies for those projects.
 
+./skills/mocko is the agent skill for writing and reviewing Mocko mocks, installed by users with `npx skills@latest add mocko-app/mocko/skills/mocko`. When you change user-facing behavior it documents (mock HCL structure, Bigodon or template helpers, request context, flags, proxying, the SDK), update the skill in the same change.
+
 mocko-control and mocko-core are deployed and upgraded independently: a user may run a newer control against an older core, or vice versa. Treat the HTTP contract between them as additive-only. Add new fields as optional, never remove or rename existing ones, and never delete an endpoint one side might still call. Control must tolerate missing new fields (older core) and ignore unknown ones (newer core). Prefer computing derived state inside control from fields core already sends over teaching core to report it, so a change ships without requiring both sides to upgrade together.
 
 Avoid code comments. Only comment when the code cannot be made to speak for itself (a non-obvious workaround, a cross-file invariant, a subtle gotcha). Short comments are sometimes fine in tests to clarify intent. When in doubt, leave it out.

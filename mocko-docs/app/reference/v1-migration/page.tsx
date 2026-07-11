@@ -120,7 +120,7 @@ control:
         translate the flagged templates:
       </DocsP>
       <DocsSnippet
-        command="npx skills@latest add mocko-app/skills/mocko"
+        command="npx skills@latest add mocko-app/mocko/skills/mocko"
         className="mb-4"
       />
 
