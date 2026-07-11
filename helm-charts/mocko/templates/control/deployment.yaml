@@ -47,6 +47,10 @@ spec:
               value: "0.0.0.0"
             - name: MOCKO_CORE_URL
               value: http://{{ include "mocko.core.fullname" . }}:{{ .Values.core.service.port }}
+            {{- with .Values.control.publicUrl }}
+            - name: MOCKO_PUBLIC_URL
+              value: {{ . | quote }}
+            {{- end }}
             - name: MOCKO_DEPLOY_SECRET
               valueFrom:
                 secretKeyRef:

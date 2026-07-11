@@ -54,8 +54,8 @@ export function useMock(
     },
     {
       refreshInterval: (mock) =>
-        mock?.annotations.includes("READ_ONLY") ? 5000 : 0,
-      revalidateOnFocus: false,
+        mock?.annotations.includes("READ_ONLY") ? 5000 : 10_000,
+      revalidateOnFocus: true,
       ...options,
     },
   );

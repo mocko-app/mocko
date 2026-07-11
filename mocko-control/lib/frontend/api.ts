@@ -72,6 +72,9 @@ async function request<T>(call: () => Promise<AxiosResponse<T>>): Promise<T> {
   }
 }
 
+export const getMock = (id: string) =>
+  request(() => api.get<MockDetailsDto>(`/api/mocks/${id}`));
+
 export const createMock = (payload: CreateMockDto) =>
   request(() => api.post("/api/mocks", payload));
 

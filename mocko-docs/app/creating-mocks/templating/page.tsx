@@ -303,6 +303,12 @@ EOF`}</DocsCodeBlock>
           <DocsCode>{"{{log (json request.body)}}"}</DocsCode>.
         </li>
       </DocsUl>
+      <DocsP>
+        A coding agent with the{" "}
+        <DocsLink href="/coding-agents">Mocko skill</DocsLink> installed knows
+        Bigodon and the request context: paste the template together with the
+        wrong output and ask it to find the bug.
+      </DocsP>
 
       <DocsH2>Behavior details</DocsH2>
       <DocsUl>

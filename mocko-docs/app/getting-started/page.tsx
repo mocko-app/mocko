@@ -40,6 +40,13 @@ const nextSteps = [
     href: "/recipes",
     cta: "Open guide",
   },
+  {
+    title: "Set up your coding agent",
+    description:
+      "Install the Mocko skill so your agent can write and debug mocks.",
+    href: "/coding-agents",
+    cta: "Open guide",
+  },
 ] as const;
 
 export default function GettingStartedPage() {
@@ -63,8 +70,8 @@ export default function GettingStartedPage() {
       <DocsH2>2. Start Mocko</DocsH2>
       <DocsSnippet command="mocko" className="mb-4" />
       <DocsP>
-        A folder argument is optional. Use <DocsCode>mocko ./</DocsCode> if
-        you also want to load file mocks from the current directory. Without a
+        A folder argument is optional. Use <DocsCode>mocko ./</DocsCode> if you
+        also want to load file mocks from the current directory. Without a
         folder, Mocko starts with no pre-loaded file mocks.
       </DocsP>
       <Callout variant="warning">
@@ -116,10 +123,18 @@ export default function GettingStartedPage() {
         development workflow, define it as a file mock so it can live with your
         project, run in CI, and be reviewed like any other change.
       </DocsP>
+      <Callout variant="info">
+        If you work with a coding agent, it can write the files for you: install
+        the Mocko skill from{" "}
+        <Link href="/coding-agents" className="underline underline-offset-4">
+          Coding Agents
+        </Link>
+        .
+      </Callout>
 
       {/* What's next */}
       <DocsH2>{"What's next?"}</DocsH2>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2">
         {nextSteps.map(({ title, description, href, cta }) => (
           <div
             key={href}

@@ -4,10 +4,12 @@ import {
   CopyIcon,
   MoreHorizontalIcon,
   PencilIcon,
+  TerminalIcon,
   ToggleLeftIcon,
   ToggleRightIcon,
   TrashIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +17,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getHosts, getMock, getVersions } from "@/lib/frontend/api";
+import { buildMockCurl } from "@/lib/frontend/mock-curl";
 import type { MockDto } from "@/lib/types/mock-dtos";
+
+async function copyCurl(mock: MockDto): Promise<void> {
+  try {
+    const [details, versions, hosts] = await Promise.all([
+      getMock(mock.id),
+      getVersions(),
+      mock.host ? getHosts() : Promise.resolve([]),
+    ]);
+
+    const curl = buildMockCurl(details, versions.mockBaseUrl, hosts);
+    await navigator.clipboard.writeText(curl);
+    toast.success("curl command copied to clipboard.");
+  } catch {
+    toast.error("Couldn't copy curl command.");
+  }
+}
 
 export const MockActionsMenu: React.FC<{
   mock: MockDto;
@@ -42,6 +62,10 @@ export const MockActionsMenu: React.FC<{
         <DropdownMenuItem onClick={onDuplicate}>
           <CopyIcon aria-hidden="true" />
           Duplicate
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => copyCurl(mock)}>
+          <TerminalIcon aria-hidden="true" />
+          Copy as curl
         </DropdownMenuItem>
         {!isReadOnly && (
           <>

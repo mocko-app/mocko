@@ -98,7 +98,11 @@ export default function RecipesPage() {
         The recipes assume you know the basics from the{" "}
         <DocsLink href="/creating-mocks/file-mocks">Creating Mocks</DocsLink>{" "}
         section, but each page links back to the concepts it uses, so it is safe
-        to jump straight to the one that matches your problem.
+        to jump straight to the one that matches your problem. They also work
+        well as prompts: with the{" "}
+        <DocsLink href="/coding-agents">Mocko skill</DocsLink> installed, you
+        can point a coding agent at a recipe and ask for a version adapted to
+        your API.
       </DocsP>
     </DocsPage>
   );

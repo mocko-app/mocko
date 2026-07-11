@@ -12,3 +12,4 @@ data/redis/*
 .eslintcache
 /node_modules
 /research
+CLAUDE.local.md

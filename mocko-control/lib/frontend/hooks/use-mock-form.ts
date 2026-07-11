@@ -206,6 +206,11 @@ export function useMockForm(
   const { mutate } = useSWRConfig();
   const listParams = useMockListParams();
   const { data: mocksData, mutate: mutateMocks } = useMocks();
+  const serverForm = useMemo(() => getInitialFormState(initial), [initial]);
+  const serverFormJson = useMemo(
+    () => JSON.stringify(serverForm),
+    [serverForm],
+  );
   const [form, setForm] = useState<MockFormState>(() =>
     getInitialFormState(initial),
   );
@@ -234,6 +239,11 @@ export function useMockForm(
     () => !isReadOnly && JSON.stringify(form) !== baselineJson,
     [form, baselineJson, isReadOnly],
   );
+  const hasServerDrift =
+    mode === "edit" &&
+    !isReadOnly &&
+    isDirty &&
+    serverFormJson !== baselineJson;
   const activeContentType = CONTENT_TYPES.find(
     (contentType) => contentType.id === form.contentType,
   )!;
@@ -250,6 +260,21 @@ export function useMockForm(
     }
   }, [initial]);
 
+  useEffect(() => {
+    if (
+      mode === "edit" &&
+      !isReadOnly &&
+      !isDirty &&
+      serverFormJson !== baselineJson
+    ) {
+      setForm(serverForm);
+      setBaselineJson(serverFormJson);
+      setHideErrors(true);
+      setServerErrors({});
+      setTemplateError(null);
+    }
+  }, [mode, isReadOnly, isDirty, serverForm, serverFormJson, baselineJson]);
+
   const {
     isConfirmingDiscard,
     confirmDiscard,
@@ -259,6 +284,14 @@ export function useMockForm(
 
   function set<K extends keyof MockFormState>(key: K, value: MockFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setHideErrors(true);
+    setServerErrors({});
+    setTemplateError(null);
+  }
+
+  function loadServerValue() {
+    setForm(serverForm);
+    setBaselineJson(serverFormJson);
     setHideErrors(true);
     setServerErrors({});
     setTemplateError(null);
@@ -341,6 +374,7 @@ export function useMockForm(
   return {
     errors,
     form,
+    hasServerDrift,
     isConfirmingDiscard,
     isDirty,
     isSubmitting,
@@ -352,6 +386,7 @@ export function useMockForm(
     confirmDiscard,
     handleSubmit,
     keepEditing,
+    loadServerValue,
     navigateWithGuard,
     activeContentType,
   };
