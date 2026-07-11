@@ -20,6 +20,24 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "./",
   },
+  openGraph: {
+    type: "website",
+    siteName: "Mocko Docs",
+    locale: "en_US",
+    url: "./",
+    images: [
+      {
+        url: "https://cdn.codetunnel.net/mocko/og-v1.png",
+        width: 1200,
+        height: 630,
+        alt: "Mocko – Dynamic HTTP mocking tool",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@mockoapp",
+  },
   icons: {
     icon: "https://cdn.codetunnel.net/mocko/icon.png",
     shortcut: "https://cdn.codetunnel.net/mocko/icon.png",
