@@ -41,7 +41,7 @@ export default function MatchingPage() {
       <DocsCodeBlock language="hcl">{`mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
-    { "id": {{request.params.id}}, "role": "member" }
+    { "id": "{{request.params.id}}", "role": "member" }
   EOF
 }
 

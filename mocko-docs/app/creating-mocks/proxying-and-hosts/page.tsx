@@ -104,7 +104,7 @@ mock "GET /invoices/{id}" {
   host   = "billing"
   format = "json"
   body = <<-EOF
-    { "id": {{request.params.id}}, "status": "past_due" }
+    { "id": "{{request.params.id}}", "status": "past_due" }
   EOF
 }`}</DocsCodeBlock>
       <DocsUl>

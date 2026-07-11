@@ -58,7 +58,7 @@ mock "GET /payments/{id}" {
       {{setStatus 503}}
       { "error": "Payment provider unavailable" }
     {{else}}
-      { "id": {{request.params.id}}, "status": "approved" }
+      { "id": "{{request.params.id}}", "status": "approved" }
     {{/hasFlag}}
   EOF
 }`}</DocsCodeBlock>
@@ -152,7 +152,7 @@ mock "GET /payments/{id}" {
     {{setFlag $nameKey  request.body.name}}
     {{setFlag $emailKey request.body.email}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{getFlag $nameKey}}",
       "email": "{{getFlag $emailKey}}"
     }
@@ -165,7 +165,7 @@ mock "GET /users/{id}" {
     {{= $nameKey  (append 'users:' request.params.id ':name')}}
     {{= $emailKey (append 'users:' request.params.id ':email')}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{default (getFlag $nameKey) 'John Doe'}}",
       "email": "{{default (getFlag $emailKey) 'john@example.com'}}"
     }

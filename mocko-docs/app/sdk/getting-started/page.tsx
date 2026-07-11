@@ -91,7 +91,7 @@ await mocko.deleteFlag('users:123:status');`}</DocsCodeBlock>
   body = <<-EOF
     {{= $statusKey (append 'users:' request.params.id ':status')}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "status": "{{default (getFlag $statusKey) 'active'}}"
     }
   EOF

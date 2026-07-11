@@ -41,12 +41,12 @@ export default function PollingStatusPage() {
     {{= $count (toInt (default (getFlag $key) 0))}}
     {{setFlag $key (add $count 1)}}
     {{#lt $count 2}}
-      { "id": {{request.params.id}}, "status": "queued" }
+      { "id": "{{request.params.id}}", "status": "queued" }
     {{else lt $count 5}}
-      { "id": {{request.params.id}}, "status": "processing" }
+      { "id": "{{request.params.id}}", "status": "processing" }
     {{else}}
       {
-        "id": {{request.params.id}},
+        "id": "{{request.params.id}}",
         "status": "done",
         "url": "https://files.example.com/export-{{request.params.id}}.csv"
       }

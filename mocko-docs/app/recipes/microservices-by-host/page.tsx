@@ -53,7 +53,7 @@ mock "GET /invoices/{id}" {
   host   = "billing"
   format = "json"
   body = <<-EOF
-    { "id": {{request.params.id}}, "status": "past_due" }
+    { "id": "{{request.params.id}}", "status": "past_due" }
   EOF
 }
 
@@ -61,7 +61,7 @@ mock "GET /products/{id}" {
   host   = "catalog"
   format = "json"
   body = <<-EOF
-    { "id": {{request.params.id}}, "inStock": false }
+    { "id": "{{request.params.id}}", "inStock": false }
   EOF
 }`}</DocsCodeBlock>
 

@@ -103,6 +103,13 @@ export default function DebugBrokenJsonPage() {
         <DocsCode>{'"name": "{{item.name}}"'}</DocsCode>. Numbers and booleans
         go unquoted; strings do not.
       </DocsP>
+      <DocsP>
+        The inverse bug: interpolation does no escaping, so if the value itself
+        can contain a quote or newline (echoing request data, for example), the
+        quoted pattern breaks. For those cases use{" "}
+        <DocsCode>{'"name": {{json item.name}}'}</DocsCode> without surrounding
+        quotes, <DocsCode>json</DocsCode> emits its own.
+      </DocsP>
 
       <DocsH2>Suspect 4: literal braces</DocsH2>
       <DocsP>
