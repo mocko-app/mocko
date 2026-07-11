@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorProps } from "@monaco-editor/react";
 import type { ParsingError } from "@/lib/types/error-dtos";
 
@@ -36,6 +36,55 @@ const EDITOR_OPTIONS: EditorProps["options"] = {
   padding: { top: 8, bottom: 8 },
 };
 
+type MonacoEditorInstance = Parameters<NonNullable<EditorProps["onMount"]>>[0];
+
+const ESTIMATED_LINE_HEIGHT = 19;
+const WRAPPER_BORDER_HEIGHT = 2;
+const ESTIMATED_EDITOR_PADDING = 16;
+
+function clampedHeight(
+  contentHeight: number,
+  minHeight: number,
+  maxHeight: string,
+) {
+  return `clamp(${minHeight}px, ${contentHeight + WRAPPER_BORDER_HEIGHT}px, ${maxHeight})`;
+}
+
+function useAutoGrowHeight(
+  initialValue: string,
+  minHeight: number,
+  maxHeight: string,
+) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [initialHeight] = useState(() =>
+    clampedHeight(
+      initialValue.split("\n").length * ESTIMATED_LINE_HEIGHT +
+        ESTIMATED_EDITOR_PADDING,
+      minHeight,
+      maxHeight,
+    ),
+  );
+
+  const attachAutoGrow = useCallback(
+    (editor: MonacoEditorInstance) => {
+      const resize = () => {
+        if (containerRef.current) {
+          containerRef.current.style.height = clampedHeight(
+            editor.getContentHeight(),
+            minHeight,
+            maxHeight,
+          );
+        }
+      };
+      editor.onDidContentSizeChange(resize);
+      resize();
+    },
+    [minHeight, maxHeight],
+  );
+
+  return { containerRef, initialHeight, attachAutoGrow };
+}
+
 type BodyEditorProps = {
   value: string;
   onChange: (value: string) => void;
@@ -58,12 +107,15 @@ export function BodyEditor({
   parsingError = null,
 }: BodyEditorProps) {
   const resolvedLanguage = value.includes("{{") ? "handlebars" : language;
-  const editorRef = useRef<
-    Parameters<NonNullable<EditorProps["onMount"]>>[0] | null
-  >(null);
+  const editorRef = useRef<MonacoEditorInstance | null>(null);
   const monacoRef = useRef<
     Parameters<NonNullable<EditorProps["onMount"]>>[1] | null
   >(null);
+  const { containerRef, initialHeight, attachAutoGrow } = useAutoGrowHeight(
+    value,
+    240,
+    "75vh",
+  );
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -91,7 +143,11 @@ export function BodyEditor({
   }, [parsingError, value]);
 
   return (
-    <div className="h-96 w-full min-w-0 overflow-visible rounded-lg border border-border">
+    <div
+      ref={containerRef}
+      style={{ height: initialHeight }}
+      className="w-full min-w-0 overflow-visible rounded-lg border border-border"
+    >
       <MonacoEditor
         height="100%"
         width="100%"
@@ -102,6 +158,7 @@ export function BodyEditor({
         onMount={(editor, monaco) => {
           editorRef.current = editor;
           monacoRef.current = monaco;
+          attachAutoGrow(editor);
         }}
         options={{ ...EDITOR_OPTIONS, readOnly }}
       />
@@ -114,8 +171,18 @@ export function FlagEditor({
   onChange,
   readOnly = false,
 }: FlagEditorProps) {
+  const { containerRef, initialHeight, attachAutoGrow } = useAutoGrowHeight(
+    value,
+    160,
+    "400px",
+  );
+
   return (
-    <div className="h-96 w-full min-w-0 overflow-visible rounded-lg border border-border">
+    <div
+      ref={containerRef}
+      style={{ height: initialHeight }}
+      className="w-full min-w-0 overflow-visible rounded-lg border border-border"
+    >
       <MonacoEditor
         height="100%"
         width="100%"
@@ -123,6 +190,7 @@ export function FlagEditor({
         theme="vs-dark"
         value={value}
         onChange={(v) => onChange(v ?? "")}
+        onMount={attachAutoGrow}
         options={{ ...EDITOR_OPTIONS, readOnly }}
       />
     </div>
