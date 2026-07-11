@@ -11,7 +11,10 @@ export type DocsNavGroup = {
 export const docsNavGroups: DocsNavGroup[] = [
   {
     title: "Getting Started",
-    items: [{ title: "Getting Started", href: "/getting-started" }],
+    items: [
+      { title: "Getting Started", href: "/getting-started" },
+      { title: "Coding Agents", href: "/coding-agents" },
+    ],
   },
   {
     title: "Creating Mocks",
