@@ -74,7 +74,7 @@ Inside `body`, the following context is available:
 
 ```hbs
 {{request.params.id}}          {{! path parameter }}
-{{request.query.page}}         {{! query string }}
+{{request.query.page}}         {{! query param (string; array if the key repeats — see Gotchas) }}
 {{request.headers.x-token}}    {{! request header (lowercase) }}
 {{request.body.field}}         {{! parsed request body field }}
 {{data.myblock.key}}           {{! data block values }}
@@ -334,4 +334,5 @@ See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 - Valid JSON bodies are automatically pretty-printed — don't worry about whitespace and indentation in the template. If the rendered body isn't valid JSON, mocko logs an error and returns the raw text untouched (a useful signal that your template has a JSON bug — usually a stray comma or an empty field)
 - Interpolation does **no escaping**: `"name": "{{request.body.name}}"` breaks (invalid JSON, see Debugging #3) if the value contains a quote or newline. Fine when you control the data; when echoing arbitrary input (request bodies, proxied data), use `"name": {{json request.body.name}}` — **without** surrounding quotes, `json` emits its own. Also remember path params are always strings: write `"id": "{{request.params.id}}"`, quoted; unquoted only parses when the value happens to be numeric
 - Bare `{{` or `}}` in a body that isn't part of a template expression will fail to parse. Easy to hit by accident when a JSON payload ends in nested closing braces (`{"user":{"id":1}}`). The template needs to see `\{{` / `\}}`, and the backslash count depends on the HCL body form: in a heredoc (`<<-EOF`), write `\{{` and `\}}` as-is; in a double-quoted string, write `\\{{` and `\\}}` because quoted HCL strings consume one `\` (heredocs don't). Getting it backwards fails either way: the doubled form in a heredoc is a template compile error (500), and the single form in a quoted string is an HCL parse error that silently drops the whole file
+- A repeated query key produces an **array**: with `?tag=a&tag=b`, `request.query.tag` is `["a","b"]` — but with a single `?tag=a` it's a plain string. Direct interpolation of the array renders the literal text `[object Array]`, while array helpers misbehave on the string case (`join`/`itemAt` render empty, `length` counts characters). `{{#forEach}}` handles both shapes — it wraps a scalar into a single iteration: `[{{#forEach request.query.tag}}"{{item}}"{{^isLast}},{{/isLast}}{{/forEach}}]` renders `["a","b"]` and `["only"]`. To branch on shape, `{{typeof request.query.tag}}` is `object` for an array, `string` for a single value
 - `{{default a b}}` only falls back to `b` when `a` is `null` or `undefined`. Empty strings (`""`) and `0` pass through — so `{{default request.query.foo 'x'}}` on `?foo=` renders empty, not `'x'`. Use `{{#unless}}` or a length check for "blank" semantics
