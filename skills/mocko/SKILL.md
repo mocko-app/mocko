@@ -285,15 +285,21 @@ mock "GET /products/{id}" {
 
 When a mock isn't doing what you expect, work through these in order:
 
-1. **Check mocko's stdout.** Template compile errors print with a line/column pointer at load time — if a mock isn't being served, the error is there.
+1. **Check mocko's stdout at load time.** Every load problem prints a `warn`, but the server starts and reports "Serving mocks" regardless — confirm your route appears in the `Mapping 'GET /path'` lines. The failure modes behave differently:
+   - **Template compile error** (unclosed block, bad expression): warned with a line/column pointer, but the route **is still mapped** and returns a diagnostic 500 (`This mock has an invalid template body: …`) on every request.
+   - **Invalid field value** (`status` outside 200–599, `delay` outside 0–300000): warned, and the mock is **silently not mapped** — requests fall through to the default proxy or 404, which is easy to misread as a routing problem.
+   - **HCL syntax error**: a single terse `Failed to parse file 'path:line:col'` warn and **every mock in that file** is silently not mapped.
+   - **Unknown helper names are not caught at load** — they fail per-request (see #2).
 
-2. **Output comes back unformatted / not pretty-printed.** The rendered body isn't valid JSON. Mocko logs an error line — `Response declared a JSON Content-Type, but the rendered body was not valid JSON…` — and returns the raw text. Usual causes: a stray trailing comma (classic `{{^isLast}}` inside `{{#each}}` — see Gotchas), missing quotes around a string, or an empty field because a path resolved to undefined (see #4).
+2. **Generic 500 (`An internal server error occurred`) on request.** A template error at render time: an unknown helper, `setStatus` given a non-number or a value outside 200–599, etc. The client body says nothing useful; the real message (`Helper foo not found`, `Status must be between 200 and 599`) is printed to the server log at request time.
 
-3. **Sprinkle `{{log '...'}}`.** Prints to the server console at `info` level. Useful for confirming a branch was taken, bisecting a template, or dumping a value: `{{log (json someValue)}}`.
+3. **Output comes back unformatted / not pretty-printed.** The rendered body isn't valid JSON. Mocko logs an error line — `Response declared a JSON Content-Type, but the rendered body was not valid JSON…` — and returns the raw text. Usual causes: a stray trailing comma (classic `{{^isLast}}` inside `{{#each}}` — see Gotchas), missing quotes around a string, or an empty field because a path resolved to undefined (see #5).
 
-4. **Empty string where a value should be.** Usually the context changed under you. Look for a surrounding `{{#forEach}}`, `{{#each}}`, `{{#with}}`, or a direct object/array block (`{{#request.body}}…{{/request.body}}`). Inside those, `request`, `data`, etc. are out of scope — extract to `$variables` before entering, or use `$root.request...`.
+4. **Sprinkle `{{log '...'}}`.** Prints to the server console at `info` level. Useful for confirming a branch was taken, bisecting a template, or dumping a value: `{{log (json someValue)}}`.
 
-5. **Wrong mock matched.** Exact paths beat parameterized paths; within the same specificity, first declaration wins. A deployed (UI/API) mock on the same route beats file mocks.
+5. **Empty string where a value should be.** Usually the context changed under you. Look for a surrounding `{{#forEach}}`, `{{#each}}`, `{{#with}}`, or a direct object/array block (`{{#request.body}}…{{/request.body}}`). Inside those, `request`, `data`, etc. are out of scope — extract to `$variables` before entering, or use `$root.request...`.
+
+6. **Wrong mock matched.** Exact paths beat parameterized paths; within the same specificity, first declaration wins. A deployed (UI/API) mock on the same route beats file mocks. A POST to a GET-only route is a plain 404 (not 405) — same symptom as no route at all.
 
 ## v1 → v2 migration
 
