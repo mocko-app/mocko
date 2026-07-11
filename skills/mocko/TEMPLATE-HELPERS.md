@@ -34,6 +34,8 @@ Flags are persistent key-value state scoped to the Mocko instance. They survive 
 | `hasFlag` | `hasFlag 'key'` | Returns `true`/`false` — use in blocks for conditionals |
 | `delFlag` | `delFlag 'key'` | Delete a flag |
 
+> Setting a flag again with a TTL replaces any running TTL; setting it again without one keeps the existing TTL counting down — it does not make the flag permanent.
+
 ### Flag keys and the UI
 
 Flag keys containing `:` are displayed as nested folders in the Mocko UI. Use this to organise per-resource flags:

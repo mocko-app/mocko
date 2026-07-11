@@ -1,6 +1,8 @@
 import { MockoClient } from '@mocko/sdk';
 import { createSubject, MockoInstance, randomPath } from '../../harness';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 type UserProfile = {
   status: string;
   nested: {
@@ -51,6 +53,18 @@ describe('sdk flags', () => {
     expect(await mocko.getFlag<string>(stringFlagKey)).toBeUndefined();
     expect(await mocko.getFlag<UserProfile>(objectFlagKey)).toBeUndefined();
     expect(await mocko.getFlag<string[]>(arrayFlagKey)).toBeUndefined();
+  });
+
+  it('expires flags set with a ttl', async () => {
+    subject = await createSubject();
+    const mocko = sdkClient(subject);
+    const flagKey = `${randomFlagPrefix()}:ttl:user-123:status`;
+
+    await mocko.setFlag(flagKey, 'active', 1);
+    expect(await mocko.getFlag<string>(flagKey)).toBe('active');
+
+    await sleep(1500);
+    expect(await mocko.getFlag<string>(flagKey)).toBeUndefined();
   });
 
   it('supports authenticated flag requests when management auth mode is all', async () => {

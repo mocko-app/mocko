@@ -28,8 +28,9 @@ export function buildArgs(
 export function flagPayload(
   value: JsonFlagValue,
   source: FlagSource = 'CONTROL',
-): { value: string; source: FlagSource } {
-  return { value: JSON.stringify(value), source };
+  ttl?: number,
+): { value: string; source: FlagSource; ttl?: number } {
+  return { value: JSON.stringify(value), source, ttl };
 }
 
 export async function setControlFlag(
@@ -48,10 +49,11 @@ export async function setCoreFlag(
   key: string,
   value: JsonFlagValue,
   source: FlagSource = 'CONTROL',
+  ttl?: number,
 ): Promise<AxiosResponse> {
   return await core.put(
     `/__mocko__/flags/${encodeURIComponent(key)}`,
-    flagPayload(value, source),
+    flagPayload(value, source, ttl),
   );
 }
 

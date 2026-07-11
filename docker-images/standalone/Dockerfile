@@ -3,7 +3,7 @@ FROM node:24-alpine
 ENV MOCKO_URL= \
     MOCKO_TIMEOUT=30000
 
-RUN npm i -g @mocko/cli@2.0.0 --omit=dev --omit=optional --no-audit --no-fund && \
+RUN npm i -g @mocko/cli@2.1.0 --omit=dev --omit=optional --no-audit --no-fund && \
     npm cache clean --force && \
     rm -rf /tmp/* && \
     adduser -D -u 10001 mocko && \

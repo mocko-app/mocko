@@ -1,5 +1,7 @@
 import { createSubject, MockoInstance } from '../../harness';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe('flags', () => {
   let subject: MockoInstance;
 
@@ -29,6 +31,21 @@ describe('flags', () => {
       }
       mock "GET /has-flag-noelse" {
         body = "{{#hasFlag 'test_flag'}}yes{{/hasFlag}}"
+      }
+      mock "PUT /ttl-flag" {
+        body = "{{setFlag 'ttl_flag' request.body.value 300}}"
+      }
+      mock "PUT /ttl-flag-long" {
+        body = "{{setFlag 'ttl_flag' request.body.value 60000}}"
+      }
+      mock "PUT /ttl-flag-nottl" {
+        body = "{{setFlag 'ttl_flag' request.body.value}}"
+      }
+      mock "GET /ttl-flag" {
+        body = "value: {{getFlag 'ttl_flag'}}"
+      }
+      mock "GET /has-ttl-flag" {
+        body = "{{#hasFlag 'ttl_flag'}}yes{{else}}no{{/hasFlag}}"
       }
     `);
   });
@@ -77,6 +94,36 @@ describe('flags', () => {
 
     await subject.client.delete('/flag');
     expect((await subject.client.get('/has-flag')).data).toContain('no');
+  });
+
+  it('expires flags after their ttl', async () => {
+    await subject.client.put('/ttl-flag', { value: 'short-lived' });
+    expect((await subject.client.get('/ttl-flag')).data).toBe(
+      'value: short-lived',
+    );
+    expect((await subject.client.get('/has-ttl-flag')).data).toContain('yes');
+
+    await sleep(800);
+    expect((await subject.client.get('/ttl-flag')).data).toBe('value: ');
+    expect((await subject.client.get('/has-ttl-flag')).data).toContain('no');
+  });
+
+  it('keeps a running ttl when the flag is set again without one', async () => {
+    await subject.client.put('/ttl-flag', { value: 'first' });
+    await subject.client.put('/ttl-flag-nottl', { value: 'second' });
+    expect((await subject.client.get('/ttl-flag')).data).toBe('value: second');
+
+    await sleep(800);
+    expect((await subject.client.get('/has-ttl-flag')).data).toContain('no');
+  });
+
+  it('replaces a running ttl when the flag is set again with a new one', async () => {
+    await subject.client.put('/ttl-flag', { value: 'first' });
+    await subject.client.put('/ttl-flag-long', { value: 'second' });
+
+    await sleep(800);
+    expect((await subject.client.get('/ttl-flag')).data).toBe('value: second');
+    expect((await subject.client.get('/has-ttl-flag')).data).toContain('yes');
   });
 
   it('hasFlag works without an else block', async () => {

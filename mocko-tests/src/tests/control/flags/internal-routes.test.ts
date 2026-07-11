@@ -1,5 +1,7 @@
 import { createSubject, MockoInstance, setCoreFlag } from '../../../harness';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe('proxy __mocko__ flags routes', () => {
   let subject: MockoInstance;
 
@@ -73,6 +75,46 @@ describe('proxy __mocko__ flags routes', () => {
       '/__mocko__/flags/internal%3Atest%3Aflag',
     );
     expect(idempotentDeleteRes.status).toBe(204);
+  });
+
+  it('expires flags set with a ttl and drops them from listings', async () => {
+    subject = await createSubject();
+
+    const createRes = await setCoreFlag(
+      subject.client,
+      'internal:ttl:flag',
+      'temporary',
+      'CONTROL',
+      1,
+    );
+    expect(createRes.status).toBe(200);
+
+    const getRes = await subject.client.get(
+      '/__mocko__/flags/internal%3Attl%3Aflag',
+    );
+    expect(getRes.status).toBe(200);
+    expect(getRes.data.value).toBe('"temporary"');
+
+    const listRes = await subject.client.get(
+      '/__mocko__/flags?prefix=internal:ttl:',
+    );
+    expect(listRes.status).toBe(200);
+    expect(listRes.data.flagKeys).toEqual([
+      expect.objectContaining({ type: 'FLAG', name: 'flag' }),
+    ]);
+
+    await sleep(1500);
+
+    const expiredGetRes = await subject.client.get(
+      '/__mocko__/flags/internal%3Attl%3Aflag',
+    );
+    expect(expiredGetRes.status).toBe(404);
+
+    const expiredListRes = await subject.client.get(
+      '/__mocko__/flags?prefix=internal:ttl:',
+    );
+    expect(expiredListRes.status).toBe(200);
+    expect(expiredListRes.data.flagKeys).toEqual([]);
   });
 
   it('requires a valid source when setting flags on __mocko__ routes', async () => {
