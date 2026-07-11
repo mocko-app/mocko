@@ -40,6 +40,8 @@ String literals accept `"double"`, `'single'`, or `` `backtick` `` quotes.
 | Escape `}}` | `\}}` renders as literal `}}` |
 | Escape `\` | `\\` renders as literal `\` (only needed before `{{`) |
 
+> These are what the template engine must receive. In Mocko HCL bodies, heredocs (`<<-EOF`) pass backslashes through as-is (write `\{{`), while double-quoted strings consume one backslash (write `\\{{`).
+
 > Note: no space allowed between `{{` and `#`, `^`, `/`.
 
 ## Common patterns
