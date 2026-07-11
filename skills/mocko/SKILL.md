@@ -36,7 +36,7 @@ mock "GET /users/{id}" {
   format = "json"
   body = <<-EOF
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "Alice"
     }
   EOF
@@ -171,7 +171,7 @@ mock "PUT /users/{id}" {
     {{setFlag $nameKey request.body.name}}
     {{setFlag $emailKey request.body.email}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{getFlag $nameKey}}",
       "email": "{{getFlag $emailKey}}"
     }
@@ -184,7 +184,7 @@ mock "GET /users/{id}" {
     {{= $nameKey (append 'users:' request.params.id ':name')}}
     {{= $emailKey (append 'users:' request.params.id ':email')}}
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "name": "{{default (getFlag $nameKey) 'John Doe'}}",
       "email": "{{default (getFlag $emailKey) 'john@example.com'}}"
     }
@@ -332,5 +332,6 @@ See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 - `{{#each}}` and `{{#forEach}}` are **not interchangeable**: `isLast`/`isFirst`/`index`/`total` only exist inside `{{#forEach}}`; using `{{^isLast}}` inside `{{#each}}` silently always renders (isLast is undefined → falsy → negated block fires every iteration → trailing comma). Also, `$this` inside `{{#forEach}}` is the entire context object `{item, index, …}`, not the current element — use `{{item}}` instead. **Always use `forEach` in mock bodies that produce comma-separated output** (i.e. almost any JSON array).
 - Any block that changes context (`{{#forEach}}`, `{{#each}}`, `{{#with}}`, and direct object/array blocks like `{{#request.body}}{{name}}{{/request.body}}`) puts `request`, `data`, etc. out of scope inside the block; extract values to variables before entering (`{{= $id request.params.id}}`) or use `$root.request.params.id`
 - Valid JSON bodies are automatically pretty-printed — don't worry about whitespace and indentation in the template. If the rendered body isn't valid JSON, mocko logs an error and returns the raw text untouched (a useful signal that your template has a JSON bug — usually a stray comma or an empty field)
+- Interpolation does **no escaping**: `"name": "{{request.body.name}}"` breaks (invalid JSON, see Debugging #3) if the value contains a quote or newline. Fine when you control the data; when echoing arbitrary input (request bodies, proxied data), use `"name": {{json request.body.name}}` — **without** surrounding quotes, `json` emits its own. Also remember path params are always strings: write `"id": "{{request.params.id}}"`, quoted; unquoted only parses when the value happens to be numeric
 - Bare `{{` or `}}` in a body that isn't part of a template expression will fail to parse. Easy to hit by accident when a JSON payload ends in nested closing braces (`{"user":{"id":1}}`). The template needs to see `\{{` / `\}}`, and the backslash count depends on the HCL body form: in a heredoc (`<<-EOF`), write `\{{` and `\}}` as-is; in a double-quoted string, write `\\{{` and `\\}}` because quoted HCL strings consume one `\` (heredocs don't). Getting it backwards fails either way: the doubled form in a heredoc is a template compile error (500), and the single form in a quoted string is an HCL parse error that silently drops the whole file
 - `{{default a b}}` only falls back to `b` when `a` is `null` or `undefined`. Empty strings (`""`) and `0` pass through — so `{{default request.query.foo 'x'}}` on `?foo=` renders empty, not `'x'`. Use `{{#unless}}` or a length check for "blank" semantics
