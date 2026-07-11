@@ -200,7 +200,14 @@ export default function ReferenceHelpersPage() {
             <DocsTd>
               <DocsCode>request.query.&lt;name&gt;</DocsCode>
             </DocsTd>
-            <DocsTd>Query string parameters. Always strings.</DocsTd>
+            <DocsTd>
+              Query string parameters. Strings, except a repeated key (
+              <DocsCode>?tag=a&amp;tag=b</DocsCode>) yields an array.
+              Interpolating an array directly renders{" "}
+              <DocsCode>[object Array]</DocsCode>; loop with{" "}
+              <DocsCode>forEach</DocsCode>, which also treats a single value as
+              a one-item list.
+            </DocsTd>
           </tr>
           <tr>
             <DocsTd>

@@ -43,7 +43,7 @@ export default function TemplatingPage() {
   format = "json"
   body = <<-EOF
     {
-      "id": {{request.params.id}},
+      "id": "{{request.params.id}}",
       "status": "shipped"
     }
   EOF
@@ -69,7 +69,9 @@ export default function TemplatingPage() {
         </li>
         <li>
           <DocsCode>{"{{request.query.page}}"}</DocsCode> reads query string
-          values, <DocsCode>?page=2</DocsCode> in this case.
+          values, <DocsCode>?page=2</DocsCode> in this case. If the client
+          repeats a key (<DocsCode>?tag=a&amp;tag=b</DocsCode>), the value is an
+          array instead of a string.
         </li>
         <li>
           <DocsCode>{"{{request.headers.x-user-id}}"}</DocsCode> reads request
@@ -128,7 +130,7 @@ export default function TemplatingPage() {
     {{#is request.params.id 1}}
       { "id": 1, "status": "shipped" }
     {{else}}
-      { "id": {{request.params.id}}, "status": "processing" }
+      { "id": "{{request.params.id}}", "status": "processing" }
     {{/is}}
   EOF
 }`}</DocsCodeBlock>
@@ -166,7 +168,7 @@ export default function TemplatingPage() {
       {{setStatus 404}}
       { "error": "Order not found" }
     {{else}}
-      { "id": {{request.params.id}}, "status": "processing" }
+      { "id": "{{request.params.id}}", "status": "processing" }
     {{/gt}}
   EOF
 }`}</DocsCodeBlock>
