@@ -15,6 +15,10 @@ import { Mock } from "../../definitions/data/mock";
 import { Host } from "../../definitions/data/host";
 import { CoreMockDetailsDto, CoreMockDto } from "./data/core-mock.dto";
 
+export function isReservedPath(path: string): boolean {
+    return path === '/__mocko__' || path.startsWith('/__mocko__/');
+}
+
 @Service()
 export class MockService {
     private readonly bigodon = new Bigodon();
@@ -34,7 +38,7 @@ export class MockService {
 
         return options.mocks
             .filter((mock) => mock.isEnabled)
-            .filter((mock) => !this.isReservedPath(mock.path))
+            .filter((mock) => !isReservedPath(mock.path))
             .map((mock) => this.mockToRoute(mock, options.data, options.hosts));
     }
 
@@ -96,10 +100,6 @@ export class MockService {
         const failure = await this.repository.getFailure(id);
 
         return CoreMockDetailsDto.of(mock, failure);
-    }
-
-    private isReservedPath(path: string): boolean {
-        return path === '/__mocko__' || path.startsWith('/__mocko__/');
     }
 
     private registerHelpers() {

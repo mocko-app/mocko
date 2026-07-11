@@ -28,6 +28,25 @@ Options:
   -P, --ui-port    Overrides the UI port (default: 6625)
 ```
 
+### mocko validate
+
+```
+Usage: mocko validate [options] <path to mocks folder>
+Example: mocko validate mocks
+
+Options:
+
+  -h, --help      Shows this screen
+  -s, --strict    Treats warnings as errors
+  -j, --json      Outputs machine-readable JSON
+```
+
+Checks every mock without starting a server and exits 1 when any is broken; built for CI, but also the fastest way to check mocks you just wrote or edited. Run it after changing `.hcl` files when a Mocko server isn't already running.
+
+Errors (exit 1): HCL files that fail to parse (silently ignored at startup), invalid mock or host definitions, routes that fail to map (duplicated method+path, query params in the path), body templates that fail to compile (mock responds 500 to every request), mocks on the reserved `/__mocko__` path, and folders with no mocks. Note that template errors that only happen at render time (unknown helpers, bad `setStatus` values) are NOT caught, they still 500 at request time.
+
+Warnings (exit 0 unless `--strict`): paths with `:param`, `*`, or `${param}` (Mocko parameters are `{param}`), and mocks whose `host` matches no host block.
+
 ## Quick start
 
 ```hcl
