@@ -120,6 +120,21 @@ Options:
   -P, --ui-port    Overrides the Control Panel port (6625)
 ```
 
+## Validating mocks in CI
+
+`mocko validate` checks every mock in a folder without starting a server and exits with a non-zero code when any of them is broken: HCL syntax errors, invalid definitions, duplicated routes, or body templates that fail to compile.
+
+```text
+Usage: mocko validate [options] <path to mocks folder>
+Example: mocko validate mocks
+
+Options:
+
+  -h, --help      Shows this screen
+  -s, --strict    Treats warnings as errors
+  -j, --json      Outputs machine-readable JSON
+```
+
 ## Documentation
 
 - [Mocko on GitHub](https://github.com/mocko-app/mocko)

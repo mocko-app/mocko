@@ -17,9 +17,14 @@ const control = require('@mocko/control');
 const debug = require('debug')('mocko:cli:main');
 const DEFAULT_UI_PORT = 6625;
 
-const usage = Bossy.usage(definition, 'mocko [options] [path to mocks folder]\nExample: mocko -p 4000 mocks');
+const usage = Bossy.usage(definition, 'mocko [options] [path to mocks folder]\nExample: mocko -p 4000 mocks\n\nOther commands:\n  mocko validate [options] <path to mocks folder>');
 
 async function run() {
+    if(process.argv[2] === 'validate') {
+        const { runValidate } = require('./validate');
+        return runValidate(process.argv.slice(3));
+    }
+
     debug('running simple-update-notifier');
     updateNotifier({pkg});
 

@@ -11,6 +11,7 @@ import {RedisProvider} from "./redis/redis.provider";
 import { DefinitionProvider } from "./definitions/definition.provider";
 import { HealthService } from "./api/health/health.service";
 import { RemapEventBus } from "./utils/remap-event-bus";
+import { RouteRegistrar } from "./route-registrar";
 import { Synchronize } from "@mocko/sync";
 
 const debug = require('debug')('mocko:proxy:server');
@@ -31,6 +32,7 @@ export class Server {
         private readonly definitionProvider: DefinitionProvider,
         private readonly healthService: HealthService,
         private readonly remapEventBus: RemapEventBus,
+        private readonly routeRegistrar: RouteRegistrar,
     ) { }
 
     async start(): Promise<Server> {
@@ -115,33 +117,6 @@ export class Server {
     }
 
     private registerRoute(route: ServerRoute) {
-        try {
-            const logMessage = `Mapping '${route.vhost ? `(${route.vhost}) `:''}${route.method} ${route.path}'`;
-
-            if(route.rules?.['mapSilently']) {
-                debug(logMessage);
-            } else {
-                this.logger.info(logMessage);
-            }
-
-            this.app.route(route);
-            this.validateRoutePath(route.path);
-        } catch (e) {
-            this.logger.warn(`Failed to map '${route.method} ${route.path}': ${e.message}`);
-        }
-    }
-
-    private validateRoutePath(path: string): void {
-        const docsRef = "On Mocko generic parameters are defined with '{param}'. Have a look at our docs:\nhttps://docs.mocko.dev/getting-started/standalone/#method-and-path";
-
-        if(path.match(/\/\*($|\/)/)) {
-            this.logger.warn(`The path '${path}' contains a '*'. ${docsRef}`);
-        }
-        if(path.match(/\/:./)) {
-            this.logger.warn(`The path '${path}' contains a parameter defined with ':param'. ${docsRef}`);
-        }
-        if(path.match(/\/\$\{\w*\}/)) {
-            this.logger.warn(`The path '${path}' contains a parameter defined with '\${param}'. ${docsRef}`);
-        }
+        this.routeRegistrar.register(this.app, route);
     }
 }

@@ -21,7 +21,11 @@ const definitionSchema = Joi.object({
         .optional(),
 });
 
-export const definitionFromConfig = (config: any, onMockError?: (error: Error) => void): MockoDefinition => {
+export const definitionFromConfig = (
+    config: any,
+    onMockError?: (error: Error) => void,
+    onHostError?: (error: Error) => void,
+): MockoDefinition => {
     const mergedMocks = mergeRecords<any>(config.mock || []);
     const mocks = Object.entries(mergedMocks)
         .flatMap(([req, resList]) => resList.map(res => [req, res]))
@@ -41,7 +45,18 @@ export const definitionFromConfig = (config: any, onMockError?: (error: Error) =
     ) as Data;
 
     const hosts = Object.entries(mergeRecords(config.host || []))
-        .map(([name, data]) => hostFromConfig(name, data));
+        .flatMap(([name, data]) => {
+            try {
+                return [hostFromConfig(name, data)];
+            } catch(e) {
+                if(!onHostError) {
+                    throw e;
+                }
+
+                onHostError(e);
+                return [];
+            }
+        });
 
     return { mocks, data, hosts };
 };

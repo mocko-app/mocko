@@ -13,6 +13,7 @@ import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
 import { Host } from "./data/host";
 import { mergeData } from "../utils/utils";
+import { DiagnosticsCollector } from "./diagnostics";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
 
@@ -38,6 +39,7 @@ export class DefinitionProvider {
         @inject(Logger)
         private readonly logger: ILogger,
         private readonly redis: RedisProvider,
+        private readonly diagnostics: DiagnosticsCollector,
     ) { }
 
     @Synchronize()
@@ -172,17 +174,42 @@ export class DefinitionProvider {
     private async optionsFromFile(path: string): Promise<MockoDefinition | null> {
         const content = await readFile(path);
         const [data, error] = parse(content.toString());
+        const file = this.normalizePath(path);
 
         if(error) {
             this.logger.warn(`Failed to parse file '${path}:${error.Pos.Line}:${error.Pos.Column}'`);
+            this.diagnostics.push({
+                code: 'hcl-parse-error',
+                severity: 'error',
+                file,
+                message: `syntax error at line ${error.Pos.Line}, column ${error.Pos.Column}`,
+            });
             return null;
         }
 
-        const definition = definitionFromConfig(data, (e) =>
-            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`),
-        );
+        const definition = definitionFromConfig(data, (e) => {
+            this.logger.warn(`Invalid mock on file '${path}': ${e.message}`);
+            this.diagnostics.push({
+                code: 'invalid-mock',
+                severity: 'error',
+                file,
+                message: e.message,
+            });
+        }, (e) => {
+            this.logger.warn(`Invalid host on file '${path}': ${e.message}`);
+            this.diagnostics.push({
+                code: 'invalid-host',
+                severity: 'error',
+                file,
+                message: e.message,
+            });
+        });
         definition.mocks = this.withFileMetadata(path, definition.mocks);
         return definition;
+    }
+
+    private normalizePath(filePath: string): string {
+        return relative(MOCKS_DIR, filePath).replace(/\\/g, '/');
     }
 
     private withSource(mocks: Mock[], source: MockSource): Mock[] {
@@ -193,8 +220,7 @@ export class DefinitionProvider {
     }
 
     private withFileMetadata(filePath: string, mocks: Mock[]): Mock[] {
-        const normalizedFilePath = relative(MOCKS_DIR, filePath)
-            .replace(/\\/g, '/');
+        const normalizedFilePath = this.normalizePath(filePath);
         const seeds = mocks.map((mock) => this.fileIdSeed(normalizedFilePath, mock));
         const idSeeds = this.disambiguateSeeds(seeds);
 

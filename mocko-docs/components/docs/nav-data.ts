@@ -52,6 +52,7 @@ export const docsNavGroups: DocsNavGroup[] = [
         title: "Mock Microservices by Host",
         href: "/recipes/microservices-by-host",
       },
+      { title: "Validate Mocks in CI", href: "/recipes/mocks-repo-ci" },
     ],
   },
   {

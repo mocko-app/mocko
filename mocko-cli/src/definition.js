@@ -1,3 +1,23 @@
+module.exports.validateDefinition = {
+    h: {
+        description: 'Shows this screen',
+        alias: 'help',
+        type: 'help',
+    },
+    s: {
+        description: 'Treats warnings as errors',
+        alias: 'strict',
+        type: 'boolean',
+        default: false,
+    },
+    j: {
+        description: 'Outputs machine-readable JSON',
+        alias: 'json',
+        type: 'boolean',
+        default: false,
+    },
+};
+
 module.exports.definition = {
     h: {
         description: 'Shows this screen',

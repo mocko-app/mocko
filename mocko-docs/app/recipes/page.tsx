@@ -64,6 +64,12 @@ const recipes = [
     description:
       "Stand in for several services with one instance using host blocks.",
   },
+  {
+    title: "Validate Mocks in CI",
+    href: "/recipes/mocks-repo-ci",
+    description:
+      "Gate pull requests with mocko validate and ship mocks as an image.",
+  },
 ] as const;
 
 export default function RecipesPage() {
