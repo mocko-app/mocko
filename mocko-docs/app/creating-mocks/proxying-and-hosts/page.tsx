@@ -149,6 +149,13 @@ mock "GET /invoices/{id}" {
       <DocsCodeBlock language="hcl">{`mock "GET /passthrough" {
   body = "{{proxy 'billing'}}"
 }`}</DocsCodeBlock>
+      <DocsP>
+        If the string matches no host slug, it is proxied as a literal URL
+        instead. Write <DocsCode>{"{{proxy '@billing'}}"}</DocsCode> to always
+        mean the named host: with the <DocsCode>@</DocsCode> prefix a missing
+        slug fails the request with a clear error in the server log instead of
+        proxying to a garbled address.
+      </DocsP>
 
       <DocsH2>Hosts in the UI</DocsH2>
       <DocsP>

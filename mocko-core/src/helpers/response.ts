@@ -32,22 +32,39 @@ export function setHeader(this: MockoExecution, key: unknown, value: unknown): v
     this.data.responseHeaders[key] = value;
 }
 
+function findHostBySlug(hosts: Host[], slug: string): Host | undefined {
+    return hosts.find(h => h.slug.toLowerCase() === slug.toLowerCase());
+}
+
 function getHost(hosts: Host[], proxyUri: string, header: string): [string, string | null] {
-    if(typeof proxyUri === 'string') {
-        const hostBySlug = hosts.find(h => h.slug.toLowerCase() === proxyUri.toLowerCase());
-        if(hostBySlug?.destination) {
-            return [hostBySlug.destination, '@' + hostBySlug.slug];
+    if(typeof proxyUri !== 'string') {
+        const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
+        if(!hostByHeader?.destination) {
+            return ['', null];
         }
 
-        return [proxyUri, null];
-    }
-
-    const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
-    if(hostByHeader?.destination) {
         return [hostByHeader.destination, '@' + hostByHeader.slug];
     }
 
-    return ['', null];
+    if(!proxyUri.startsWith('@')) {
+        const hostBySlug = findHostBySlug(hosts, proxyUri);
+        if(!hostBySlug?.destination) {
+            return [proxyUri, null];
+        }
+
+        return [hostBySlug.destination, '@' + hostBySlug.slug];
+    }
+
+    const slug = proxyUri.slice(1);
+    const host = findHostBySlug(hosts, slug);
+    if(!host) {
+        throw new Error(`No host found with slug '${slug}'`);
+    }
+    if(!host.destination) {
+        throw new Error(`Host '${slug}' has no destination to proxy to`);
+    }
+
+    return [host.destination, '@' + host.slug];
 }
 
 export const proxy = (definitionProvider: DefinitionProvider) => async function (this: MockoExecution, proxyUri?: string): Promise<void> {

@@ -18,7 +18,8 @@ These helpers render as empty string — they're side-effect only and won't add 
 ```hbs
 {{proxy}}                         {{! proxy to default backend (PROXY_URL env) }}
 {{proxy 'http://other:3000'}}     {{! proxy to base URL — request path appended }}
-{{proxy '@host-slug'}}            {{! proxy to a named host block }}
+{{proxy 'host-slug'}}             {{! proxy to a named host block }}
+{{proxy '@host-slug'}}            {{! same, explicit form (2.2+ only), errors clearly when the slug doesn't match }}
 ```
 
 > The URL is treated as a base. `GET /users/42` with `{{proxy 'http://other:3000'}}` → `GET http://other:3000/users/42`.

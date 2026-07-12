@@ -109,6 +109,48 @@ describe('proxy', () => {
     expect((await subject.client.get('/host-two')).status).toBe(200);
   });
 
+  it('proxies to a named host with the @slug form', async () => {
+    await content.createMock(`
+      mock "GET /v1/host-at" { }
+    `);
+    await subject.createMock(`
+      host "at-host" {
+        source      = "at-host.local"
+        destination = "http://localhost:${content.port}/v1"
+      }
+      mock "GET /host-at" {
+        body = "{{proxy '@at-host'}}"
+      }
+    `);
+
+    expect((await subject.client.get('/host-at')).status).toBe(200);
+  });
+
+  it('fails with 500 when the @slug host does not exist', async () => {
+    await subject.createMock(`
+      mock "GET /host-at-missing" {
+        body = "{{proxy '@no-such-host'}}"
+      }
+    `);
+
+    const res = await subject.client.get('/host-at-missing');
+    expect(res.status).toBe(500);
+  });
+
+  it('fails with 500 when the @slug host has no destination', async () => {
+    await subject.createMock(`
+      host "at-host-bare" {
+        source = "at-host-bare.local"
+      }
+      mock "GET /host-at-bare" {
+        body = "{{proxy '@at-host-bare'}}"
+      }
+    `);
+
+    const res = await subject.client.get('/host-at-bare');
+    expect(res.status).toBe(500);
+  });
+
   it('proxies depending on request host when no mock is mapped', async () => {
     await content.createMock(`
       mock "GET /{version}/host-default" {
