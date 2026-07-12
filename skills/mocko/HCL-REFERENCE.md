@@ -99,7 +99,7 @@ mock "GET /users" {
 
 # Proxy to a named host from the template
 mock "GET /passthrough" {
-  body = "{{proxy '@backend'}}"
+  body = "{{proxy 'backend'}}"
 }
 ```
 

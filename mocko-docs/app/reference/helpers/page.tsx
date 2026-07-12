@@ -104,12 +104,20 @@ export default function ReferenceHelpersPage() {
       <DocsH2>proxy variants</DocsH2>
       <DocsCodeBlock language="bigodon">{`{{proxy}}                                    {{! default backend (-u / PROXY_BASE-URI) }}
 {{proxy 'https://demo-api.mockoapp.net'}}    {{! URL used as base; request path appended }}
-{{proxy 'billing'}}                          {{! destination of the named host block }}`}</DocsCodeBlock>
+{{proxy 'billing'}}                          {{! destination of the named host block }}
+{{proxy '@billing'}}                         {{! same, but errors when the host doesn't exist }}`}</DocsCodeBlock>
       <DocsP>
         The argument is a base: <DocsCode>GET /users/42</DocsCode> through{" "}
         <DocsCode>{"{{proxy 'https://demo-api.mockoapp.net'}}"}</DocsCode>{" "}
         requests <DocsCode>https://demo-api.mockoapp.net/users/42</DocsCode>.
         Method, headers, query string, and body are forwarded unchanged.
+      </DocsP>
+      <DocsP>
+        A bare string that matches no host slug is proxied as a literal URL.
+        Prefix the slug with <DocsCode>@</DocsCode> to opt out of that fallback:{" "}
+        <DocsCode>{"{{proxy '@billing'}}"}</DocsCode> fails the request with a
+        clear error in the server log when no host has that slug or the host has
+        no destination.
       </DocsP>
 
       <DocsH2>Flag helpers</DocsH2>
