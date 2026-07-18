@@ -131,9 +131,16 @@ mock "GET /purchases" {
           do not break commas).
         </li>
         <li>
-          Echo the stored item back with an id in each list entry by storing a
-          composed object instead of the raw body; see the id note in{" "}
-          <DocsLink href="/recipes/stateful-crud">Stateful CRUD</DocsLink>.
+          Store an enriched record instead of the raw body with the{" "}
+          <DocsCode>object</DocsCode> helper, and every list entry carries
+          server-generated fields with no changes to the{" "}
+          <DocsCode>GET</DocsCode> side:{" "}
+          <DocsCode>
+            {
+              "{{setFlag (append 'purchases:' $id) (object id=$id status='created' item=request.body)}}"
+            }
+          </DocsCode>
+          .
         </li>
       </DocsUl>
     </DocsPage>
