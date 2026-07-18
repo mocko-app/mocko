@@ -331,6 +331,8 @@ In Mocko v1, mock bodies used **Handlebars** (with handlebars-helpers). In v2, t
 | `{{#inArray arr item}}` | `{{#includes arr item}}` |
 | `{{{triple-stash}}}` (unescaped) | `{{value}}` (no escaping in Bigodon) |
 
+Handlebars hash arguments (`{{helper key=value}}`) parse unchanged in Bigodon as named parameters. Whether a helper reads them depends on the helper — Bigodon built-ins that don't use them silently ignore them.
+
 See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 
 ## Reference files

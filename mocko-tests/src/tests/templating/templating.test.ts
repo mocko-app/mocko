@@ -49,6 +49,34 @@ describe('templating helpers', () => {
     expect(res.data).toBe('Lore');
   });
 
+  it('passes named parameters to helpers and ignores unused ones', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "GET ${path}" {
+        body = "{{capitalizeAll 'foo' mode='unused'}}"
+      }
+    `);
+
+    const res = await subject.client.get(path);
+    expect(res.data).toContain('Foo');
+  });
+
+  it('object helper builds objects from named parameters', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "POST ${path}" {
+        body = "{{json (object status='created' item=request.body nested=(object deep=true))}}"
+      }
+    `);
+
+    const res = await subject.client.post(path, { product: 'Widget' });
+    expect(res.data).toEqual({
+      status: 'created',
+      item: { product: 'Widget' },
+      nested: { deep: true },
+    });
+  });
+
   it('substring works with 1 param', async () => {
     const path = randomPath();
     await subject.createMock(`

@@ -92,6 +92,7 @@ All math helpers accept numbers or numeric strings. Return `NaN` for non-numeric
 | `typeof` | `typeof val` | Returns type string |
 | `return` | `return` | Halt execution, return rendered so far |
 | `pick` | `pick obj "key"` | Get property by string key — use for literal dotted keys like `{{pick params "user.name"}}` which reads the key `"user.name"` literally instead of traversing `params.user.name` |
+| `object` | `object name=value ...` | Build an object from named parameters (positional args are an error). Values can be literals, paths, `$vars`, or `(subexpressions)`, including nested `object` calls. Renders as `[object Object]` if printed directly — wrap in `json` or pass it where a value is expected (flag values): `{{json (object id=$id item=request.body)}}` |
 
 ## Date
 
