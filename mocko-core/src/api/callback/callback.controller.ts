@@ -31,12 +31,12 @@ export class CallbackController {
     }
 
     async listPending(request: Hapi.Request): Promise<PendingCallbackDto[]> {
-        this.deployService.authorizeManagement(request.headers.authorization);
+        this.deployService.authorizeCallbacks(request.headers.authorization);
         return await this.service.listPending();
     }
 
     async fire(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
-        this.deployService.authorizeManagement(request.headers.authorization);
+        this.deployService.authorizeCallbacks(request.headers.authorization);
         const slug = decodeURIComponent(firstString(request.params['slug']));
         const { payload, delay } = this.parseFirePayload(request.payload);
 
@@ -45,7 +45,7 @@ export class CallbackController {
     }
 
     async firePending(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
-        this.deployService.authorizeManagement(request.headers.authorization);
+        this.deployService.authorizeCallbacks(request.headers.authorization);
         const id = decodeURIComponent(firstString(request.params['id']));
 
         await this.service.firePending(id);
@@ -53,7 +53,7 @@ export class CallbackController {
     }
 
     async cancelPending(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
-        this.deployService.authorizeManagement(request.headers.authorization);
+        this.deployService.authorizeCallbacks(request.headers.authorization);
         const id = decodeURIComponent(firstString(request.params['id']));
 
         await this.service.cancelPending(id);
@@ -61,7 +61,7 @@ export class CallbackController {
     }
 
     async clearPending(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
-        this.deployService.authorizeManagement(request.headers.authorization);
+        this.deployService.authorizeCallbacks(request.headers.authorization);
 
         await this.service.clearPending();
         return h.response().code(204);
