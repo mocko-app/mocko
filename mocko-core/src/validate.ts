@@ -10,6 +10,7 @@ import { RouteRegistrar } from './route-registrar';
 import { Diagnostic, DiagnosticsCollector } from './definitions/diagnostics';
 import { Mock } from './definitions/data/mock';
 import { Host } from './definitions/data/host';
+import { Callback } from './definitions/data/callback';
 
 export { Diagnostic, DiagnosticSeverity } from './definitions/diagnostics';
 
@@ -41,7 +42,7 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     const collector = container.get(DiagnosticsCollector);
     collector.enable();
 
-    const { mocks, hosts } = await container.get(DefinitionProvider).getDefinitions();
+    const { mocks, hosts, callbacks } = await container.get(DefinitionProvider).getDefinitions();
 
     if(mocks.length === 0) {
         collector.push({
@@ -57,7 +58,12 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
         validateHostReference(mock, hosts, collector);
     }
 
+    for(const callback of callbacks) {
+        validateCallbackHostReference(callback, hosts, collector);
+    }
+
     reportConflicts(mocks, hosts, collector);
+    reportDuplicateCallbacks(callbacks, collector);
     await registerRoutes(container);
 
     const diagnostics = withoutRedundantConflicts(collector.diagnostics);
@@ -66,7 +72,7 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     return {
         diagnostics,
         mockCount: mocks.length,
-        fileCount: countFiles(diagnostics, mocks),
+        fileCount: countFiles(diagnostics, mocks, callbacks),
     };
 }
 
@@ -111,6 +117,49 @@ function validateHostReference(mock: Mock, hosts: Host[], collector: Diagnostics
             mock: `${mock.method} ${mock.path}`,
             message: `references host '${mock.host}' but no host block with that name or source exists, '${mock.host}' will be matched as a literal hostname`,
         });
+    }
+}
+
+function validateCallbackHostReference(callback: Callback, hosts: Host[], collector: DiagnosticsCollector): void {
+    if(!callback.host) {
+        return;
+    }
+
+    const slug = callback.host.toLowerCase();
+    const exists = hosts.some((host) => host.slug.toLowerCase() === slug);
+    if(!exists) {
+        collector.push({
+            code: 'host-not-found',
+            severity: 'warning',
+            file: callback.filePath,
+            message: `callback '${callback.slug}' references host '${callback.host}' but no host block with that slug exists, triggering it will fail unless the host is defined in the UI`,
+        });
+    }
+}
+
+function reportDuplicateCallbacks(callbacks: Callback[], collector: DiagnosticsCollector): void {
+    const bySlug = new Map<string, Callback[]>();
+    for(const callback of callbacks) {
+        const group = bySlug.get(callback.slug) || [];
+        group.push(callback);
+        bySlug.set(callback.slug, group);
+    }
+
+    for(const group of bySlug.values()) {
+        const [first, ...duplicates] = group;
+
+        for(const duplicate of duplicates) {
+            const message = duplicate.filePath === first.filePath
+                ? `callback '${duplicate.slug}' is defined more than once in '${first.filePath}', the first definition wins`
+                : `callback '${duplicate.slug}' is also defined in '${first.filePath}', the first definition wins`;
+
+            collector.push({
+                code: 'duplicate-callback',
+                severity: 'warning',
+                file: duplicate.filePath,
+                message,
+            });
+        }
     }
 }
 
@@ -192,9 +241,10 @@ function attachFiles(diagnostics: Diagnostic[], mocks: Mock[]): void {
     }
 }
 
-function countFiles(diagnostics: Diagnostic[], mocks: Mock[]): number {
+function countFiles(diagnostics: Diagnostic[], mocks: Mock[], callbacks: Callback[]): number {
     const files = new Set<string>();
     mocks.forEach(mock => mock.filePath && files.add(mock.filePath));
+    callbacks.forEach(callback => callback.filePath && files.add(callback.filePath));
     diagnostics.forEach(diagnostic => diagnostic.file && files.add(diagnostic.file));
     return files.size;
 }

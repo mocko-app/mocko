@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import { mergeRecords } from "../../utils/utils";
+import { Callback, callbackFromConfig, validateCallback } from "./callback";
 import { Data, DataEntry } from "./data";
 import { Host, hostFromConfig, validateHost } from "./host";
 import { Mock, mockFromConfig, validateMock } from "./mock";
@@ -7,12 +8,14 @@ import { Mock, mockFromConfig, validateMock } from "./mock";
 export type MockoDefinition = {
     mocks: Mock[],
     hosts: Host[],
+    callbacks: Callback[],
     data?: Data,
 };
 
 const definitionSchema = Joi.object({
     mocks: Joi.array().items(Joi.any()).required(),
     hosts: Joi.array().items(Joi.any()).required(),
+    callbacks: Joi.array().items(Joi.any()).optional().default([]),
     data: Joi.object()
         .pattern(
             Joi.string(),
@@ -25,6 +28,7 @@ export const definitionFromConfig = (
     config: any,
     onMockError?: (error: Error) => void,
     onHostError?: (error: Error) => void,
+    onCallbackError?: (error: Error) => void,
 ): MockoDefinition => {
     const mergedMocks = mergeRecords<any>(config.mock || []);
     const mocks = Object.entries(mergedMocks)
@@ -58,7 +62,21 @@ export const definitionFromConfig = (
             }
         });
 
-    return { mocks, data, hosts };
+    const callbacks = Object.entries(mergeRecords(config.callback || []))
+        .flatMap(([slug, data]) => {
+            try {
+                return [callbackFromConfig(slug, data)];
+            } catch(e) {
+                if(!onCallbackError) {
+                    throw e;
+                }
+
+                onCallbackError(e);
+                return [];
+            }
+        });
+
+    return { mocks, data, hosts, callbacks };
 };
 
 export function validateDefinition(definition: unknown): MockoDefinition {
@@ -70,6 +88,7 @@ export function validateDefinition(definition: unknown): MockoDefinition {
     return {
         mocks: validation.value.mocks.map(validateMock),
         hosts: validation.value.hosts.map(validateHost),
+        callbacks: validation.value.callbacks.map(validateCallback),
         data: validation.value.data,
     };
 }
