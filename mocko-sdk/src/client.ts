@@ -1,6 +1,21 @@
 import { FlagDefBuilderImpl } from './flags/runtime-flag-def';
 import type { FlagDefBuilder } from './flags/flag-def';
+import type { PendingCallback } from './callbacks/pending-callback';
 import { MockoTransport } from './transport';
+
+/**
+ * Options for {@link MockoClient.fireCallback}.
+ */
+export type FireCallbackOptions = {
+  /**
+   * Milliseconds to wait before delivering instead of firing immediately.
+   *
+   * The scheduled delivery shows up in {@link MockoClient.listPendingCallbacks}
+   * until it fires, and can be fired early with
+   * {@link MockoClient.firePendingCallback}.
+   */
+  delay?: number;
+};
 
 /**
  * Configuration for {@link MockoClient}.
@@ -93,5 +108,51 @@ export class MockoClient {
    */
   defineFlag<TValue>(description: string): FlagDefBuilder<TValue> {
     return new FlagDefBuilderImpl<TValue>(this, description);
+  }
+
+  /**
+   * Fires a callback defined in your mocks by its slug.
+   *
+   * Fires immediately by default; pass `delay` to schedule it instead. The
+   * payload is available as `payload` in the callback's templates when it is
+   * rendered at delivery time.
+   */
+  async fireCallback(
+    slug: string,
+    payload?: unknown,
+    options: FireCallbackOptions = {},
+  ): Promise<PendingCallback> {
+    return await this.transport.fireCallback(slug, payload, options.delay);
+  }
+
+  /**
+   * Lists scheduled callback deliveries that have not fired yet, ordered by
+   * due time.
+   */
+  async listPendingCallbacks(): Promise<PendingCallback[]> {
+    return await this.transport.listPendingCallbacks();
+  }
+
+  /**
+   * Fires a pending callback immediately, skipping the rest of its delay.
+   *
+   * Prefer this over waiting in tests that assert on delayed callbacks.
+   */
+  async firePendingCallback(id: string): Promise<void> {
+    await this.transport.firePendingCallback(id);
+  }
+
+  /**
+   * Cancels a pending callback so it never fires.
+   */
+  async cancelPendingCallback(id: string): Promise<void> {
+    await this.transport.cancelPendingCallback(id);
+  }
+
+  /**
+   * Cancels all pending callbacks. Useful for isolating tests.
+   */
+  async clearPendingCallbacks(): Promise<void> {
+    await this.transport.clearPendingCallbacks();
   }
 }
