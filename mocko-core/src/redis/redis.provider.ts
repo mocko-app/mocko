@@ -77,6 +77,28 @@ export class RedisProvider {
         await this.connector.hset(key, fields);
     }
 
+    async zadd(key: string, score: number, member: string): Promise<void> {
+        await this.connector.zadd(key, score, member);
+    }
+
+    async zrem(key: string, member: string): Promise<number> {
+        return await this.connector.zrem(key, member);
+    }
+
+    async zrangeWithScores(key: string, start: number, stop: number): Promise<[string, number][]> {
+        const flat = await this.connector.zrange(key, start, stop, 'WITHSCORES');
+        const entries: [string, number][] = [];
+        for(let i = 0; i < flat.length; i += 2) {
+            entries.push([flat[i], Number(flat[i + 1])]);
+        }
+
+        return entries;
+    }
+
+    async eval(script: string, keys: string[], args: (string | number)[]): Promise<unknown> {
+        return await this.connector.eval(script, keys.length, ...keys, ...args);
+    }
+
     multi(): Redis.Pipeline {
         return this.connector.multi();
     }

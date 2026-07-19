@@ -12,6 +12,7 @@ import { DefinitionProvider } from "./definitions/definition.provider";
 import { HealthService } from "./api/health/health.service";
 import { RemapEventBus } from "./utils/remap-event-bus";
 import { RouteRegistrar } from "./route-registrar";
+import { CallbackSchedulerService } from "./api/callback/callback-scheduler.service";
 import { Synchronize } from "@mocko/sync";
 
 const debug = require('debug')('mocko:proxy:server');
@@ -33,6 +34,7 @@ export class Server {
         private readonly healthService: HealthService,
         private readonly remapEventBus: RemapEventBus,
         private readonly routeRegistrar: RouteRegistrar,
+        private readonly callbackScheduler: CallbackSchedulerService,
     ) { }
 
     async start(): Promise<Server> {
@@ -41,11 +43,14 @@ export class Server {
         const listenerRegistrationTasks = this.listenerProvider.listeners
             .map(l => this.redisProvider.registerListener(l));
         await Promise.all(listenerRegistrationTasks);
-        return await this.startServer();
+        const server = await this.startServer();
+        this.callbackScheduler.start();
+        return server;
     }
 
     async stop(exitProcess = true) {
         debug('stopping the server');
+        this.callbackScheduler.stop();
         await this.app.stop();
         this.logger.info('Bye :)');
 
