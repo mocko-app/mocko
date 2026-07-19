@@ -1,13 +1,13 @@
 # SDK Reference For Agents
 
-Use this only for Mocko TypeScript SDK questions. Keep answers/code focused on `@mocko/sdk` and flags unless the user explicitly asks about future SDK work.
+Use this only for Mocko TypeScript SDK questions. Keep answers/code focused on `@mocko/sdk`, flags, and callbacks unless the user explicitly asks about future SDK work.
 
 ## What Exists
 
 - Package: `@mocko/sdk`
 - Runtime target: Node 20+
 - Main class: `MockoClient`
-- Scope today: flags only
+- Scope today: flags and callbacks
 - Talks to: mocko-core URL, not mocko-control URL
 - Not implemented: mock references, tap/collect, scenarios, core version compatibility checks
 
@@ -84,13 +84,35 @@ const shortLived = status.ttl(30);
 await shortLived.set('123', 'active');
 ```
 
+## Callbacks
+
+Fire and manage [callback blocks](HCL-REFERENCE.md) defined in the mocks:
+
+```ts
+const pending = await mocko.fireCallback('payment-approved', { id: 'pay-42' });
+await mocko.fireCallback('payment-approved', { id: 'pay-43' }, { delay: 60_000 });
+
+const list = await mocko.listPendingCallbacks(); // PendingCallback[], ordered by dueAt
+await mocko.firePendingCallback(pending.id);     // fire now, skipping the delay
+await mocko.cancelPendingCallback(pending.id);
+await mocko.clearPendingCallbacks();             // test isolation
+```
+
+Notes:
+
+- `fireCallback` fires immediately by default; the stanza `delay` only applies to mock-triggered callbacks. Pass `{ delay }` (ms) to schedule instead.
+- The payload must be JSON serializable; it is available as `payload` in the callback's templates, which render at delivery time.
+- In tests, never sleep through a delay: schedule, assert on `listPendingCallbacks()`, then `firePendingCallback(id)` to deliver immediately.
+- `clearPendingCallbacks()` in a `beforeEach` keeps parallel-unsafe pending state out of other tests.
+- Unknown slugs and hosts without destinations throw (`Mocko failed to fire callback "slug": HTTP 404` / `422`).
+
 ## Auth Rules
 
 Mocko core `MANAGEMENT_AUTH_MODE`:
 
-- `none`: SDK flags need no secret.
-- `deploy`: SDK flags need no secret; deploy/mocks/hosts stay protected.
-- `all`: SDK flags require `secret`.
+- `none`: SDK flags and callbacks need no secret.
+- `deploy`: SDK flags and callbacks need no secret; deploy/mocks/hosts stay protected.
+- `all`: SDK flags and callbacks require `secret`.
 
 For `all` mode:
 
@@ -100,7 +122,7 @@ const mocko = new MockoClient('http://localhost:8080', {
 });
 ```
 
-The SDK sends `Authorization: Bearer <secret>` on flag requests.
+The SDK sends `Authorization: Bearer <secret>` on every request.
 
 ## Template Interop
 

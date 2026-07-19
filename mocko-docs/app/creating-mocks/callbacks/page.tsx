@@ -28,10 +28,9 @@ export default function CallbacksPage() {
       <DocsLead>
         Mocks cover the requests your system sends to its integrations. Many
         integrations also call you back: a payment provider confirms a charge, a
-        signing service reports a finished document, a job runner posts its
-        result. Callbacks are how Mocko simulates that direction. A mock
-        schedules one, and Mocko delivers an HTTP request to your service after
-        it responds, with any delay you want.
+        job runner posts its result. Callbacks are how Mocko simulates that
+        direction. A mock schedules one, and Mocko delivers an HTTP request to
+        your service after it responds, with any delay you want.
       </DocsLead>
 
       <DocsH2>Your first callback</DocsH2>

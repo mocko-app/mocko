@@ -103,6 +103,44 @@ mock "GET /passthrough" {
 }
 ```
 
+## Callback blocks
+
+Callbacks simulate the webhooks your real integrations send back. A mock schedules one with the `{{callback}}` helper (see [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md)), and Mocko delivers an HTTP request to your service after the mock has responded, optionally delayed. They can also be fired manually from the UI, the management API, or the SDK.
+
+```hcl
+callback "payment-approved" {
+  name   = "Payment approved"          # optional; label shown in UI
+  method = "POST"                      # optional; default POST
+  host   = "backend"                   # host-block slug; target = host destination + path
+  path   = "/payments/{{payload.id}}"
+  # url  = "http://localhost:9001/cb"  # absolute-URL alternative to host + path
+  delay  = 2000                        # optional; default delivery delay in ms
+  headers {
+    X-Source = "mocko"
+  }
+  body = <<-EOF
+    { "id": "{{payload.id}}", "status": "{{payload.status}}" }
+  EOF
+}
+```
+
+| Field | Type | Constraint | Default | Description |
+|-------|------|-----------|---------|-------------|
+| `name` | string | — | slug | Label shown in UI |
+| `method` | string | GET, POST, PUT, DELETE, PATCH | `POST` | Delivery HTTP method |
+| `host` | string | host-block slug | — | Delivery target base: the host's `destination` |
+| `path` | string | Bigodon template | — | Appended to the host destination |
+| `url` | string | absolute http(s) URL; Bigodon template | — | Alternative to `host` + `path` |
+| `delay` | number | ≥ 0 ms | `0` | Default delay between trigger and delivery |
+| `headers` | block | values are Bigodon templates | `{}` | Delivery request headers |
+| `body` | string | Bigodon template | none | Delivery request body |
+
+- Exactly one target: `host` + `path` together, or `url` alone.
+- `path`, `url`, `body`, and header values are Bigodon templates rendered **when the callback fires**, with context `payload` (from the trigger) and `data` — `request` is not available.
+- `Content-Type` defaults to `application/json` when a `body` is set and no header overrides it.
+- An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
+- Definitions merge like hosts: UI/deployed callbacks shadow file callbacks with the same slug.
+
 ## Match priority
 
 1. **Exact path** beats **parameterized path** (`/cats/george` wins over `/cats/{name}`)

@@ -7,7 +7,7 @@ description: Write and review Mocko mock HCL files for the dynamic HTTP mocking 
 
 Mocko is a dynamic HTTP mocking tool. Mocks are defined in `.hcl` files and response bodies support [Bigodon](BIGODON.md) templating.
 
-Mocko also has a TypeScript SDK (`@mocko/sdk`) for automated tests that need to read and write Mocko flags through mocko-core. Use [SDK.md](SDK.md) when a user asks about SDK setup, `MockoClient`, typed flag definitions, SDK auth, or test-side flag state.
+Mocko also has a TypeScript SDK (`@mocko/sdk`) for automated tests that need to read and write Mocko flags or fire callbacks through mocko-core. Use [SDK.md](SDK.md) when a user asks about SDK setup, `MockoClient`, typed flag definitions, SDK auth, test-side flag state, or firing callbacks from tests.
 
 ## CLI
 
@@ -43,9 +43,9 @@ Options:
 
 Checks every mock without starting a server and exits 1 when any is broken; built for CI, but also the fastest way to check mocks you just wrote or edited. Run it after changing `.hcl` files when a Mocko server isn't already running.
 
-Errors (exit 1): HCL files that fail to parse (silently ignored at startup), invalid mock or host definitions, routes that fail to map (duplicated method+path, query params in the path), body templates that fail to compile (mock responds 500 to every request), mocks on the reserved `/__mocko__` path, and folders with no mocks. Note that template errors that only happen at render time (unknown helpers, bad `setStatus` values) are NOT caught, they still 500 at request time.
+Errors (exit 1): HCL files that fail to parse (silently ignored at startup), invalid mock, host, or callback definitions, routes that fail to map (duplicated method+path, query params in the path), body templates that fail to compile (mock responds 500 to every request), mocks on the reserved `/__mocko__` path, and folders with no mocks. Note that template errors that only happen at render time (unknown helpers, bad `setStatus` values) are NOT caught, they still 500 at request time.
 
-Warnings (exit 0 unless `--strict`): paths with `:param`, `*`, or `${param}` (Mocko parameters are `{param}`), and mocks whose `host` matches no host block.
+Warnings (exit 0 unless `--strict`): paths with `:param`, `*`, or `${param}` (Mocko parameters are `{param}`), mocks whose `host` matches no host block, and callbacks whose `host` matches no host block.
 
 ## Quick start
 
@@ -211,6 +211,26 @@ mock "GET /users/{id}" {
 }
 ```
 
+**Simulate a webhook (callback) after a mock responds:**
+```hcl
+callback "payment-approved" {
+  host  = "backend"
+  path  = "/payments/{{payload.id}}/status"
+  delay = 2000
+  body  = "{ \"id\": \"{{payload.id}}\", \"status\": \"APPROVED\" }"
+}
+
+mock "POST /payments" {
+  format = "json"
+  body = <<-EOF
+    {{callback 'payment-approved' (object id=request.body.id)}}
+    { "id": "{{request.body.id}}", "status": "PENDING" }
+  EOF
+}
+```
+
+> The mock responds immediately; the callback is delivered to the `backend` host 2s later, rendered at delivery time with `payload` and `data` in context (no `request`). See [HCL-REFERENCE.md](HCL-REFERENCE.md) for the stanza and [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md) for trigger semantics.
+
 **Paginated list:**
 ```hcl
 mock "GET /items" {
@@ -337,11 +357,11 @@ See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 
 ## Reference files
 
-- [HCL-REFERENCE.md](HCL-REFERENCE.md) — data blocks, host blocks, match priority, multi-file layout
-- [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md) — Mocko-specific helpers (setStatus, proxy, flags, etc.)
+- [HCL-REFERENCE.md](HCL-REFERENCE.md) — data blocks, host blocks, callback blocks, match priority, multi-file layout
+- [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md) — Mocko-specific helpers (setStatus, proxy, flags, callback, etc.)
 - [BIGODON.md](BIGODON.md) — full Bigodon syntax and built-in helpers
 - [BIGODON-HELPERS.md](BIGODON-HELPERS.md) — all built-in helpers by category
-- [SDK.md](SDK.md) — TypeScript SDK setup, raw flags, typed flag definitions, TTL, and auth
+- [SDK.md](SDK.md) — TypeScript SDK setup, raw flags, typed flag definitions, TTL, callbacks, and auth
 
 ## Gotchas
 
@@ -357,3 +377,4 @@ See [BIGODON.md](BIGODON.md) for the full Bigodon syntax reference.
 - Bare `{{` or `}}` in a body that isn't part of a template expression will fail to parse. Easy to hit by accident when a JSON payload ends in nested closing braces (`{"user":{"id":1}}`). The template needs to see `\{{` / `\}}`, and the backslash count depends on the HCL body form: in a heredoc (`<<-EOF`), write `\{{` and `\}}` as-is; in a double-quoted string, write `\\{{` and `\\}}` because quoted HCL strings consume one `\` (heredocs don't). Getting it backwards fails either way: the doubled form in a heredoc is a template compile error (500), and the single form in a quoted string is an HCL parse error that silently drops the whole file
 - A repeated query key produces an **array**: with `?tag=a&tag=b`, `request.query.tag` is `["a","b"]` — but with a single `?tag=a` it's a plain string. Direct interpolation of the array renders the literal text `[object Array]`, while array helpers misbehave on the string case (`join`/`itemAt` render empty, `length` counts characters). `{{#forEach}}` handles both shapes — it wraps a scalar into a single iteration: `[{{#forEach request.query.tag}}"{{item}}"{{^isLast}},{{/isLast}}{{/forEach}}]` renders `["a","b"]` and `["only"]`. To branch on shape, `{{typeof request.query.tag}}` is `object` for an array, `string` for a single value
 - `{{default a b}}` only falls back to `b` when `a` is `null` or `undefined`. Empty strings (`""`) and `0` pass through — so `{{default request.query.foo 'x'}}` on `?foo=` renders empty, not `'x'`. Use `{{#unless}}` or a length check for "blank" semantics
+- Callback templates render at **delivery** time with `{payload, data}` in context — `request` is gone by then; put anything you need from the request into the trigger's payload. `setStatus`, `setHeader`, `proxy`, and `callback` are unavailable in callback bodies (no chaining)
