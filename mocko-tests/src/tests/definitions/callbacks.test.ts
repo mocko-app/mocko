@@ -1,4 +1,9 @@
-import { createSubject, MockoInstance } from '../../harness';
+import {
+  CaptureServer,
+  createCaptureServer,
+  createSubject,
+  MockoInstance,
+} from '../../harness';
 
 type CallbackDto = {
   slug: string;
@@ -98,6 +103,50 @@ describe('callback definitions', () => {
         url: 'http://localhost:9998/absolute/{{payload.id}}',
       });
       expect(callback?.host).toBeUndefined();
+    });
+  });
+
+  describe('deployed callbacks shadow file callbacks', () => {
+    let subject: MockoInstance;
+    let capture: CaptureServer;
+
+    beforeAll(async () => {
+      capture = await createCaptureServer();
+      subject = await createSubject({}, { DEPLOY_ENDPOINT_ENABLED: 'true' });
+      await subject.createMock(`
+        callback "shadowed" {
+          url = "${capture.url}/from-file"
+        }
+      `);
+    });
+
+    afterAll(async () => {
+      await subject.stop();
+      await capture.stop();
+    });
+
+    it('fires the deployed definition when slugs collide', async () => {
+      const deployRes = await subject.client.post('/__mocko__/deploy', {
+        mocks: [],
+        hosts: [],
+        callbacks: [
+          {
+            slug: 'shadowed',
+            method: 'POST',
+            url: `${capture.url}/from-deploy`,
+          },
+        ],
+      });
+      expect(deployRes.status).toBe(204);
+
+      const fireRes = await subject.client.post(
+        '/__mocko__/callbacks/shadowed/fire',
+        {},
+      );
+      expect(fireRes.status).toBe(202);
+
+      await capture.waitForRequests(1);
+      expect(capture.requests[0].url).toBe('/from-deploy');
     });
   });
 

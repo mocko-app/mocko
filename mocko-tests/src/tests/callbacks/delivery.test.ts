@@ -61,8 +61,24 @@ describe('callback delivery (storeless)', () => {
         path = "/never"
       }
 
+      callback "chained" {
+        host = "target"
+        path = "/chained"
+        body = "{{callback 'payment-approved'}}"
+      }
+
+      callback "with-data" {
+        host = "target"
+        path = "/with-data"
+        body = "{ \\"region\\": \\"{{data.billing.region}}\\" }"
+      }
+
       host "sourceless" {
         source = "sourceless.local"
+      }
+
+      data "billing" {
+        region = "us-east"
       }
     `);
   });
@@ -168,6 +184,26 @@ describe('callback delivery (storeless)', () => {
       { delay: -1 },
     );
     expect(res.status).toBe(400);
+  });
+
+  it('renders data blocks in callback bodies at delivery time', async () => {
+    await subject.client.post('/__mocko__/callbacks/with-data/fire', {});
+
+    await capture.waitForRequests(1);
+    expect(capture.requests[0].url).toBe('/with-data');
+    expect(JSON.parse(capture.requests[0].body)).toEqual({
+      region: 'us-east',
+    });
+  });
+
+  it('drops a callback whose body tries to chain another callback', async () => {
+    await subject.client.post('/__mocko__/callbacks/chained/fire', {});
+
+    await sleep(1000);
+    expect(capture.requests).toHaveLength(0);
+    const pending = await subject.client.get('/__mocko__/callbacks/pending');
+    expect(pending.data).toHaveLength(0);
+    expect(subject.hasCrashed()).toBe(false);
   });
 
   it('drops the callback without crashing when rendering fails', async () => {

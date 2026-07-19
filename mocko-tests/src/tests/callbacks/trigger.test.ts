@@ -142,6 +142,61 @@ describe('mock-triggered callbacks (storeless)', () => {
     expect(capture.requests[0].url).toBe('/payments/after-response');
   });
 
+  it('fires callbacks triggered by a mock that proxies', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "GET ${path}" {
+        body = "{{callback 'payment-approved' (object key='proxied')}}{{proxy '@target'}}"
+      }
+    `);
+
+    const res = await subject.client.get(path);
+    expect(res.status).toBe(200);
+    expect(res.data).toEqual({});
+
+    await capture.waitForRequests(2);
+    const proxied = capture.requests.find(
+      (request) => request.method === 'GET',
+    );
+    const delivered = capture.requests.find(
+      (request) => request.method === 'POST',
+    );
+    expect(proxied?.url).toBe(path);
+    expect(delivered?.url).toBe('/payments/proxied');
+  });
+
+  it('enqueues nothing when the template fails after the helper ran', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "GET ${path}" {
+        body = "{{callback 'payment-approved' (object key='never')}}{{getFlag 5}}"
+      }
+    `);
+
+    const res = await subject.client.get(path);
+    expect(res.status).toBe(500);
+
+    const pending = await subject.client.get('/__mocko__/callbacks/pending');
+    expect(pending.data).toHaveLength(0);
+    await sleep(500);
+    expect(capture.requests).toHaveLength(0);
+  });
+
+  it('responds 500 for an invalid helper delay', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "GET ${path}" {
+        body = "{{callback 'slow' delay=-5}}"
+      }
+    `);
+
+    const res = await subject.client.get(path);
+    expect(res.status).toBe(500);
+
+    const pending = await subject.client.get('/__mocko__/callbacks/pending');
+    expect(pending.data).toHaveLength(0);
+  });
+
   it('records the triggering mock id on the pending entry', async () => {
     const path = randomPath();
     await subject.createMock(`

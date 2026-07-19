@@ -6,6 +6,7 @@ import {
   describeRedis,
   flushRedis,
   MockoInstance,
+  randomPath,
   RedisTestConfig,
 } from '../../harness';
 
@@ -116,6 +117,37 @@ describeRedis('callback scheduling on redis', () => {
         '/durable/cb-3',
         '/durable/cb-4',
       ]);
+    }, 30_000);
+
+    it('delivers a mock-triggered callback once and shows it pending from the other replica', async () => {
+      const path = randomPath();
+      await replicaA.createMock(`
+        mock "GET ${path}" {
+          body = "{{callback 'durable' (object id='mock-triggered') delay=5000}}scheduled"
+        }
+      `);
+      capture.clear();
+
+      const res = await replicaA.client.get(path);
+      expect(res.status).toBe(200);
+
+      let entry: { slug: string; triggeredByMockId?: string } | undefined;
+      for (let attempt = 0; attempt < 40 && !entry; attempt++) {
+        const fromB = await replicaB.client.get('/__mocko__/callbacks/pending');
+        entry = fromB.data.find(
+          (item: { slug: string }) => item.slug === 'durable',
+        );
+        if (!entry) {
+          await sleep(50);
+        }
+      }
+      expect(entry).toBeDefined();
+      expect(entry?.triggeredByMockId).toBeDefined();
+
+      await capture.waitForRequests(1, 15_000);
+      await sleep(1500);
+      expect(capture.requests).toHaveLength(1);
+      expect(capture.requests[0].url).toBe('/durable/mock-triggered');
     }, 30_000);
 
     it('shows a cluster-accurate pending list from any replica', async () => {
