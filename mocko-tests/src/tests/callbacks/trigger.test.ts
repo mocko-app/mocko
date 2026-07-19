@@ -21,9 +21,9 @@ describe('mock-triggered callbacks (storeless)', () => {
         destination = "${capture.url}"
       }
 
-      callback "pix-created" {
+      callback "payment-approved" {
         host = "target"
-        path = "/pix/callbacks/{{payload.key}}"
+        path = "/payments/{{payload.key}}"
         body = "{ \\"key\\": \\"{{payload.key}}\\", \\"type\\": \\"{{payload.type}}\\" }"
       }
 
@@ -57,7 +57,7 @@ describe('mock-triggered callbacks (storeless)', () => {
     const path = randomPath();
     await subject.createMock(`
       mock "POST ${path}" {
-        body = "{{callback 'pix-created' (object key=request.body.key type='EMAIL')}}{ \\"ok\\": true }"
+        body = "{{callback 'payment-approved' (object key=request.body.key type='EMAIL')}}{ \\"ok\\": true }"
       }
     `);
 
@@ -68,7 +68,7 @@ describe('mock-triggered callbacks (storeless)', () => {
     await capture.waitForRequests(1);
     const [request] = capture.requests;
     expect(request.method).toBe('POST');
-    expect(request.url).toBe('/pix/callbacks/jane.doe@mocko.dev');
+    expect(request.url).toBe('/payments/jane.doe@mocko.dev');
     expect(JSON.parse(request.body)).toEqual({
       key: 'jane.doe@mocko.dev',
       type: 'EMAIL',
@@ -127,7 +127,7 @@ describe('mock-triggered callbacks (storeless)', () => {
     await subject.createMock(`
       mock "GET ${path}" {
         delay = 400
-        body  = "{{callback 'pix-created' (object key='after-response')}}done"
+        body  = "{{callback 'payment-approved' (object key='after-response')}}done"
       }
     `);
 
@@ -139,7 +139,7 @@ describe('mock-triggered callbacks (storeless)', () => {
     expect(res.status).toBe(200);
 
     await capture.waitForRequests(1);
-    expect(capture.requests[0].url).toBe('/pix/callbacks/after-response');
+    expect(capture.requests[0].url).toBe('/payments/after-response');
   });
 
   it('records the triggering mock id on the pending entry', async () => {

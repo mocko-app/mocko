@@ -20,9 +20,9 @@ describe('callback delivery (storeless)', () => {
         destination = "${capture.url}"
       }
 
-      callback "pix-created" {
+      callback "payment-approved" {
         host = "target"
-        path = "/pix/callbacks/{{payload.key}}"
+        path = "/payments/{{payload.key}}"
         headers {
           X-Callback-Type = "{{payload.type}}"
         }
@@ -79,18 +79,18 @@ describe('callback delivery (storeless)', () => {
 
   it('delivers a fired callback with rendered path, headers and body', async () => {
     const res = await subject.client.post(
-      '/__mocko__/callbacks/pix-created/fire',
+      '/__mocko__/callbacks/payment-approved/fire',
       { payload: { key: 'john.doe@mocko.dev', type: 'EMAIL' } },
     );
 
     expect(res.status).toBe(202);
     expect(res.data.id).toBeDefined();
-    expect(res.data.slug).toBe('pix-created');
+    expect(res.data.slug).toBe('payment-approved');
 
     await capture.waitForRequests(1);
     const [request] = capture.requests;
     expect(request.method).toBe('POST');
-    expect(request.url).toBe('/pix/callbacks/john.doe@mocko.dev');
+    expect(request.url).toBe('/payments/john.doe@mocko.dev');
     expect(request.headers['x-callback-type']).toBe('EMAIL');
     expect(request.headers['content-type']).toBe('application/json');
     expect(JSON.parse(request.body)).toEqual({ key: 'john.doe@mocko.dev' });
@@ -119,7 +119,7 @@ describe('callback delivery (storeless)', () => {
   });
 
   it('honors the fire delay', async () => {
-    await subject.client.post('/__mocko__/callbacks/pix-created/fire', {
+    await subject.client.post('/__mocko__/callbacks/payment-approved/fire', {
       payload: { key: 'delayed' },
       delay: 800,
     });
@@ -128,7 +128,7 @@ describe('callback delivery (storeless)', () => {
     expect(capture.requests).toHaveLength(0);
 
     await capture.waitForRequests(1, 3000);
-    expect(capture.requests[0].url).toBe('/pix/callbacks/delayed');
+    expect(capture.requests[0].url).toBe('/payments/delayed');
   });
 
   it('runs side-effect helpers at delivery time', async () => {
@@ -164,7 +164,7 @@ describe('callback delivery (storeless)', () => {
 
   it('rejects negative delays', async () => {
     const res = await subject.client.post(
-      '/__mocko__/callbacks/pix-created/fire',
+      '/__mocko__/callbacks/payment-approved/fire',
       { delay: -1 },
     );
     expect(res.status).toBe(400);
@@ -181,7 +181,7 @@ describe('callback delivery (storeless)', () => {
   describe('pending management', () => {
     it('lists pending callbacks with due time and payload', async () => {
       const fired = await subject.client.post(
-        '/__mocko__/callbacks/pix-created/fire',
+        '/__mocko__/callbacks/payment-approved/fire',
         { payload: { key: 'pending' }, delay: 60_000 },
       );
 
@@ -190,7 +190,7 @@ describe('callback delivery (storeless)', () => {
       expect(res.data).toHaveLength(1);
       expect(res.data[0]).toMatchObject({
         id: fired.data.id,
-        slug: 'pix-created',
+        slug: 'payment-approved',
         payload: { key: 'pending' },
       });
       expect(res.data[0].dueAt).toBeGreaterThan(Date.now() + 30_000);
@@ -198,7 +198,7 @@ describe('callback delivery (storeless)', () => {
 
     it('fires a pending callback immediately', async () => {
       const fired = await subject.client.post(
-        '/__mocko__/callbacks/pix-created/fire',
+        '/__mocko__/callbacks/payment-approved/fire',
         { payload: { key: 'fire-now' }, delay: 60_000 },
       );
 
@@ -208,7 +208,7 @@ describe('callback delivery (storeless)', () => {
       expect(res.status).toBe(202);
 
       await capture.waitForRequests(1);
-      expect(capture.requests[0].url).toBe('/pix/callbacks/fire-now');
+      expect(capture.requests[0].url).toBe('/payments/fire-now');
 
       const pending = await subject.client.get('/__mocko__/callbacks/pending');
       expect(pending.data).toHaveLength(0);
@@ -216,7 +216,7 @@ describe('callback delivery (storeless)', () => {
 
     it('cancels a pending callback', async () => {
       const fired = await subject.client.post(
-        '/__mocko__/callbacks/pix-created/fire',
+        '/__mocko__/callbacks/payment-approved/fire',
         { payload: { key: 'cancelled' }, delay: 700 },
       );
 
@@ -230,7 +230,7 @@ describe('callback delivery (storeless)', () => {
     });
 
     it('clears all pending callbacks', async () => {
-      await subject.client.post('/__mocko__/callbacks/pix-created/fire', {
+      await subject.client.post('/__mocko__/callbacks/payment-approved/fire', {
         delay: 60_000,
       });
       await subject.client.post('/__mocko__/callbacks/absolute-url/fire', {

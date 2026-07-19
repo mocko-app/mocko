@@ -96,6 +96,41 @@ export const FlagFormSkeleton: React.FC = () => {
   );
 };
 
+export const CallbackFormSkeleton: React.FC = () => {
+  return (
+    <div
+      className="flex flex-col gap-6"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading callback"
+    >
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-7 w-32" />
+        <Skeleton className="size-9 rounded-lg" />
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <FieldSkeleton
+          labelWidth="w-12"
+          control={<Skeleton className="h-9 w-full rounded-lg" />}
+        />
+        <FieldSkeleton labelWidth="w-24" />
+        <FieldSkeleton labelWidth="w-16" />
+        <FieldSkeleton labelWidth="w-20" />
+        <FieldSkeleton
+          labelWidth="w-16"
+          control={<Skeleton className="h-40 w-full rounded-lg" />}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-8 w-20 rounded-lg" />
+        <Skeleton className="h-8 w-16 rounded-lg" />
+      </div>
+    </div>
+  );
+};
+
 export const HostFormSkeleton: React.FC = () => {
   return (
     <div

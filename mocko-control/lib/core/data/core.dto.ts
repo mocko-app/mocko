@@ -51,9 +51,22 @@ export type CoreMockDetailsDto = CoreMockDto & {
   } | null;
 };
 
+export type CoreDeployCallbackDefinition = {
+  slug: string;
+  name?: string;
+  method: string;
+  host?: string;
+  path?: string;
+  url?: string;
+  delay: number;
+  headers: Record<string, string>;
+  body?: string;
+};
+
 export type CoreDeployDefinition = {
   mocks: CoreDeployMockDefinition[];
   hosts: CoreDeployHostDefinition[];
+  callbacks?: CoreDeployCallbackDefinition[];
   data?: undefined;
 };
 
@@ -62,6 +75,28 @@ export type CoreHostDto = {
   name?: string;
   source: string;
   destination?: string;
+};
+
+export type CoreCallbackDto = {
+  slug: string;
+  name?: string;
+  method: string;
+  host?: string;
+  path?: string;
+  url?: string;
+  delay: number;
+  headers: Record<string, string>;
+  body?: string;
+  filePath?: string;
+};
+
+export type CorePendingCallbackDto = {
+  id: string;
+  slug: string;
+  payload: unknown;
+  dueAt: number;
+  createdAt: number;
+  triggeredByMockId?: string;
 };
 
 export type CoreFlagKeyDto = {

@@ -3,16 +3,23 @@
 import useSWR, { type SWRConfiguration } from "swr";
 import {
   api,
+  getCallback,
+  getCallbacks,
   getHost,
   getHosts,
   getFlag,
   getFlags,
+  getPendingCallbacks,
   toApiError,
   getOperations,
   getVersions,
   type ApiError,
 } from "@/lib/frontend/api";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
+import type {
+  CallbackDto,
+  PendingCallbacksDto,
+} from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
@@ -102,6 +109,55 @@ export function useHost(
     {
       refreshInterval: 0,
       revalidateOnFocus: false,
+      ...options,
+    },
+  );
+}
+
+export function useCallbacks(
+  options?: SWRConfiguration<CallbackDto[], ApiError>,
+) {
+  return useSWR<CallbackDto[], ApiError>(
+    "/api/callbacks",
+    async () => getCallbacks(),
+    {
+      refreshInterval: 5000,
+      revalidateOnFocus: true,
+      ...options,
+    },
+  );
+}
+
+export function useCallbackDefinition(
+  slug: string | undefined,
+  options?: SWRConfiguration<CallbackDto, ApiError>,
+) {
+  return useSWR<CallbackDto, ApiError>(
+    slug ? `/api/callbacks/${encodeURIComponent(slug)}` : null,
+    async () => {
+      if (!slug) {
+        throw new Error("Callback slug is required");
+      }
+
+      return getCallback(slug);
+    },
+    {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      ...options,
+    },
+  );
+}
+
+export function usePendingCallbacks(
+  options?: SWRConfiguration<PendingCallbacksDto, ApiError>,
+) {
+  return useSWR<PendingCallbacksDto, ApiError>(
+    "/api/callbacks/pending",
+    async () => getPendingCallbacks(),
+    {
+      refreshInterval: 5000,
+      revalidateOnFocus: true,
       ...options,
     },
   );

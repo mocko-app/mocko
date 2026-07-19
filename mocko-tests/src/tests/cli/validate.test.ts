@@ -240,9 +240,9 @@ describe('mocko validate', () => {
           source      = "workflows.local"
           destination = "http://localhost:9998"
         }
-        callback "pix-created" {
+        callback "payment-approved" {
           host = "workflows"
-          path = "/pix/callbacks"
+          path = "/payments"
         }
       `,
     });

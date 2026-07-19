@@ -75,6 +75,18 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(409, ErrorDto.ofHostSlugConflict(slug));
   }
 
+  static callbackNotFound(slug: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofCallbackNotFound(slug));
+  }
+
+  static callbackSlugConflict(slug: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofCallbackSlugConflict(slug));
+  }
+
+  static callbackReadOnly(slug: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofCallbackReadOnly(slug));
+  }
+
   static templateParseError(parsingError: ParsingError): HttpResponseError {
     return new HttpResponseError(
       400,

@@ -38,11 +38,11 @@ describe('callback definitions', () => {
           destination = "http://localhost:9998"
         }
 
-        callback "pix-created" {
-          name   = "PIX key created"
+        callback "payment-approved" {
+          name   = "Payment approved"
           method = "PUT"
           host   = "workflows"
-          path   = "/pix/callbacks/{{payload.key}}"
+          path   = "/payments/{{payload.key}}"
           delay  = 2000
           headers {
             X-Source = "mocko"
@@ -64,14 +64,14 @@ describe('callback definitions', () => {
     afterAll(() => subject.stop());
 
     it('exposes a full stanza through GET /__mocko__/callbacks', async () => {
-      const callback = bySlug(await listCallbacks(subject), 'pix-created');
+      const callback = bySlug(await listCallbacks(subject), 'payment-approved');
 
       expect(callback).toMatchObject({
-        slug: 'pix-created',
-        name: 'PIX key created',
+        slug: 'payment-approved',
+        name: 'Payment approved',
         method: 'PUT',
         host: 'workflows',
-        path: '/pix/callbacks/{{payload.key}}',
+        path: '/payments/{{payload.key}}',
         delay: 2000,
         headers: { 'X-Source': 'mocko' },
       });

@@ -4,6 +4,13 @@ import type {
   ParsingError,
   ValidationErrors,
 } from "@/lib/types/error-dtos";
+import type {
+  CallbackDto,
+  CreateCallbackDto,
+  PatchCallbackDto,
+  PendingCallbackDto,
+  PendingCallbacksDto,
+} from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type {
   CreateHostDto,
@@ -98,6 +105,52 @@ export const patchHost = (slug: string, payload: PatchHostDto) =>
 export const deleteHost = (slug: string) =>
   request(() => api.delete<void>(`/api/hosts/${slug}`));
 
+export const getCallbacks = () =>
+  request(() => api.get<CallbackDto[]>("/api/callbacks"));
+
+export const getCallback = (slug: string) =>
+  request(() =>
+    api.get<CallbackDto>(`/api/callbacks/${encodeURIComponent(slug)}`),
+  );
+
+export const createCallback = (payload: CreateCallbackDto) =>
+  request(() => api.post<CallbackDto>("/api/callbacks", payload));
+
+export const patchCallback = (slug: string, payload: PatchCallbackDto) =>
+  request(() =>
+    api.patch<CallbackDto>(
+      `/api/callbacks/${encodeURIComponent(slug)}`,
+      payload,
+    ),
+  );
+
+export const deleteCallback = (slug: string) =>
+  request(() => api.delete<void>(`/api/callbacks/${encodeURIComponent(slug)}`));
+
+export const fireCallback = (slug: string, payload?: unknown) =>
+  request(() =>
+    api.post<PendingCallbackDto>(
+      `/api/callbacks/${encodeURIComponent(slug)}/fire`,
+      { payload },
+    ),
+  );
+
+export const getPendingCallbacks = () =>
+  request(() => api.get<PendingCallbacksDto>("/api/callbacks/pending"));
+
+export const firePendingCallback = (id: string) =>
+  request(() =>
+    api.post<void>(`/api/callbacks/pending/${encodeURIComponent(id)}/fire`),
+  );
+
+export const cancelPendingCallback = (id: string) =>
+  request(() =>
+    api.delete<void>(`/api/callbacks/pending/${encodeURIComponent(id)}`),
+  );
+
+export const clearPendingCallbacks = () =>
+  request(() => api.delete<void>("/api/callbacks/pending"));
+
 export const getFlags = (prefix?: string, search?: string) =>
   request(() =>
     api.get<FlagListDto>(buildFlagListUrl("/api/flags", prefix, search)),
@@ -167,6 +220,8 @@ export type FormValidationErrors = {
   slug?: string;
   source?: string;
   destination?: string;
+  host?: string;
+  url?: string;
   statusCode?: string;
   delay?: string;
 };
@@ -183,11 +238,14 @@ export function toFormValidationErrors(
   const slug = firstError(validation.fieldErrors, "slug");
   const source = firstError(validation.fieldErrors, "source");
   const destination = firstError(validation.fieldErrors, "destination");
+  const host = firstError(validation.fieldErrors, "host");
+  const url = firstError(validation.fieldErrors, "url");
   const statusCode =
     firstError(validation.fieldErrors, "response.code") ??
     firstError(validation.fieldErrors, "response");
   const delay =
     firstError(validation.fieldErrors, "response.delay") ??
+    firstError(validation.fieldErrors, "delay") ??
     firstError(validation.fieldErrors, "response");
 
   return {
@@ -197,6 +255,8 @@ export function toFormValidationErrors(
     slug,
     source,
     destination,
+    host,
+    url,
     statusCode,
     delay,
   };

@@ -10,6 +10,7 @@ import {
   ServerIcon,
   BookOpenIcon,
   SquareCodeIcon,
+  WebhookIcon,
   WrenchIcon,
 } from "lucide-react";
 import {
@@ -56,6 +57,7 @@ const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon },
   { label: "Flags", href: "/flags", icon: FlagIcon },
   { label: "Hosts", href: "/hosts", icon: ServerIcon },
+  { label: "Callbacks", href: "/callbacks", icon: WebhookIcon },
   { label: "Management", href: "/management", icon: WrenchIcon },
 ];
 

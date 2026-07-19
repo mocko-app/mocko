@@ -1,12 +1,14 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { tryCatch } from "@/lib/http";
 import type {
+  CoreCallbackDto,
   CoreDeployDefinition,
   CoreFlagDto,
   CoreFlagListDto,
   CoreHostDto,
   CoreMockDetailsDto,
   CoreMockDto,
+  CorePendingCallbackDto,
   CorePutFlagDto,
 } from "@/lib/core/data/core.dto";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
@@ -79,6 +81,74 @@ export class CoreClient {
   async listCoreHosts(): Promise<CoreHostDto[]> {
     const response = await this.http.get<CoreHostDto[]>("/__mocko__/hosts");
     return response.data;
+  }
+
+  async listCoreCallbacks(): Promise<CoreCallbackDto[]> {
+    const response = await this.http.get<CoreCallbackDto[]>(
+      "/__mocko__/callbacks",
+    );
+    return response.data;
+  }
+
+  async listCorePendingCallbacks(): Promise<CorePendingCallbackDto[] | null> {
+    const [response, error] = await tryCatch<
+      AxiosResponse<CorePendingCallbackDto[]>,
+      AxiosError
+    >(() =>
+      this.http.get<CorePendingCallbackDto[]>("/__mocko__/callbacks/pending"),
+    );
+    if (!response && error?.response?.status === 404) {
+      return null;
+    }
+    if (!response && error) {
+      throw this.mapError(error);
+    }
+
+    return response.data;
+  }
+
+  async fireCoreCallback(
+    slug: string,
+    payload: unknown,
+    delay?: number,
+  ): Promise<CorePendingCallbackDto> {
+    try {
+      const response = await this.http.post<CorePendingCallbackDto>(
+        `/__mocko__/callbacks/${encodeURIComponent(slug)}/fire`,
+        { payload, delay },
+      );
+      return response.data;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async firePendingCoreCallback(id: string): Promise<void> {
+    try {
+      await this.http.post(
+        `/__mocko__/callbacks/pending/${encodeURIComponent(id)}/fire`,
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async cancelPendingCoreCallback(id: string): Promise<void> {
+    try {
+      await this.http.delete(
+        `/__mocko__/callbacks/pending/${encodeURIComponent(id)}`,
+      );
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  async clearCorePendingCallbacks(): Promise<void> {
+    try {
+      await this.http.delete("/__mocko__/callbacks/pending");
+    } catch (error) {
+      throw this.mapError(error);
+    }
   }
 
   async listCoreFlags(

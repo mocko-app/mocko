@@ -1,6 +1,10 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { VersionsDto } from "@/app/api/versions/route";
+import type {
+  CallbackDto,
+  PendingCallbacksDto,
+} from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
@@ -12,6 +16,8 @@ export type ApiState = {
   mocks: MockDto[];
   mockDetails: MockDetailsDto[];
   hosts: HostDto[];
+  callbacks: CallbackDto[];
+  pendingCallbacks: PendingCallbacksDto;
   flagList: FlagListDto;
   flagValues: Record<string, FlagDto>;
   operations: OperationsResponse;
@@ -23,6 +29,11 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     mocks: initial.mocks ?? [],
     mockDetails: initial.mockDetails ?? [],
     hosts: initial.hosts ?? [],
+    callbacks: initial.callbacks ?? [],
+    pendingCallbacks: initial.pendingCallbacks ?? {
+      isSupported: true,
+      pending: [],
+    },
     flagList: initial.flagList ?? { flagKeys: [], isTruncated: false },
     flagValues: initial.flagValues ?? {},
     operations: initial.operations ?? {
@@ -65,6 +76,23 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
         );
       }
       return HttpResponse.json(host);
+    }),
+    http.get("/api/callbacks", () => HttpResponse.json(state.callbacks)),
+    http.get("/api/callbacks/pending", () =>
+      HttpResponse.json(state.pendingCallbacks),
+    ),
+    http.get("/api/callbacks/:slug", ({ params }) => {
+      const callback = state.callbacks.find((c) => c.slug === params.slug);
+      if (!callback) {
+        return HttpResponse.json(
+          {
+            code: "CALLBACK_NOT_FOUND",
+            message: `Callback "${params.slug}" was not found`,
+          },
+          { status: 404 },
+        );
+      }
+      return HttpResponse.json(callback);
     }),
     http.get("/api/flags", () => HttpResponse.json(state.flagList)),
     http.get("/api/flags/:key", ({ params }) => {

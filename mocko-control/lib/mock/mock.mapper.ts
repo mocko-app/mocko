@@ -3,12 +3,14 @@ import type {
   CoreMockDetailsDto,
   CoreMockDto,
 } from "@/lib/core/data/core.dto";
+import type { Callback } from "@/lib/types/callback";
 import type { Host } from "@/lib/types/host";
 import type { Mock } from "@/lib/types/mock";
 
 export function toDeployDefinition(
   mocks: Mock[],
   hosts: Host[] = [],
+  callbacks: Callback[] = [],
 ): CoreDeployDefinition {
   return {
     mocks: mocks
@@ -34,6 +36,19 @@ export function toDeployDefinition(
       source: host.source,
       destination: host.destination,
     })),
+    ...(callbacks.length > 0 && {
+      callbacks: callbacks.map((callback) => ({
+        slug: callback.slug,
+        name: callback.name,
+        method: callback.method,
+        host: callback.host,
+        path: callback.path,
+        url: callback.url,
+        delay: callback.delay,
+        headers: { ...callback.headers },
+        body: callback.body,
+      })),
+    }),
     data: undefined,
   };
 }

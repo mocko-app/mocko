@@ -1,5 +1,7 @@
 import { toReadOnlyDetailsMock, toReadOnlyMock } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
+import type { Callback, CallbackMethod } from "@/lib/types/callback";
+import type { PendingCallbackDto } from "@/lib/types/callback-dtos";
 import type { FlagKey, FlagSource } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
@@ -66,6 +68,52 @@ export abstract class Store {
     return readOnlyHosts.find((item) => item.slug === slug) ?? null;
   }
 
+  async listCallbacks(): Promise<Callback[]> {
+    const ownCallbacks = await this.listOwnCallbacks();
+    const ownSlugs = new Set(ownCallbacks.map((callback) => callback.slug));
+
+    return [
+      ...ownCallbacks,
+      ...(await this.listReadOnlyCallbacks()).filter(
+        (callback) => !ownSlugs.has(callback.slug),
+      ),
+    ];
+  }
+
+  async getCallback(slug: string): Promise<Callback | null> {
+    const callback = await this.getOwnCallback(slug);
+    if (callback) {
+      return callback;
+    }
+
+    const readOnlyCallbacks = await this.listReadOnlyCallbacks();
+    return readOnlyCallbacks.find((item) => item.slug === slug) ?? null;
+  }
+
+  async listPendingCallbacks(): Promise<PendingCallbackDto[] | null> {
+    return this.coreClient.listCorePendingCallbacks();
+  }
+
+  async fireCallback(
+    slug: string,
+    payload: unknown,
+    delay?: number,
+  ): Promise<PendingCallbackDto> {
+    return this.coreClient.fireCoreCallback(slug, payload, delay);
+  }
+
+  async firePendingCallback(id: string): Promise<void> {
+    await this.coreClient.firePendingCoreCallback(id);
+  }
+
+  async cancelPendingCallback(id: string): Promise<void> {
+    await this.coreClient.cancelPendingCoreCallback(id);
+  }
+
+  async clearPendingCallbacks(): Promise<void> {
+    await this.coreClient.clearCorePendingCallbacks();
+  }
+
   async getCoreVersion(): Promise<string | null> {
     return this.coreClient.getCoreVersion();
   }
@@ -90,6 +138,8 @@ export abstract class Store {
   abstract health(): Promise<void>;
   abstract saveMock(mock: Mock): Promise<void>;
   abstract saveHost(host: Host): Promise<void>;
+  abstract saveCallback(callback: Callback): Promise<void>;
+  abstract deleteCallback(slug: string): Promise<boolean>;
   abstract getCreatedAnnotations(): MockAnnotation[];
   abstract readonly isManagementSupported: boolean;
   abstract createOperation(op: Operation): Promise<void>;
@@ -129,6 +179,8 @@ export abstract class Store {
   protected abstract getOwnMock(id: string): Promise<Mock | null>;
   protected abstract listOwnHosts(): Promise<Host[]>;
   protected abstract getOwnHost(slug: string): Promise<Host | null>;
+  protected abstract listOwnCallbacks(): Promise<Callback[]>;
+  protected abstract getOwnCallback(slug: string): Promise<Callback | null>;
 
   protected async listReadOnlyMocks(): Promise<Mock[]> {
     try {
@@ -167,6 +219,30 @@ export abstract class Store {
       }));
     } catch (error) {
       console.error("Failed to fetch file-based hosts from mocko-core:", error);
+      return [];
+    }
+  }
+
+  protected async listReadOnlyCallbacks(): Promise<Callback[]> {
+    try {
+      const coreCallbacks = await this.coreClient.listCoreCallbacks();
+      return coreCallbacks.map((callback) => ({
+        slug: callback.slug,
+        name: callback.name,
+        method: callback.method as CallbackMethod,
+        host: callback.host,
+        path: callback.path,
+        url: callback.url,
+        delay: callback.delay,
+        headers: { ...callback.headers },
+        body: callback.body,
+        annotations: ["READ_ONLY"],
+      }));
+    } catch (error) {
+      console.error(
+        "Failed to fetch file-based callbacks from mocko-core:",
+        error,
+      );
       return [];
     }
   }

@@ -65,6 +65,27 @@ export class ErrorDto {
     return new ErrorDto("HOST_SLUG_CONFLICT", `Host "${slug}" already exists`);
   }
 
+  static ofCallbackNotFound(slug: string): ErrorDto {
+    return new ErrorDto(
+      "CALLBACK_NOT_FOUND",
+      `Callback "${slug}" was not found`,
+    );
+  }
+
+  static ofCallbackSlugConflict(slug: string): ErrorDto {
+    return new ErrorDto(
+      "CALLBACK_SLUG_CONFLICT",
+      `Callback "${slug}" already exists`,
+    );
+  }
+
+  static ofCallbackReadOnly(slug: string): ErrorDto {
+    return new ErrorDto(
+      "CALLBACK_READ_ONLY",
+      `Callback "${slug}" is read-only and cannot be edited`,
+    );
+  }
+
   static ofTemplateParseError(parsingError: ParsingError): ErrorDto {
     return new ErrorDto(
       "TEMPLATE_PARSE_ERROR",
