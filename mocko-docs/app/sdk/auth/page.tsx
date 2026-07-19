@@ -27,9 +27,9 @@ export default function SdkAuthPage() {
       <DocsTitle>Auth and Deployment</DocsTitle>
       <DocsLead>
         On localhost the SDK just works. Against a shared staging instance,
-        whether the flag endpoints are open or protected depends on one setting
-        on the mock server. This page covers that setting and how to wire the
-        secret into your test runs.
+        whether the flag and callback endpoints are open or protected depends on
+        one setting on the mock server. This page covers that setting and how to
+        wire the secret into your test runs.
       </DocsLead>
 
       <DocsH2>How Mocko protects management routes</DocsH2>
@@ -40,12 +40,12 @@ export default function SdkAuthPage() {
       <DocsUl>
         <li>
           <DocsCode>deploy</DocsCode> (the default): internal management routes
-          require auth, but flag endpoints stay open. The SDK needs no
-          configuration.
+          require auth, but flag and callback endpoints stay open. The SDK needs
+          no configuration.
         </li>
         <li>
-          <DocsCode>all</DocsCode>: flag endpoints also require a bearer token.
-          The SDK must be given the secret.
+          <DocsCode>all</DocsCode>: flag and callback endpoints also require a
+          bearer token. The SDK must be given the secret.
         </li>
         <li>
           <DocsCode>none</DocsCode>: everything is open. Fine for throwaway
@@ -53,10 +53,10 @@ export default function SdkAuthPage() {
         </li>
       </DocsUl>
       <DocsP>
-        The default is deliberately test-friendly: flags are the public contract
-        between tests and mocks, so they stay open unless you opt into locking
-        them down. Lock them down when the instance is reachable beyond your
-        team or when flag values could be sensitive.
+        The default is deliberately test-friendly: flags and callbacks are the
+        public contract between tests and mocks, so they stay open unless you
+        opt into locking them down. Lock them down when the instance is
+        reachable beyond your team or when flag values could be sensitive.
       </DocsP>
 
       <DocsH2>Passing the secret</DocsH2>
@@ -64,8 +64,8 @@ export default function SdkAuthPage() {
         Against a core running with{" "}
         <DocsCode>MANAGEMENT_AUTH_MODE=all</DocsCode>, pass the instance&apos;s
         deploy secret to the client. It is sent as{" "}
-        <DocsCode>Authorization: Bearer &lt;secret&gt;</DocsCode> on flag
-        requests:
+        <DocsCode>Authorization: Bearer &lt;secret&gt;</DocsCode> on every
+        request:
       </DocsP>
       <DocsCodeBlock language="ts">{`export const mocko = new MockoClient('https://mocks.staging.example.com', {
   secret: process.env.MOCKO_SECRET,
@@ -93,9 +93,9 @@ export default function SdkAuthPage() {
         className="mb-4"
       />
       <Callout variant="info">
-        The CLI generates a random secret per run and keeps flag endpoints open
-        (<DocsCode>deploy</DocsCode> mode), which is why none of this ever comes
-        up in local development.
+        The CLI generates a random secret per run and keeps flag and callback
+        endpoints open (<DocsCode>deploy</DocsCode> mode), which is why none of
+        this ever comes up in local development.
       </Callout>
 
       <DocsH2>Behavior details</DocsH2>

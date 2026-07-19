@@ -196,8 +196,10 @@ mock "GET /invoices/{id}" {
 
       <DocsH2>Next</DocsH2>
       <DocsP>
-        One piece of the mock file format remains: shared fixtures. Continue to{" "}
-        <DocsLink href="/creating-mocks/data-blocks">Data Blocks</DocsLink>.
+        Hosts also give outbound requests a target: continue to{" "}
+        <DocsLink href="/creating-mocks/callbacks">Callbacks</DocsLink> to make
+        Mocko call your services back, like the webhooks your real integrations
+        send.
       </DocsP>
     </DocsPage>
   );

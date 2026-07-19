@@ -28,6 +28,7 @@ export const docsNavGroups: DocsNavGroup[] = [
         title: "Proxying and Hosts",
         href: "/creating-mocks/proxying-and-hosts",
       },
+      { title: "Callbacks", href: "/creating-mocks/callbacks" },
       { title: "Data Blocks", href: "/creating-mocks/data-blocks" },
     ],
   },
