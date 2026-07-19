@@ -58,6 +58,14 @@ export class DeployService {
         this.authorize(authorization);
     }
 
+    authorizeCallbacks(authorization?: string | string[]): void {
+        if(!this.callbacksAuthRequired()) {
+            return;
+        }
+
+        this.authorize(authorization);
+    }
+
     private deployAuthRequired(): boolean {
         return MANAGEMENT_AUTH_MODE === 'deploy' || MANAGEMENT_AUTH_MODE === 'all';
     }
@@ -67,6 +75,10 @@ export class DeployService {
     }
 
     private flagsAuthRequired(): boolean {
+        return MANAGEMENT_AUTH_MODE === 'all';
+    }
+
+    private callbacksAuthRequired(): boolean {
         return MANAGEMENT_AUTH_MODE === 'all';
     }
 

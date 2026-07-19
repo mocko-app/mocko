@@ -186,6 +186,47 @@ export default function ReferenceHelpersPage() {
         <DocsCode>{"{{= $key (append 'users:' request.params.id)}}"}</DocsCode>.
       </Callout>
 
+      <DocsH2>The callback helper</DocsH2>
+      <DocsP>
+        Schedules delivery of a callback block after the mock responds. The
+        guided introduction is on{" "}
+        <DocsLink href="/creating-mocks/callbacks">Callbacks</DocsLink>.
+      </DocsP>
+      <DocsTable>
+        <DocsThead>
+          <tr>
+            <DocsTh>Helper</DocsTh>
+            <DocsTh>Signature</DocsTh>
+            <DocsTh>Description</DocsTh>
+          </tr>
+        </DocsThead>
+        <DocsTbody>
+          <tr>
+            <DocsTd>
+              <DocsCode>callback</DocsCode>
+            </DocsTd>
+            <DocsTd>
+              <DocsCode>{"{{callback 'slug' [payload] [delay=ms]}}"}</DocsCode>
+            </DocsTd>
+            <DocsTd>
+              Schedule the named callback. The optional positional argument is
+              the payload, any JSON-serializable value, available as{" "}
+              <DocsCode>payload</DocsCode> in the callback&apos;s templates at
+              delivery time. <DocsCode>delay=</DocsCode> overrides the
+              block&apos;s <DocsCode>delay</DocsCode>. Renders nothing.
+            </DocsTd>
+          </tr>
+        </DocsTbody>
+      </DocsTable>
+      <Callout variant="info">
+        An unknown slug or a host without a destination fails the mock with a{" "}
+        <DocsCode>500</DocsCode>. Callback bodies render with{" "}
+        <DocsCode>payload</DocsCode> and <DocsCode>data</DocsCode> only, and
+        support every helper except <DocsCode>setStatus</DocsCode>,{" "}
+        <DocsCode>setHeader</DocsCode>, <DocsCode>proxy</DocsCode>, and{" "}
+        <DocsCode>callback</DocsCode> itself.
+      </Callout>
+
       <DocsH2>The request context</DocsH2>
       <DocsTable>
         <DocsThead>

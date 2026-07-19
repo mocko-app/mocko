@@ -1,3 +1,7 @@
+import type {
+  CallbackDto,
+  PendingCallbackDto,
+} from "@/lib/types/callback-dtos";
 import type { FlagKey } from "@/lib/types/flag";
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
@@ -12,6 +16,8 @@ let mockCounter = 0;
 let hostCounter = 0;
 let flagCounter = 0;
 let operationCounter = 0;
+let callbackCounter = 0;
+let pendingCallbackCounter = 0;
 
 export function aMock(overrides: Partial<MockDto> = {}): MockDto {
   mockCounter += 1;
@@ -57,6 +63,40 @@ export function aHost(overrides: Partial<HostDto> = {}): HostDto {
     source: `host-${hostCounter}.example.com`,
     destination: undefined,
     annotations: [],
+    ...overrides,
+  };
+}
+
+export function aCallback(overrides: Partial<CallbackDto> = {}): CallbackDto {
+  callbackCounter += 1;
+
+  return {
+    slug: `callback-${callbackCounter}`,
+    name: undefined,
+    method: "POST",
+    host: `host-${callbackCounter}`,
+    path: `/callbacks/${callbackCounter}`,
+    url: undefined,
+    delay: 0,
+    headers: {},
+    body: undefined,
+    annotations: [],
+    ...overrides,
+  };
+}
+
+export function aPendingCallback(
+  overrides: Partial<PendingCallbackDto> = {},
+): PendingCallbackDto {
+  pendingCallbackCounter += 1;
+
+  return {
+    id: `pending-callback-${pendingCallbackCounter}`,
+    slug: `callback-${pendingCallbackCounter}`,
+    payload: { key: `value-${pendingCallbackCounter}` },
+    dueAt: Date.now() + 60_000,
+    createdAt: Date.now(),
+    triggeredByMockId: undefined,
     ...overrides,
   };
 }

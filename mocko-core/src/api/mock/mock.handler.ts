@@ -8,6 +8,7 @@ import { isStream } from '../../utils/stream';
 import { Mock } from '../../definitions/data/mock';
 import Bigodon, { TemplateRunner } from 'bigodon';
 import { Execution } from 'bigodon/dist/runner/execution';
+import { CallbackSchedulerService } from '../callback/callback-scheduler.service';
 
 const debug = require('debug')('mocko:proxy:mock:handler');
 
@@ -30,9 +31,16 @@ export type BigodonContext = {
     data: Record<string, any>,
 };
 
+export type CallbackTrigger = {
+    slug: string,
+    payload: unknown,
+    delay: number,
+};
+
 export type BigodonData = {
     status: number,
     responseHeaders: Record<string, string>,
+    callbacks: CallbackTrigger[],
     proxyTo?: string,
     proxyLabel?: string | null,
 };
@@ -50,6 +58,7 @@ export class MockHandler {
         private readonly bigodon: Bigodon,
         private readonly repository: MockRepository,
         private readonly proxyController: ProxyController,
+        private readonly callbackScheduler: CallbackSchedulerService,
         private readonly logger: ILogger,
 
         private readonly mock: Mock,
@@ -89,6 +98,8 @@ export class MockHandler {
             await Hoek.wait(this.mock.response.delay);
         }
 
+        this.dispatchCallbacks(data);
+
         if(data.proxyTo !== undefined) {
             debug(`proxying due to helper request to '${data.proxyTo}'`);
             return await this.proxyController.proxyRequest(request, h, data.proxyTo, data.proxyLabel);
@@ -115,6 +126,7 @@ export class MockHandler {
         return {
             status: this.mock.response.code,
             responseHeaders,
+            callbacks: [],
         };
     }
 
@@ -184,6 +196,19 @@ export class MockHandler {
 
     private isJsonContentType(contentType: string): boolean {
         return contentType.toLowerCase().includes('json');
+    }
+
+    private dispatchCallbacks(data: BigodonData): void {
+        for(const trigger of data.callbacks) {
+            debug(`scheduling callback '${trigger.slug}' triggered by this mock`);
+            void this.callbackScheduler.schedule({
+                ...trigger,
+                triggeredByMockId: this.mock.id,
+            }).catch((e) => {
+                const message = e instanceof Error ? e.message : String(e);
+                this.logger.warn(`Failed to schedule callback '${trigger.slug}': ${message}`);
+            });
+        }
     }
 
     private async registerFailure(error: Error): Promise<void> {

@@ -230,6 +230,96 @@ describe('mocko validate', () => {
     expect(result.stdout).toContain("references host 'missing'");
   });
 
+  it('passes on valid callback stanzas', async () => {
+    const dir = await writeMocks({
+      'callbacks.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        host "workflows" {
+          source      = "workflows.local"
+          destination = "http://localhost:9998"
+        }
+        callback "payment-approved" {
+          host = "workflows"
+          path = "/payments"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('No issues found');
+  });
+
+  it('fails on invalid callback stanzas', async () => {
+    const dir = await writeMocks({
+      'callbacks.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        callback "both-targets" {
+          host = "workflows"
+          path = "/x"
+          url  = "http://localhost:9998/x"
+        }
+        callback "bad-template" {
+          url  = "http://localhost:9998/x"
+          body = "{{payload.key"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain("On callback 'both-targets'");
+    expect(result.stdout).toContain("On callback 'bad-template'");
+    expect(result.stdout).toContain('invalid template in body');
+  });
+
+  it('warns when a callback references an undefined host', async () => {
+    const dir = await writeMocks({
+      'callbacks.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        callback "orphan" {
+          host = "missing"
+          path = "/x"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain(
+      "callback 'orphan' references host 'missing'",
+    );
+  });
+
+  it('warns on duplicate callback slugs attributing both files', async () => {
+    const dir = await writeMocks({
+      'one.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        callback "dupe" {
+          url = "http://localhost:9998/one"
+        }
+      `,
+      'two.hcl': `
+        callback "dupe" {
+          url = "http://localhost:9998/two"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("callback 'dupe' is also defined in");
+    expect(result.stdout).toContain('the first definition wins');
+  });
+
   it('fails on warnings when --strict is set', async () => {
     const dir = await writeMocks({
       'params.hcl': `

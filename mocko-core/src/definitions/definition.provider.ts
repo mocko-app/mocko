@@ -12,6 +12,7 @@ import { Synchronize } from '@mocko/sync';
 import { v5 as uuidv5 } from 'uuid';
 import { Mock, MockSource } from "./data/mock";
 import { Host } from "./data/host";
+import { Callback } from "./data/callback";
 import { mergeData } from "../utils/utils";
 import { DiagnosticsCollector } from "./diagnostics";
 
@@ -56,6 +57,11 @@ export class DefinitionProvider {
         return fileDefinitions.hosts;
     }
 
+    async getFileCallbacks(): Promise<Callback[]> {
+        const fileDefinitions = await this.getFileDefinitions();
+        return fileDefinitions.callbacks;
+    }
+
     clearDefinitions(): void {
         this.definitions = null;
     }
@@ -83,6 +89,7 @@ export class DefinitionProvider {
             mocks: options.map(o => o.mocks || []).flat(),
             data: mergeData(options.map(o => o.data || {})),
             hosts: options.map(o => o.hosts || []).flat(),
+            callbacks: options.map(o => o.callbacks || []).flat(),
         };
     }
 
@@ -92,12 +99,13 @@ export class DefinitionProvider {
 
         if(!definitions) {
             debug('no mocks found, running proxy only');
-            return { mocks: [], hosts: [] };
+            return { mocks: [], hosts: [], callbacks: [] };
         }
 
         const normalizedDefinitions = validateDefinition({
             mocks: definitions.mocks || [],
             hosts: definitions.hosts || [],
+            callbacks: definitions.callbacks || [],
             data: definitions.data,
         });
 
@@ -120,6 +128,11 @@ export class DefinitionProvider {
             ...(redisDefinitions?.hosts || []),
             ...fileDefinitions.hosts,
         ];
+        const callbacks = [
+            ...this.withCallbackSource(deployDefinitions?.callbacks || []),
+            ...this.withCallbackSource(redisDefinitions?.callbacks || []),
+            ...fileDefinitions.callbacks,
+        ];
         const data = mergeData([
             fileDefinitions.data || {},
             redisDefinitions?.data || {},
@@ -129,6 +142,7 @@ export class DefinitionProvider {
         return {
             mocks,
             hosts,
+            callbacks,
             data,
         };
     }
@@ -203,8 +217,21 @@ export class DefinitionProvider {
                 file,
                 message: e.message,
             });
+        }, (e) => {
+            this.logger.warn(`Invalid callback on file '${path}': ${e.message}`);
+            this.diagnostics.push({
+                code: 'invalid-callback',
+                severity: 'error',
+                file,
+                message: e.message,
+            });
         });
         definition.mocks = this.withFileMetadata(path, definition.mocks);
+        definition.callbacks = definition.callbacks.map((callback) => ({
+            ...callback,
+            filePath: file,
+            source: 'FILE',
+        }));
         return definition;
     }
 
@@ -216,6 +243,13 @@ export class DefinitionProvider {
         return mocks.map((mock) => ({
             ...mock,
             source: mock.source || source,
+        }));
+    }
+
+    private withCallbackSource(callbacks: Callback[]): Callback[] {
+        return callbacks.map((callback) => ({
+            ...callback,
+            source: callback.source || 'DEPLOYED',
         }));
     }
 

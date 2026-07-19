@@ -2,6 +2,7 @@ import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
 import { StoreNotSupportedError } from "@/lib/store/store-errors";
+import type { Callback } from "@/lib/types/callback";
 import type { FlagKey, FlagSource, FlagType } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
@@ -17,6 +18,7 @@ export class MemoryStore extends Store {
 
   private readonly mocks = new Map<string, Mock>();
   private readonly hosts = new Map<string, Host>();
+  private readonly callbacks = new Map<string, Callback>();
 
   constructor(coreClient: CoreClient) {
     super(coreClient);
@@ -60,6 +62,22 @@ export class MemoryStore extends Store {
 
   async deleteHost(slug: string): Promise<boolean> {
     return this.hosts.delete(slug);
+  }
+
+  protected async listOwnCallbacks(): Promise<Callback[]> {
+    return Array.from(this.callbacks.values());
+  }
+
+  protected async getOwnCallback(slug: string): Promise<Callback | null> {
+    return this.callbacks.get(slug) ?? null;
+  }
+
+  async saveCallback(callback: Callback): Promise<void> {
+    this.callbacks.set(callback.slug, callback);
+  }
+
+  async deleteCallback(slug: string): Promise<boolean> {
+    return this.callbacks.delete(slug);
   }
 
   async listFlags(prefix: string, search?: string): Promise<FlagListResult> {
@@ -114,6 +132,7 @@ export class MemoryStore extends Store {
         toDeployDefinition(
           Array.from(this.mocks.values()),
           Array.from(this.hosts.values()),
+          Array.from(this.callbacks.values()),
         ),
       );
     } catch (error) {

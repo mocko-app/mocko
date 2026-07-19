@@ -167,12 +167,26 @@
           "include": "#variable"
         },
         {
+          "include": "#named-param"
+        },
+        {
           "include": "#subexpression"
         },
         {
           "include": "#path"
         }
       ]
+    },
+    "named-param": {
+      "match": "([A-Za-z_]\\w*)(=)",
+      "captures": {
+        "1": {
+          "name": "entity.other.attribute-name.bigodon"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.bigodon"
+        }
+      }
     },
     "string": {
       "patterns": [

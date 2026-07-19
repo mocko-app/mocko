@@ -3,6 +3,7 @@ import { toV2Mock } from "@/lib/management/v1-mock.mapper";
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
+import type { Callback } from "@/lib/types/callback";
 import type { FlagKey, FlagSource } from "@/lib/types/flag";
 import type { Host } from "@/lib/types/host";
 import type { MockFailure } from "@/lib/types/mock-dtos";
@@ -16,6 +17,7 @@ import type {
 
 const WORKSPACE_MOCKS_KEY = "workspace_mocks";
 const HOSTS_KEY = "hosts";
+const CALLBACKS_KEY = "callbacks";
 const DEPLOYMENT_KEY = "mocks_deployment";
 const FLAG_PREFIX = "flags:";
 const FAILURE_PREFIX = "mock_failure:";
@@ -127,6 +129,39 @@ export class RedisStore extends Store {
     }
 
     await this.writeOwnHosts(nextHosts);
+    return true;
+  }
+
+  protected async listOwnCallbacks(): Promise<Callback[]> {
+    return this.readOwnCallbacks();
+  }
+
+  protected async getOwnCallback(slug: string): Promise<Callback | null> {
+    const callbacks = await this.readOwnCallbacks();
+    return callbacks.find((callback) => callback.slug === slug) ?? null;
+  }
+
+  async saveCallback(callback: Callback): Promise<void> {
+    const callbacks = await this.readOwnCallbacks();
+    const index = callbacks.findIndex((item) => item.slug === callback.slug);
+    if (index === -1) {
+      callbacks.push(callback);
+    } else {
+      callbacks[index] = callback;
+    }
+    await this.writeOwnCallbacks(callbacks);
+  }
+
+  async deleteCallback(slug: string): Promise<boolean> {
+    const callbacks = await this.readOwnCallbacks();
+    const nextCallbacks = callbacks.filter(
+      (callback) => callback.slug !== slug,
+    );
+    if (nextCallbacks.length === callbacks.length) {
+      return false;
+    }
+
+    await this.writeOwnCallbacks(nextCallbacks);
     return true;
   }
 
@@ -242,7 +277,8 @@ export class RedisStore extends Store {
     try {
       const mocks = await this.readOwnMocks();
       const hosts = await this.readOwnHosts();
-      const deployDefinition = toDeployDefinition(mocks, hosts);
+      const callbacks = await this.readOwnCallbacks();
+      const deployDefinition = toDeployDefinition(mocks, hosts, callbacks);
       await this.redis.set(DEPLOYMENT_KEY, JSON.stringify(deployDefinition));
       await this.redis.publish(`${this.redisPrefix}${RELOAD_CHANNEL}`, "");
     } catch (error) {
@@ -767,6 +803,19 @@ export class RedisStore extends Store {
 
   private async writeOwnHosts(hosts: Host[]): Promise<void> {
     await this.redis.set(HOSTS_KEY, JSON.stringify(hosts));
+  }
+
+  private async readOwnCallbacks(): Promise<Callback[]> {
+    const payload = await this.redis.get(CALLBACKS_KEY);
+    if (!payload) {
+      return [];
+    }
+
+    return JSON.parse(payload) as Callback[];
+  }
+
+  private async writeOwnCallbacks(callbacks: Callback[]): Promise<void> {
+    await this.redis.set(CALLBACKS_KEY, JSON.stringify(callbacks));
   }
 
   private normalizePrefix(prefix: string): string {

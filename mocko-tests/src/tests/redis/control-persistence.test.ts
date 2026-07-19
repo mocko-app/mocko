@@ -1,4 +1,5 @@
 import {
+  createCaptureServer,
   createRedisSubject,
   describeRedis,
   flushRedis,
@@ -138,5 +139,50 @@ describeRedis('redis control persistence', () => {
       (await subject.ensureControl().get(`/api/mocks/${createdMock.id}`))
         .status,
     ).toBe(404);
+  });
+
+  it('persists control-created callbacks across restart and still fires them', async () => {
+    const capture = await createCaptureServer();
+    try {
+      ({ subject, redis } = await createRedisSubject({
+        options: { '--ui': true },
+        mode: 'url',
+      }));
+
+      const control = subject.ensureControl();
+      const createRes = await control.post('/api/callbacks', {
+        slug: 'persisted-callback',
+        url: `${capture.url}/persisted`,
+      });
+      expect(createRes.status).toBe(201);
+
+      await subject.stop();
+      subject = null;
+
+      ({ subject } = await createRedisSubject({
+        options: { '--ui': true },
+        mode: 'url',
+        redis,
+      }));
+
+      const restartedControl = subject.ensureControl();
+      const detailsRes = await restartedControl.get(
+        '/api/callbacks/persisted-callback',
+      );
+      expect(detailsRes.status).toBe(200);
+      expect(detailsRes.data.url).toBe(`${capture.url}/persisted`);
+      expect(detailsRes.data.annotations).not.toContain('READ_ONLY');
+
+      const fireRes = await restartedControl.post(
+        '/api/callbacks/persisted-callback/fire',
+        {},
+      );
+      expect(fireRes.status).toBe(202);
+
+      await capture.waitForRequests(1);
+      expect(capture.requests[0].url).toBe('/persisted');
+    } finally {
+      await capture.stop();
+    }
   });
 });

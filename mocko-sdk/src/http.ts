@@ -88,14 +88,14 @@ export class HttpClient {
   }
 
   private async responseBody<TBody>(response: Response): Promise<TBody> {
-    if (response.status === 204) {
+    const text = await response.text();
+    if (response.status === 204 || text === '') {
       return undefined as TBody;
     }
 
     try {
-      return (await response.clone().json()) as TBody;
+      return JSON.parse(text) as TBody;
     } catch (error) {
-      const text = await response.text().catch(() => '');
       console.error(
         `Mocko expected JSON but received a non-JSON response from ${
           response.url || 'the server'

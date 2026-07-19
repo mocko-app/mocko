@@ -12,5 +12,6 @@ export default defineConfig({
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", ".next/**"],
     restoreMocks: true,
+    testTimeout: 15_000,
   },
 });

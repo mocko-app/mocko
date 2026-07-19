@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = {
   title: "Mock Files (HCL)",
   description:
-    "Full reference for Mocko's HCL mock files: every mock, host, and data block field, heredocs, match priority, and file layout.",
+    "Full reference for Mocko's HCL mock files: every mock, host, callback, and data block field, heredocs, match priority, and file layout.",
 };
 
 export default function ReferenceMockFilesPage() {
@@ -246,6 +246,107 @@ EOF`}</DocsCodeBlock>
       <DocsP>
         The slug (the block&apos;s string label) is limited to 12 characters:
         letters, digits, <DocsCode>-</DocsCode> and <DocsCode>_</DocsCode>.
+      </DocsP>
+
+      <DocsH2>callback block</DocsH2>
+      <DocsCodeBlock language="hcl">{`callback "payment-approved" {
+  name   = "Payment approved"
+  method = "POST"
+  host   = "billing"
+  path   = "/webhooks/payments/{{payload.id}}"
+  delay  = 2000
+  headers {
+    X-Source = "mocko"
+  }
+  body = <<-EOF
+    { "id": "{{payload.id}}", "status": "APPROVED" }
+  EOF
+}`}</DocsCodeBlock>
+      <DocsTable>
+        <DocsThead>
+          <tr>
+            <DocsTh>Field</DocsTh>
+            <DocsTh>Required</DocsTh>
+            <DocsTh>Description</DocsTh>
+          </tr>
+        </DocsThead>
+        <DocsTbody>
+          <tr>
+            <DocsTd>
+              <DocsCode>host</DocsCode> + <DocsCode>path</DocsCode>
+            </DocsTd>
+            <DocsTd>one target</DocsTd>
+            <DocsTd>
+              Delivery target: the host block&apos;s destination plus the path.
+              The path is a Bigodon template.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>url</DocsCode>
+            </DocsTd>
+            <DocsTd>one target</DocsTd>
+            <DocsTd>
+              Absolute <DocsCode>http://</DocsCode> or{" "}
+              <DocsCode>https://</DocsCode> URL template, alternative to{" "}
+              <DocsCode>host</DocsCode> + <DocsCode>path</DocsCode>.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>method</DocsCode>
+            </DocsTd>
+            <DocsTd>no</DocsTd>
+            <DocsTd>
+              Delivery HTTP method, default <DocsCode>POST</DocsCode>.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>delay</DocsCode>
+            </DocsTd>
+            <DocsTd>no</DocsTd>
+            <DocsTd>
+              Default delay between trigger and delivery in milliseconds,
+              default 0.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>headers</DocsCode>
+            </DocsTd>
+            <DocsTd>no</DocsTd>
+            <DocsTd>
+              Delivery request headers; values are Bigodon templates.{" "}
+              <DocsCode>Content-Type</DocsCode> defaults to{" "}
+              <DocsCode>application/json</DocsCode> when a body is set.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>body</DocsCode>
+            </DocsTd>
+            <DocsTd>no</DocsTd>
+            <DocsTd>
+              Delivery request body, a Bigodon template rendered at delivery
+              time with <DocsCode>payload</DocsCode> and{" "}
+              <DocsCode>data</DocsCode> in context.
+            </DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>
+              <DocsCode>name</DocsCode>
+            </DocsTd>
+            <DocsTd>no</DocsTd>
+            <DocsTd>Label shown in the UI.</DocsTd>
+          </tr>
+        </DocsTbody>
+      </DocsTable>
+      <DocsP>
+        Triggered from mock bodies with{" "}
+        <DocsCode>{"{{callback 'slug' payload delay=ms}}"}</DocsCode>; the
+        guided introduction is on{" "}
+        <DocsLink href="/creating-mocks/callbacks">Callbacks</DocsLink>.
       </DocsP>
 
       <DocsH2>data block</DocsH2>

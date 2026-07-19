@@ -112,6 +112,30 @@ it('locks out suspended users', async () => {
         mocks accumulated during the test.
       </DocsP>
 
+      <DocsH2>Firing callbacks</DocsH2>
+      <DocsP>
+        The client also drives{" "}
+        <DocsLink href="/creating-mocks/callbacks">callbacks</DocsLink>, the
+        simulated webhooks defined in your mocks. Tests that assert on a delayed
+        webhook never sleep through the delay: schedule it, assert it is
+        pending, then fire it.
+      </DocsP>
+      <DocsCodeBlock language="ts">{`const pending = await mocko.fireCallback(
+  'payment-approved',
+  { id: 'pay-42' },
+  { delay: 60_000 },
+);
+
+expect(await mocko.listPendingCallbacks()).toHaveLength(1);
+await mocko.firePendingCallback(pending.id); // delivers now
+
+await mocko.clearPendingCallbacks(); // e.g. in beforeEach`}</DocsCodeBlock>
+      <DocsP>
+        Without options, <DocsCode>fireCallback(slug, payload)</DocsCode>{" "}
+        delivers immediately; the callback block&apos;s{" "}
+        <DocsCode>delay</DocsCode> only applies to mock-triggered callbacks.
+      </DocsP>
+
       <DocsH2>Behavior details</DocsH2>
       <DocsUl>
         <li>

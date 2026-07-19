@@ -8,6 +8,7 @@ import {
   FlagIcon,
   ServerIcon,
   BookOpenIcon,
+  WebhookIcon,
   WrenchIcon,
 } from "lucide-react";
 
@@ -15,6 +16,12 @@ const navItems = [
   { label: "Mocks", href: "/mocks", icon: LayoutGridIcon, external: false },
   { label: "Flags", href: "/flags", icon: FlagIcon, external: false },
   { label: "Hosts", href: "/hosts", icon: ServerIcon, external: false },
+  {
+    label: "Callbacks",
+    href: "/callbacks",
+    icon: WebhookIcon,
+    external: false,
+  },
   { label: "Manage", href: "/management", icon: WrenchIcon, external: false },
   {
     label: "Docs",

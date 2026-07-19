@@ -19,11 +19,17 @@ const MATCHING_DOCS = 'https://mocko.dev/docs/creating-mocks/matching';
 const FILE_MOCKS_DOCS = 'https://mocko.dev/docs/creating-mocks/file-mocks';
 const TEMPLATING_DOCS = 'https://mocko.dev/docs/creating-mocks/templating';
 const HOSTS_DOCS = 'https://mocko.dev/docs/creating-mocks/proxying-and-hosts';
+const CALLBACKS_DOCS = 'https://mocko.dev/docs/creating-mocks/callbacks';
 
 const HINTS = {
     'hcl-parse-error': { docs: FILE_MOCKS_DOCS },
     'invalid-mock': { docs: FILE_MOCKS_DOCS },
     'invalid-host': { docs: HOSTS_DOCS },
+    'invalid-callback': {
+        hint: 'The callback is skipped, triggering it responds with a 500 until it is fixed',
+        docs: CALLBACKS_DOCS,
+    },
+    'duplicate-callback': { docs: CALLBACKS_DOCS },
     'template-parse-error': {
         hint: 'The mock still maps, but every request to it responds with a 500 until the template is fixed',
         docs: TEMPLATING_DOCS,

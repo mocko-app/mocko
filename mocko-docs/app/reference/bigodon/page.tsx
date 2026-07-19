@@ -71,6 +71,12 @@ export default function ReferenceBigodonPage() {
             </DocsTd>
           </tr>
           <tr>
+            <DocsTd>Named parameters</DocsTd>
+            <DocsTd>
+              <DocsCode>{"{{helper arg name=value}}"}</DocsCode>
+            </DocsTd>
+          </tr>
+          <tr>
             <DocsTd>Comment</DocsTd>
             <DocsTd>
               <DocsCode>{"{{! ignored }}"}</DocsCode>
@@ -240,7 +246,9 @@ export default function ReferenceBigodonPage() {
             <DocsTd>Object</DocsTd>
             <DocsTd>
               <DocsCode>pick</DocsCode> (string-key access; also the only way to
-              read keys containing dots, and to read fields off helper results)
+              read keys containing dots, and to read fields off helper results),{" "}
+              <DocsCode>object</DocsCode> (builds an object from named
+              parameters)
             </DocsTd>
           </tr>
           <tr>
@@ -262,6 +270,33 @@ export default function ReferenceBigodonPage() {
         </DocsTbody>
       </DocsTable>
 
+      <DocsH2>Named parameters</DocsH2>
+      <DocsP>
+        Helpers accept <DocsCode>name=value</DocsCode> pairs after all
+        positional arguments. Values can be literals, context paths, variables,
+        or parenthesized expressions. Helpers that do not use a named parameter
+        silently ignore it. The <DocsCode>object</DocsCode> helper builds an
+        object from its named parameters, which is how you construct object
+        values inline:
+      </DocsP>
+      <DocsCodeBlock language="bigodon">{`{{json (object id=(uuid) status='PENDING' item=request.body)}}`}</DocsCodeBlock>
+      <DocsUl>
+        <li>
+          Named parameters always come last: a positional argument after a named
+          one is a parse error.
+        </li>
+        <li>
+          No spaces around <DocsCode>=</DocsCode>, and names must be unique
+          within a call.
+        </li>
+        <li>
+          <DocsCode>object</DocsCode> rejects positional arguments. Its result
+          renders as <DocsCode>[object Object]</DocsCode> if printed directly;
+          wrap it in <DocsCode>json</DocsCode> to render it, or pass it where a
+          value is expected, like flag values.
+        </li>
+      </DocsUl>
+
       <DocsH2>Gotchas</DocsH2>
       <DocsUl>
         <li>
@@ -281,7 +316,10 @@ export default function ReferenceBigodonPage() {
         <li>
           <DocsCode>{"{{uuid}}"}</DocsCode> calls the helper; to read a context
           field literally named <DocsCode>uuid</DocsCode>, write{" "}
-          <DocsCode>{"{{$this.uuid}}"}</DocsCode>.
+          <DocsCode>{"{{$this.uuid}}"}</DocsCode>. The same applies to every
+          helper name: a payload field called <DocsCode>object</DocsCode>{" "}
+          (common in payment APIs) is read with{" "}
+          <DocsCode>{"{{$this.object}}"}</DocsCode>.
         </li>
       </DocsUl>
       <Callout variant="tip">

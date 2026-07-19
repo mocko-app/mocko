@@ -26,6 +26,7 @@ String literals accept `"double"`, `'single'`, or `` `backtick` `` quotes.
 | Path | `{{ user.name }}` |
 | Comment | `{{! text }}` |
 | Helper | `{{helperName arg1 arg2}}` |
+| Named parameters | `{{helperName arg name=value}}` — after all positional args; tight `=` (no spaces); values can be literals, paths, `$vars`, or `(subexpressions)` |
 | Variable assign | `{{= $var value}}` |
 | Variable use | `{{ $var }}` |
 | Conditional block | `{{#expr}}...{{/expr}}` |
@@ -75,6 +76,12 @@ Total: {{$total}}
 {{#with items}}Count: {{length $this}}{{/with}}
 ```
 
+**Build an object inline (`object` helper + named parameters):**
+```hbs
+{{setFlag (append 'orders:' $id) (object id=$id status='created' item=request.body)}}
+{{json (object id=$id status='created')}}
+```
+
 ## Reference files
 
 - [BIGODON-HELPERS.md](BIGODON-HELPERS.md) — all available helpers by category
@@ -89,3 +96,5 @@ Total: {{$total}}
 - Close only the **outermost** helper in chained else-if blocks
 - No bracket array access — `arr[0]` doesn't exist; use `{{itemAt arr 0}}`
 - `pick` is the only way to access keys with dots in them: `{{pick params "user.name"}}` reads the literal key `"user.name"`, unlike `{{params.user.name}}` which traverses nested objects
+- Named parameters must come **after** all positional args (`{{helper a=1 "pos"}}` is a parse error), names must be unique, no spaces around `=`. Helpers that don't use a named parameter silently ignore it
+- Helper names shadow context fields: bare `{{object}}` calls the `object` helper (rendering `[object Object]`), so a payload field named `object` (common in payment APIs) must be read as `{{$this.object}}`

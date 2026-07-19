@@ -6,6 +6,7 @@ import {HealthRouter} from "./api/health/health.router";
 import {DeployRouter} from "./api/deploy/deploy.router";
 import { FlagRouter } from "./api/flag/flag.router";
 import { HostRouter } from "./api/host/host.router";
+import { CallbackRouter } from "./api/callback/callback.router";
 
 @Provider()
 export class MainRouter implements IRouter {
@@ -14,6 +15,7 @@ export class MainRouter implements IRouter {
         private readonly mockRouter: MockRouter,
         private readonly flagRouter: FlagRouter,
         private readonly hostRouter: HostRouter,
+        private readonly callbackRouter: CallbackRouter,
         private readonly healthRouter: HealthRouter,
         private readonly deployRouter: DeployRouter,
     ) { }
@@ -25,6 +27,7 @@ export class MainRouter implements IRouter {
             this.flagRouter.getRoutes(),
             this.mockRouter.getRoutes(),
             this.hostRouter.getRoutes(),
+            this.callbackRouter.getRoutes(),
             this.proxyRouter.getRoutes(),
         ]);
 

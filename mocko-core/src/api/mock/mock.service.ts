@@ -9,6 +9,8 @@ import { MockHandler } from "./mock.handler";
 import * as LogHelpers from "../../helpers/log";
 import * as ResponseHelpers from "../../helpers/response";
 import * as FlagHelpers from "../../helpers/flag";
+import * as CallbackHelpers from "../../helpers/callback";
+import { CallbackSchedulerService } from "../callback/callback-scheduler.service";
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import Bigodon from "bigodon";
 import { Mock } from "../../definitions/data/mock";
@@ -30,6 +32,7 @@ export class MockService {
         private readonly proxyController: ProxyController,
         private readonly flagService: FlagService,
         private readonly definitionProvider: DefinitionProvider,
+        private readonly callbackScheduler: CallbackSchedulerService,
     ) { }
 
     async getMockRoutes(): Promise<ServerRoute[]> {
@@ -48,6 +51,7 @@ export class MockService {
             this.bigodon,
             this.repository,
             this.proxyController,
+            this.callbackScheduler,
             this.logger,
             mock,
             data,
@@ -115,5 +119,7 @@ export class MockService {
         this.bigodon.addHelper('setFlag', FlagHelpers.setFlag(this.flagService));
         this.bigodon.addHelper('delFlag', FlagHelpers.delFlag(this.flagService));
         this.bigodon.addHelper('hasFlag', FlagHelpers.hasFlag(this.flagService));
+
+        this.bigodon.addHelper('callback', CallbackHelpers.callback(this.definitionProvider));
     }
 }
