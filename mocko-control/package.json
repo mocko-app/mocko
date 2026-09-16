@@ -1,6 +1,6 @@
 {
   "name": "@mocko/control",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Mocko control service, the UI used to manage your mocks, part of @mocko/cli.",
   "main": "index.js",
   "files": [
@@ -64,6 +64,11 @@
     "typescript": "^5",
     "vitest": "^4.1.9",
     "zod": "^4.3.6"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.10"
+    }
   },
   "publishConfig": {
     "access": "public"
