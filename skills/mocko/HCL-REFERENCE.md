@@ -141,6 +141,10 @@ callback "payment-approved" {
 - An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
 - Definitions merge like hosts: UI/deployed callbacks shadow file callbacks with the same slug.
 
+For callback troubleshooting, start Mocko with `DEBUG='mocko:proxy:callback:*'`. Logs show effective callback definitions on each build, their file/source and body SHA-256, shadowed definitions, queue timing and store, the definition selected for delivery, and the outgoing URL and status. Correlate scheduling and delivery using the pending callback ID. Definition-build logs describe the cached definitions used for execution; the callback listing separately rereads files.
+
+The `mocko:proxy:callback:payload` namespace additionally logs trigger inputs as JSON, plus the selected body template and exact outgoing body as JSON-escaped strings; these may contain application data. To omit payloads and templates, use `DEBUG='mocko:proxy:callback:*,-mocko:proxy:callback:payload'`.
+
 ## Match priority
 
 1. **Exact path** beats **parameterized path** (`/cats/george` wins over `/cats/{name}`)
