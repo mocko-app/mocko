@@ -171,6 +171,48 @@ describeRedis('redis hosts persistence', () => {
     expect(createRes.data.code).toBe('HOST_SLUG_CONFLICT');
   });
 
+  it('ignores a file host shadowed by a ui host created first in redis mode', async () => {
+    await content!.createMock(`
+      mock "GET /ui/shadowed" {
+        body = "from ui host"
+      }
+      mock "GET /file/shadowed" {
+        body = "from file host"
+      }
+    `);
+
+    ({ subject, redis } = await createRedisSubject({
+      options: { '--ui': true },
+      mode: 'url',
+    }));
+
+    const revision = await subject.getRevision();
+    const createRes = await subject.ensureControl().post('/api/hosts', {
+      slug: 'Shadowed',
+      source: 'shadowed-ui.local',
+      destination: `http://localhost:${content!.port}/ui`,
+    });
+    expect(createRes.status).toBe(201);
+    await subject.waitForRemap(revision);
+
+    await subject.createMock(`
+      host "shadowed" {
+        source      = "shadowed-file.local"
+        destination = "http://localhost:${content!.port}/file"
+      }
+    `);
+
+    const uiRes = await subject.client.get('/shadowed', {
+      headers: { Host: 'shadowed-ui.local' },
+    });
+    expect(uiRes.data).toBe('from ui host');
+
+    const fileRes = await subject.client.get('/shadowed', {
+      headers: { Host: 'shadowed-file.local' },
+    });
+    expect(fileRes.status).toBe(404);
+  });
+
   it('updates control-created mock host scoping in redis mode', async () => {
     const route = randomPath();
 

@@ -105,6 +105,8 @@ mock "GET /passthrough" {
 
 Host slugs and sources match case-insensitively: `host = "Backend"` and `{{proxy 'BACKEND'}}` both target host `backend`, and a source of `API.example.com` matches requests for `api.example.com`. Slugs still display as written.
 
+One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and proxying and callbacks use the UI host's `destination`. If two files define the same host slug, only the first one loaded is used.
+
 ## Callback blocks
 
 Callbacks simulate the webhooks your real integrations send back. A mock schedules one with the `{{callback}}` helper (see [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md)), and Mocko delivers an HTTP request to your service after the mock has responded, optionally delayed. They can also be fired manually from the UI, the management API, or the SDK.
@@ -142,7 +144,7 @@ callback "payment-approved" {
 - `Content-Type` defaults to `application/json` when a `body` is set and no header overrides it.
 - An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
 - Callback slugs match case-insensitively: `{{callback 'Payment-Approved'}}` and firing `Payment-Approved` both use `payment-approved`.
-- Definitions merge like hosts: UI/deployed callbacks shadow file callbacks with the same slug.
+- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely.
 
 ## Match priority
 

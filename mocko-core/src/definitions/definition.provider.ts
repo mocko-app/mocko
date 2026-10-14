@@ -26,6 +26,11 @@ const HCL_EXTENSION = ".hcl";
 const DOT = ".";
 const FILE_ID_NAMESPACE = '4e88cbd8-4eaf-48c1-a4e9-d958802337e3';
 
+type LoadedDefinitions = {
+    merged: MockoDefinition,
+    file: MockoDefinition,
+};
+
 export type FileOrDir = {
     name: string,
     isDir: boolean,
@@ -33,7 +38,7 @@ export type FileOrDir = {
 
 @Provider()
 export class DefinitionProvider {
-    private definitions: MockoDefinition;
+    private definitions: LoadedDefinitions | null = null;
     private deployDefinition: MockoDefinition | null = null;
 
     constructor(
@@ -43,23 +48,16 @@ export class DefinitionProvider {
         private readonly diagnostics: DiagnosticsCollector,
     ) { }
 
-    @Synchronize()
     async getDefinitions(): Promise<MockoDefinition> {
-        if(!this.definitions) {
-            this.definitions = await this.buildDefinitions();
-        }
-
-        return this.definitions;
+        return (await this.getLoadedDefinitions()).merged;
     }
 
     async getFileHosts(): Promise<Host[]> {
-        const fileDefinitions = await this.getFileDefinitions();
-        return fileDefinitions.hosts;
+        return (await this.getLoadedDefinitions()).file.hosts;
     }
 
     async getFileCallbacks(): Promise<Callback[]> {
-        const fileDefinitions = await this.getFileDefinitions();
-        return fileDefinitions.callbacks;
+        return (await this.getLoadedDefinitions()).file.callbacks;
     }
 
     clearDefinitions(): void {
@@ -71,16 +69,26 @@ export class DefinitionProvider {
         this.clearDefinitions();
     }
 
-    private async buildDefinitions(): Promise<MockoDefinition> {
-        const fileDefinitions = await this.getFileDefinitions();
-        const deployDefinitions = this.deployDefinition;
-
-        if(this.redis.isEnabled) {
-            const redisDefinitions = await this.getRedisDefinitions();
-            return this.mergeDefinitions(fileDefinitions, redisDefinitions, deployDefinitions);
+    @Synchronize()
+    private async getLoadedDefinitions(): Promise<LoadedDefinitions> {
+        if(!this.definitions) {
+            this.definitions = await this.buildDefinitions();
         }
 
-        return this.mergeDefinitions(fileDefinitions, null, deployDefinitions);
+        return this.definitions;
+    }
+
+    private async buildDefinitions(): Promise<LoadedDefinitions> {
+        const fileDefinitions = await this.getFileDefinitions();
+        const deployDefinitions = this.deployDefinition;
+        const redisDefinitions = this.redis.isEnabled
+            ? await this.getRedisDefinitions()
+            : null;
+
+        return {
+            merged: this.mergeDefinitions(fileDefinitions, redisDefinitions, deployDefinitions),
+            file: fileDefinitions,
+        };
     }
 
     private async getFileDefinitions(): Promise<MockoDefinition> {
@@ -123,16 +131,16 @@ export class DefinitionProvider {
             ...this.withSource(redisDefinitions?.mocks || [], 'DEPLOYED'),
             ...this.withSource(fileDefinitions.mocks, 'FILE'),
         ];
-        const hosts = [
+        const hosts = this.uniqueBySlug([
             ...(deployDefinitions?.hosts || []),
             ...(redisDefinitions?.hosts || []),
             ...fileDefinitions.hosts,
-        ];
-        const callbacks = [
+        ]);
+        const callbacks = this.uniqueBySlug([
             ...this.withCallbackSource(deployDefinitions?.callbacks || []),
             ...this.withCallbackSource(redisDefinitions?.callbacks || []),
             ...fileDefinitions.callbacks,
-        ];
+        ]);
         const data = mergeData([
             fileDefinitions.data || {},
             redisDefinitions?.data || {},
@@ -237,6 +245,19 @@ export class DefinitionProvider {
 
     private normalizePath(filePath: string): string {
         return relative(MOCKS_DIR, filePath).replace(/\\/g, '/');
+    }
+
+    private uniqueBySlug<T extends { slug: string }>(items: T[]): T[] {
+        const seen = new Set<string>();
+        return items.filter((item) => {
+            const key = item.slug.toLowerCase();
+            if(seen.has(key)) {
+                return false;
+            }
+
+            seen.add(key);
+            return true;
+        });
     }
 
     private withSource(mocks: Mock[], source: MockSource): Mock[] {

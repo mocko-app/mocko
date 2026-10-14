@@ -42,7 +42,9 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     const collector = container.get(DiagnosticsCollector);
     collector.enable();
 
-    const { mocks, hosts, callbacks } = await container.get(DefinitionProvider).getDefinitions();
+    const definitionProvider = container.get(DefinitionProvider);
+    const { mocks, hosts } = await definitionProvider.getDefinitions();
+    const fileCallbacks = await definitionProvider.getFileCallbacks();
 
     if(mocks.length === 0) {
         collector.push({
@@ -58,12 +60,12 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
         validateHostReference(mock, hosts, collector);
     }
 
-    for(const callback of callbacks) {
+    for(const callback of fileCallbacks) {
         validateCallbackHostReference(callback, hosts, collector);
     }
 
     reportConflicts(mocks, hosts, collector);
-    reportDuplicateCallbacks(callbacks, collector);
+    reportDuplicateCallbacks(fileCallbacks, collector);
     await registerRoutes(container);
 
     const diagnostics = withoutRedundantConflicts(collector.diagnostics);
@@ -72,7 +74,7 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     return {
         diagnostics,
         mockCount: mocks.length,
-        fileCount: countFiles(diagnostics, mocks, callbacks),
+        fileCount: countFiles(diagnostics, mocks, fileCallbacks),
     };
 }
 
