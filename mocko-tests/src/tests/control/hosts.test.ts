@@ -257,36 +257,16 @@ describe('control hosts integration', () => {
     expect(withHostRes.data).toBe('storeless scoped response');
   });
 
-  it('merges file and ui hosts in storeless mode and rejects duplicate slugs', async () => {
+  it('merges file and ui hosts in storeless mode and rejects duplicate ui slugs', async () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();
 
     await subject.createMock(`
-      host "shared" {
-        source      = "shared.local"
-        destination = "http://localhost:${content.port}"
-      }
       host "file-only" {
         source      = "file-only.local"
         destination = "http://localhost:${content.port}"
       }
     `);
-
-    const duplicateRes = await control.post('/api/hosts', {
-      slug: 'shared',
-      source: 'other.local',
-      destination: `http://localhost:${content.port}`,
-    });
-    expect(duplicateRes.status).toBe(409);
-    expect(duplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
-
-    const casedDuplicateRes = await control.post('/api/hosts', {
-      slug: 'SHARED',
-      source: 'other.local',
-      destination: `http://localhost:${content.port}`,
-    });
-    expect(casedDuplicateRes.status).toBe(409);
-    expect(casedDuplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
 
     const createRes = await control.post('/api/hosts', {
       slug: 'ui-only',
@@ -306,7 +286,6 @@ describe('control hosts integration', () => {
     const listRes = await control.get('/api/hosts');
     expect(listRes.status).toBe(200);
 
-    expect(findHost(listRes.data, 'shared').annotations).toContain('READ_ONLY');
     expect(findHost(listRes.data, 'file-only').annotations).toContain(
       'READ_ONLY',
     );

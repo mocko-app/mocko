@@ -1,3 +1,4 @@
+import { isFileDefinition } from "@/lib/conflict/conflicts";
 import { HttpResponseError } from "@/lib/http";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
@@ -26,7 +27,10 @@ export class HostService {
   async createHost(data: CreateHostInput): Promise<Host> {
     const hosts = await this.store.listHosts();
     const slug = data.slug.toLowerCase();
-    if (hosts.some((host) => host.slug.toLowerCase() === slug)) {
+    const taken = hosts.some(
+      (host) => !isFileDefinition(host) && host.slug.toLowerCase() === slug,
+    );
+    if (taken) {
       throw HttpResponseError.hostSlugConflict(data.slug);
     }
 

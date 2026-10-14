@@ -3,9 +3,9 @@ import { screen, waitFor, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import NewHostPage from "./page";
-import { aHost } from "@/test/fixtures";
-import { givenApi, server } from "@/test/msw";
-import { router } from "@/test/navigation";
+import { aHost, aHostDetails } from "@/test/fixtures";
+import { givenApi, givenApiError, server } from "@/test/msw";
+import { givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 import type { CreateHostDto } from "@/lib/types/host-dtos";
 
@@ -217,5 +217,92 @@ describe("new host page unsaved changes guard", () => {
 
     await user.type(screen.getByLabelText("Slug"), "{Backspace}");
     expect(dispatchBeforeUnload().defaultPrevented).toBe(false);
+  });
+});
+
+describe("new host page override flow", () => {
+  function givenFileHost() {
+    givenRoute({ pathname: "/hosts/new", search: "from=file-id" });
+    givenApi({
+      hostDetails: [
+        aHostDetails({
+          id: "file-id",
+          slug: "payments",
+          name: "Payments",
+          source: "payments.example",
+          destination: "http://payments.example:9001",
+          filePath: "hosts/payments.hcl",
+          annotations: ["READ_ONLY"],
+        }),
+      ],
+    });
+  }
+
+  it("prefills the form from the file host and creates a ui host", async () => {
+    givenFileHost();
+    const payloads = capturePosts();
+    const { user } = renderWithProviders(<NewHostPage />);
+
+    await screen.findByRole("form", { name: "Add host" });
+    expect(screen.getByLabelText("Slug")).toHaveValue("payments");
+    expect(screen.getByLabelText("Name (optional)")).toHaveValue("Payments");
+    expect(screen.getByLabelText("Source")).toHaveValue("payments.example");
+    expect(screen.getByLabelText("Destination (optional)")).toHaveValue(
+      "http://payments.example:9001",
+    );
+    expect(screen.queryByLabelText("Source file")).not.toBeInTheDocument();
+    expect(screen.queryByText("Read-only host")).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Source"));
+    await user.type(screen.getByLabelText("Source"), "payments.local");
+    await user.click(screen.getByRole("button", { name: "Add host" }));
+
+    expect(await screen.findByText("Host created.")).toBeInTheDocument();
+    expect(payloads).toEqual([
+      {
+        slug: "payments",
+        name: "Payments",
+        source: "payments.local",
+        destination: "http://payments.example:9001",
+      },
+    ]);
+  });
+
+  it("closes an untouched prefill without asking", async () => {
+    givenFileHost();
+    const { user } = renderWithProviders(<NewHostPage />);
+    await screen.findByRole("form", { name: "Add host" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Close and return to hosts" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(router.push).toHaveBeenCalledWith("/hosts");
+  });
+
+  it("shows a notice and an empty form when the source host is missing", async () => {
+    givenRoute({ pathname: "/hosts/new", search: "from=missing" });
+    givenApi();
+    renderWithProviders(<NewHostPage />);
+
+    expect(await screen.findByText("Host not found")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The host to override does not exist or is no longer available.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Slug")).toHaveValue("");
+    expect(screen.getByLabelText("Source")).toHaveValue("");
+  });
+
+  it("shows the load-error notice and an empty form when fetching fails", async () => {
+    givenRoute({ pathname: "/hosts/new", search: "from=file-id" });
+    givenApi();
+    givenApiError("get", "/api/hosts/:id");
+    renderWithProviders(<NewHostPage />);
+
+    expect(await screen.findByText("Could not load host")).toBeInTheDocument();
+    expect(screen.getByLabelText("Slug")).toHaveValue("");
   });
 });

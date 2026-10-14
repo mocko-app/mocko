@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import HostsPage from "./page";
 import { aHost } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
+import { router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 describe("hosts page loading state", () => {
@@ -157,6 +158,63 @@ describe("hosts page shared slugs", () => {
     for (const card of dupCards) {
       expect(within(card).getByText("Conflict")).toBeInTheDocument();
     }
+  });
+});
+
+describe("hosts page override action", () => {
+  it("opens the new host form prefilled from a read-only host", async () => {
+    givenApi({
+      hosts: [
+        aHost({
+          id: "file-id",
+          slug: "payments",
+          annotations: ["READ_ONLY"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<HostsPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Actions for payments" }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Override" }));
+
+    expect(router.push).toHaveBeenCalledWith("/hosts/new?from=file-id");
+  });
+
+  it("offers no override for ui hosts or file hosts already overridden", async () => {
+    givenApi({
+      hosts: [
+        aHost({ id: "ui-id", slug: "shared", annotations: [] }),
+        aHost({
+          id: "file-id",
+          slug: "Shared",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<HostsPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Actions for shared" }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Edit" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Shared" }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "View" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
   });
 });
 

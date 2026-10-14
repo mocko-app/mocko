@@ -6,6 +6,7 @@ import {
   PencilIcon,
   TrashIcon,
   ArrowRightIcon,
+  LayersIcon,
 } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 import { HostConflictBadge } from "@/components/host-conflict-badge";
@@ -24,7 +25,8 @@ export const HostCard: React.FC<{
   host: HostDto;
   onEdit: (id: string) => void;
   onDelete: (host: HostDto) => void;
-}> = ({ host, onEdit, onDelete }) => {
+  onOverride?: (id: string) => void;
+}> = ({ host, onEdit, onDelete, onOverride }) => {
   const isReadOnly = host.annotations.includes("READ_ONLY");
   const href = `/hosts/${host.id}`;
 
@@ -118,10 +120,18 @@ export const HostCard: React.FC<{
                   </DropdownMenuItem>
                 </>
               ) : (
-                <DropdownMenuItem onClick={() => onEdit(host.id)}>
-                  <PencilIcon aria-hidden="true" />
-                  View
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => onEdit(host.id)}>
+                    <PencilIcon aria-hidden="true" />
+                    View
+                  </DropdownMenuItem>
+                  {onOverride && (
+                    <DropdownMenuItem onClick={() => onOverride(host.id)}>
+                      <LayersIcon aria-hidden="true" />
+                      Override
+                    </DropdownMenuItem>
+                  )}
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

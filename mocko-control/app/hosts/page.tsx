@@ -19,7 +19,9 @@ import {
 } from "@/lib/frontend/confirmation-preferences";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
+import { buildNewHostUrl } from "@/lib/host/host-url";
 import type { HostDto } from "@/lib/types/host-dtos";
+import { isOverriddenByUi } from "@/lib/utils/slugs";
 
 const HostsListSkeleton: React.FC = () => {
   return (
@@ -66,6 +68,10 @@ const HostsPage: React.FC = () => {
 
   function handleEdit(id: string) {
     router.push(`/hosts/${id}`);
+  }
+
+  function handleOverride(id: string) {
+    router.push(buildNewHostUrl(id));
   }
 
   async function deleteSelectedHost(host: HostDto) {
@@ -155,6 +161,9 @@ const HostsPage: React.FC = () => {
               host={host}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onOverride={
+                isOverriddenByUi(host, hosts) ? undefined : handleOverride
+              }
             />
           ))}
         </div>

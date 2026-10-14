@@ -157,26 +157,54 @@ describeRedis('redis hosts persistence', () => {
     );
   });
 
-  it('rejects duplicate slugs against file-defined hosts in redis mode', async () => {
+  it('overrides a file host with a ui host and rejects a second ui host in redis mode', async () => {
+    await content!.createMock(`
+      mock "GET /ui/overridden" {
+        body = "from ui host"
+      }
+      mock "GET /file/overridden" {
+        body = "from file host"
+      }
+    `);
+
     ({ subject, redis } = await createRedisSubject({
       options: { '--ui': true },
       mode: 'url',
     }));
 
     await subject.createMock(`
-      host "duplicate" {
-        source      = "duplicate.local"
-        destination = "http://localhost:${content!.port}"
+      host "overridden" {
+        source      = "overridden-file.local"
+        destination = "http://localhost:${content!.port}/file"
       }
     `);
 
-    const createRes = await subject.ensureControl().post('/api/hosts', {
-      slug: 'duplicate',
-      source: 'other.local',
-      destination: `http://localhost:${content!.port}`,
+    const control = subject.ensureControl();
+    const revision = await subject.getRevision();
+    const createRes = await control.post('/api/hosts', {
+      slug: 'Overridden',
+      source: 'overridden-ui.local',
+      destination: `http://localhost:${content!.port}/ui`,
     });
-    expect(createRes.status).toBe(409);
-    expect(createRes.data.code).toBe('HOST_SLUG_CONFLICT');
+    expect(createRes.status).toBe(201);
+    await subject.waitForRemap(revision);
+
+    const duplicateRes = await control.post('/api/hosts', {
+      slug: 'OVERRIDDEN',
+      source: 'other.local',
+    });
+    expect(duplicateRes.status).toBe(409);
+    expect(duplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
+
+    const uiRes = await subject.client.get('/overridden', {
+      headers: { Host: 'overridden-ui.local' },
+    });
+    expect(uiRes.data).toBe('from ui host');
+
+    const fileRes = await subject.client.get('/overridden', {
+      headers: { Host: 'overridden-file.local' },
+    });
+    expect(fileRes.status).toBe(404);
   });
 
   it('ignores a file host shadowed by a ui host created first in redis mode', async () => {

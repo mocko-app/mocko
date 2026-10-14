@@ -164,6 +164,15 @@ mock "GET /invoices/{id}" {
         the UI follow the same persistence rules as deployed mocks: in-memory by
         default, durable with Redis.
       </DocsP>
+      <DocsP>
+        A UI host with the same slug as a file host, ignoring case, overrides it
+        entirely. The file host&apos;s <DocsCode>source</DocsCode> stops
+        routing, and mocks, <DocsCode>{"{{proxy}}"}</DocsCode> calls and
+        callbacks that target the slug use the UI host instead. To set one up,
+        pick <strong className="text-foreground">Override</strong> on a file
+        host: it opens the new host form prefilled from that host. Delete the UI
+        host and the file host takes over again.
+      </DocsP>
 
       <DocsH2>Behavior details</DocsH2>
       <DocsUl>

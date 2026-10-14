@@ -105,7 +105,7 @@ mock "GET /passthrough" {
 
 Host slugs and sources match case-insensitively: `host = "Backend"` and `{{proxy 'BACKEND'}}` both target host `backend`, and a source of `API.example.com` matches requests for `api.example.com`. Slugs still display as written.
 
-One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and proxying and callbacks use the UI host's `destination`. If two file host blocks share a slug, only the first one loaded is used and `mocko validate` reports the other as an error.
+One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and both `{{proxy '@<slug>'}}` and callbacks use the UI host's `destination`. This is how to override a file host without editing the file: in the UI, the file host's "Override" action opens the new-host form prefilled from it. Deleting the UI host restores the file host. If two file host blocks share a slug, only the first one loaded is used and `mocko validate` reports the other as an error.
 
 ## Callback blocks
 

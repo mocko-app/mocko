@@ -137,6 +137,10 @@ describe("host detail page", () => {
 
     await screen.findByRole("form", { name: "View host" });
     expect(screen.getByText("Read-only host")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Override" })).toHaveAttribute(
+      "href",
+      "/hosts/new?from=legacy-id",
+    );
     expect(
       screen.queryByRole("button", { name: "Save" }),
     ).not.toBeInTheDocument();
@@ -227,6 +231,9 @@ describe("host detail conflict notice", () => {
       within(notice).getByRole("link", { name: "Open UI host shared" }),
     ).toHaveAttribute("href", "/hosts/ui-id");
     expect(screen.getByText("Shadowed")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Override" }),
+    ).not.toBeInTheDocument();
   });
 
   it("tells the ui host which file host it shadows", async () => {

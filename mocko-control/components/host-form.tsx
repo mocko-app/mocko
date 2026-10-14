@@ -20,7 +20,9 @@ import {
 import { Callout } from "@/components/callout";
 import { HostConflictBadge } from "@/components/host-conflict-badge";
 import { HostConflictNotice } from "@/components/host-conflict-notice";
+import { OverrideButton } from "@/components/override";
 import { useHostForm } from "@/lib/frontend/hooks/use-host-form";
+import { buildNewHostUrl } from "@/lib/host/host-url";
 import type { HostDetailsDto } from "@/lib/types/host-dtos";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +43,9 @@ function getFormTitle(mode: HostFormProps["mode"], isReadOnly: boolean) {
 
 export function HostForm({ initial, mode }: HostFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const isOverriddenByUi = Boolean(
+    initial?.conflict?.related.some((host) => host.origin === "UI"),
+  );
   const title = getFormTitle(mode, isReadOnly);
   const {
     confirmDiscard,
@@ -87,11 +92,20 @@ export function HostForm({ initial, mode }: HostFormProps) {
         </Button>
       </div>
 
-      {isReadOnly && (
+      {isReadOnly && initial && (
         <Callout
           variant="info"
           title="Read-only host"
-          message="This host is defined in a .hcl file and cannot be edited here."
+          message={
+            isOverriddenByUi
+              ? "This host is defined in a .hcl file and cannot be edited here."
+              : "This host is defined in a .hcl file and cannot be edited here. Edit the file, or override it with a UI host, which takes priority."
+          }
+          action={
+            !isOverriddenByUi && (
+              <OverrideButton href={buildNewHostUrl(initial.id)} />
+            )
+          }
         />
       )}
 
