@@ -1,8 +1,10 @@
 import type { MouseEvent } from "react";
 
-// Same-page query updates must use native history, not the router: on
-// statically prerendered pages, Next's production router resolves param-only
-// navigations against the prerender cache and reverts the URL.
+// Same-page query updates must use native history, not the router: pages
+// render per request (see app/layout.tsx), so each router navigation would be
+// a server round trip, once per keystroke while searching. If a page is ever
+// statically prerendered again, Next's production router also resolves
+// param-only navigations against the prerender cache and reverts the URL.
 // useSearchParams reflects native history updates.
 //
 // replaceUrl: for filter/search state that shouldn't add history entries.
