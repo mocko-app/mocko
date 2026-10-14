@@ -62,7 +62,7 @@ export const FireCallbackDialog: React.FC<{
             immediately, skipping the delay.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-col gap-1.5">
           <Textarea
             value={payloadText}
             onChange={(event) => {
@@ -70,7 +70,7 @@ export const FireCallbackDialog: React.FC<{
               setPayloadError(undefined);
             }}
             placeholder={'{ "key": "value" }'}
-            className="min-h-28 font-mono text-xs"
+            className="max-h-64 min-h-28 font-mono text-xs"
             aria-label="Callback payload"
           />
           {payloadError ? (
