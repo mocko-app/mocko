@@ -1,6 +1,8 @@
 import * as Boom from '@hapi/boom';
 import { Service } from "../../utils/decorators/service";
 import { DefinitionProvider } from "../../definitions/definition.provider";
+import { findCallbackBySlug } from "../../definitions/data/callback";
+import { findHostBySlug } from "../../definitions/data/host";
 import { CallbackDeliveryService } from "./callback-delivery.service";
 import { CallbackSchedulerService } from "./callback-scheduler.service";
 import { CoreCallbackDto } from "./data/core-callback.dto";
@@ -52,17 +54,14 @@ export class CallbackService {
 
     private async assertTriggerable(slug: string): Promise<void> {
         const definitions = await this.definitionProvider.getDefinitions();
-        const definition = definitions.callbacks
-            .find((callback) => callback.slug === slug);
+        const definition = findCallbackBySlug(definitions.callbacks, slug);
 
         if(!definition) {
             throw Boom.notFound(`No callback found with slug '${slug}'`);
         }
 
         if(definition.host) {
-            const hostSlug = definition.host.toLowerCase();
-            const host = definitions.hosts
-                .find((item) => item.slug.toLowerCase() === hostSlug);
+            const host = findHostBySlug(definitions.hosts, definition.host);
 
             if(!host?.destination) {
                 throw Boom.badData(`Callback '${slug}' references host '${definition.host}' which does not exist or has no destination`);

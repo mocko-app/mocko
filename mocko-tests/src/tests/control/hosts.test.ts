@@ -246,6 +246,14 @@ describe('control hosts integration', () => {
     expect(duplicateRes.status).toBe(409);
     expect(duplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
 
+    const casedDuplicateRes = await control.post('/api/hosts', {
+      slug: 'SHARED',
+      source: 'other.local',
+      destination: `http://localhost:${content.port}`,
+    });
+    expect(casedDuplicateRes.status).toBe(409);
+    expect(casedDuplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
+
     const createRes = await control.post('/api/hosts', {
       slug: 'ui-only',
       name: 'UI only',
@@ -253,6 +261,13 @@ describe('control hosts integration', () => {
       destination: `http://localhost:${content.port}`,
     });
     expect(createRes.status).toBe(201);
+
+    const casedUiDuplicateRes = await control.post('/api/hosts', {
+      slug: 'UI-Only',
+      source: 'ui-only-2.local',
+    });
+    expect(casedUiDuplicateRes.status).toBe(409);
+    expect(casedUiDuplicateRes.data.code).toBe('HOST_SLUG_CONFLICT');
 
     const listRes = await control.get('/api/hosts');
     expect(listRes.status).toBe(200);

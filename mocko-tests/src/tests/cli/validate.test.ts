@@ -230,6 +230,47 @@ describe('mocko validate', () => {
     expect(result.stdout).toContain("references host 'missing'");
   });
 
+  it('matches mock host references to host slugs and sources regardless of case', async () => {
+    const dir = await writeMocks({
+      'hosted.hcl': `
+        host "bar" {
+          source = "bar.local"
+        }
+        mock "GET /by-slug" {
+          host = "Bar"
+          body = "x"
+        }
+        mock "GET /by-source" {
+          host = "BAR.local"
+          body = "x"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(0);
+    expect(result.output).not.toContain('references host');
+  });
+
+  it('reports conflicts between hosts that differ only in case', async () => {
+    const dir = await writeMocks({
+      'hosts.hcl': `
+        mock "GET /users" {
+          host = "A.local"
+          body = "a"
+        }
+        mock "GET /users" {
+          host = "a.local"
+          body = "b"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain('is defined more than once');
+  });
+
   it('passes on valid callback stanzas', async () => {
     const dir = await writeMocks({
       'callbacks.hcl': `

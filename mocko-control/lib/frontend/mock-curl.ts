@@ -179,8 +179,11 @@ function resolveHostSource(
     return undefined;
   }
 
+  const target = hostName.toLowerCase();
   const host = hosts.find(
-    (item) => item.slug === hostName || item.source === hostName,
+    (item) =>
+      item.slug.toLowerCase() === target ||
+      item.source.toLowerCase() === target,
   );
   return host?.source || hostName;
 }

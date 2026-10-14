@@ -84,6 +84,13 @@ describe('control callbacks integration', () => {
     });
     expect(duplicateRes.status).toBe(409);
     expect(duplicateRes.data.code).toBe('CALLBACK_SLUG_CONFLICT');
+
+    const casedDuplicateRes = await control.post('/api/callbacks', {
+      slug: 'Payment-Approved',
+      url: 'http://localhost:1/dup',
+    });
+    expect(casedDuplicateRes.status).toBe(409);
+    expect(casedDuplicateRes.data.code).toBe('CALLBACK_SLUG_CONFLICT');
   });
 
   it('creates, fires, updates, and deletes ui callbacks in storeless mode', async () => {

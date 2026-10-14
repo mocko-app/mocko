@@ -31,7 +31,8 @@ export class CallbackService {
 
   async createCallback(data: CreateCallbackInput): Promise<Callback> {
     const callbacks = await this.store.listCallbacks();
-    if (callbacks.some((callback) => callback.slug === data.slug)) {
+    const slug = data.slug.toLowerCase();
+    if (callbacks.some((callback) => callback.slug.toLowerCase() === slug)) {
       throw HttpResponseError.callbackSlugConflict(data.slug);
     }
 

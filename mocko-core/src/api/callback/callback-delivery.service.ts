@@ -4,8 +4,8 @@ import { inject } from 'inversify';
 import { Service } from "../../utils/decorators/service";
 import { ILogger, Logger } from "../../utils/logger";
 import { DefinitionProvider } from "../../definitions/definition.provider";
-import { Callback } from "../../definitions/data/callback";
-import { Host } from "../../definitions/data/host";
+import { Callback, findCallbackBySlug } from "../../definitions/data/callback";
+import { findHostBySlug, Host } from "../../definitions/data/host";
 import { FlagService } from "../flag/flag.service";
 import * as LogHelpers from "../../helpers/log";
 import * as FlagHelpers from "../../helpers/flag";
@@ -45,8 +45,7 @@ export class CallbackDeliveryService {
     private async doDeliver(pending: PendingCallback): Promise<void> {
         debug(`delivering callback '${pending.slug}' (${pending.id})`);
         const definitions = await this.definitionProvider.getDefinitions();
-        const definition = definitions.callbacks
-            .find((callback) => callback.slug === pending.slug);
+        const definition = findCallbackBySlug(definitions.callbacks, pending.slug);
 
         if(!definition) {
             throw new Error(`no callback definition found with slug '${pending.slug}', it may have been removed while the callback was pending`);
@@ -85,8 +84,7 @@ export class CallbackDeliveryService {
             return await this.render(definition.url, context);
         }
 
-        const slug = definition.host!.toLowerCase();
-        const host = hosts.find((item) => item.slug.toLowerCase() === slug);
+        const host = findHostBySlug(hosts, definition.host!);
         if(!host) {
             throw new Error(`no host found with slug '${definition.host}'`);
         }

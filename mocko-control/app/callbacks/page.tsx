@@ -314,7 +314,9 @@ const CallbacksPage: React.FC = () => {
                     key={item.id}
                     pending={item}
                     definition={definitions.find(
-                      (definition) => definition.slug === item.slug,
+                      (definition) =>
+                        definition.slug.toLowerCase() ===
+                        item.slug.toLowerCase(),
                     )}
                     triggeredByMockName={mockName(item.triggeredByMockId)}
                     now={now}

@@ -29,6 +29,14 @@ function getHostLabel(host?: HostDto): string {
   return host.name ? `${host.slug} (${host.name})` : host.slug;
 }
 
+function findHostOption(
+  hostOptions: HostDto[],
+  hostSlug: string,
+): HostDto | undefined {
+  const target = hostSlug.toLowerCase();
+  return hostOptions.find((option) => option.slug.toLowerCase() === target);
+}
+
 function getSelectedHostLabel(
   hostSlug: string,
   hostOptions: HostDto[],
@@ -37,7 +45,7 @@ function getSelectedHostLabel(
     return "Any host";
   }
 
-  const host = hostOptions.find((option) => option.slug === hostSlug);
+  const host = findHostOption(hostOptions, hostSlug);
   return host ? getHostLabel(host) : hostSlug;
 }
 
@@ -55,7 +63,7 @@ export function MockFormHostField({
   const { data: hostOptions = [] } = useHosts({
     refreshInterval: 0,
   });
-  const matchedHost = hostOptions.find((option) => option.slug === hostSlug);
+  const matchedHost = findHostOption(hostOptions, hostSlug);
   const isReadOnlyRawHost = isReadOnly && Boolean(hostSlug) && !matchedHost;
   const label = (
     <div className="flex items-center gap-1.5">
@@ -109,7 +117,7 @@ export function MockFormHostField({
     <div className="flex flex-col gap-1.5">
       {label}
       <Select
-        value={hostSlug || ANY_HOST_VALUE}
+        value={matchedHost?.slug ?? (hostSlug || ANY_HOST_VALUE)}
         onValueChange={(value) =>
           onHostSlugChange(value === ANY_HOST_VALUE ? "" : (value ?? ""))
         }

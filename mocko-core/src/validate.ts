@@ -9,7 +9,7 @@ import { isReservedPath, MockService } from './api/mock/mock.service';
 import { RouteRegistrar } from './route-registrar';
 import { Diagnostic, DiagnosticsCollector } from './definitions/diagnostics';
 import { Mock } from './definitions/data/mock';
-import { Host } from './definitions/data/host';
+import { findHostBySlug, findHostBySlugOrSource, Host, resolveVhost } from './definitions/data/host';
 import { Callback } from './definitions/data/callback';
 
 export { Diagnostic, DiagnosticSeverity } from './definitions/diagnostics';
@@ -107,9 +107,7 @@ function validateHostReference(mock: Mock, hosts: Host[], collector: Diagnostics
         return;
     }
 
-    const exists = hosts.some((host) =>
-        host.slug === mock.host || host.source === mock.host);
-    if(!exists) {
+    if(!findHostBySlugOrSource(hosts, mock.host)) {
         collector.push({
             code: 'host-not-found',
             severity: 'warning',
@@ -125,9 +123,7 @@ function validateCallbackHostReference(callback: Callback, hosts: Host[], collec
         return;
     }
 
-    const slug = callback.host.toLowerCase();
-    const exists = hosts.some((host) => host.slug.toLowerCase() === slug);
-    if(!exists) {
+    if(!findHostBySlug(hosts, callback.host)) {
         collector.push({
             code: 'host-not-found',
             severity: 'warning',
@@ -195,16 +191,6 @@ function reportConflicts(mocks: Mock[], hosts: Host[], collector: DiagnosticsCol
             });
         }
     }
-}
-
-function resolveVhost(hostName: string | undefined, hosts: Host[]): string | undefined {
-    if(!hostName) {
-        return undefined;
-    }
-
-    const host = hosts.find((item) =>
-        item.slug === hostName || item.source === hostName);
-    return host?.source || hostName;
 }
 
 async function registerRoutes(container: Container): Promise<void> {

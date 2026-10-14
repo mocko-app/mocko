@@ -125,6 +125,20 @@ describe("buildMockCurl", () => {
       );
     });
 
+    it("resolves a host slug regardless of case", () => {
+      expect(
+        curlOf({
+          host: "API",
+          hosts: [{ slug: "api", source: "api.example.com" }],
+        }),
+      ).toBe(
+        [
+          "curl 'http://localhost:8080/users' \\",
+          "  -H 'Host: api.example.com'",
+        ].join("\n"),
+      );
+    });
+
     it("uses an unresolvable host value verbatim", () => {
       expect(curlOf({ host: "raw.example.com" })).toBe(
         [

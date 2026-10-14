@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import EditMockPage from "./page";
-import { aMockDetails } from "@/test/fixtures";
+import { aHost, aMockDetails } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
 import { givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
@@ -94,6 +94,32 @@ describe("edit mock page prefill and save", () => {
 });
 
 describe("edit mock page read-only mocks", () => {
+  it("shows a defined host for a mock whose host differs only in case", async () => {
+    const mock = aMockDetails({
+      id: "file-hosted",
+      host: "Payments",
+      filePath: "mocks/mock.hcl",
+      annotations: ["READ_ONLY"],
+    });
+    givenRoute({ pathname: `/mocks/${mock.id}`, params: { id: mock.id } });
+    givenApi({
+      mockDetails: [mock],
+      hosts: [aHost({ slug: "payments", name: "Payments API" })],
+    });
+    renderWithProviders(<EditMockPage />);
+
+    await screen.findByRole("form", { name: "View Mock" });
+    fireEvent.click(screen.getByText("Advanced options"));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Host")).toHaveTextContent(
+        "payments (Payments API)",
+      ),
+    );
+    expect(
+      screen.queryByText(/matches the raw Host header/),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows the view-only form with a duplicate escape hatch", async () => {
     const mock = aMockDetails({
       id: "file-mock",

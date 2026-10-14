@@ -1,5 +1,7 @@
 import { MockoExecution } from "../api/mock/mock.handler";
 import { DefinitionProvider } from "src/definitions/definition.provider";
+import { findCallbackBySlug } from "../definitions/data/callback";
+import { findHostBySlug } from "../definitions/data/host";
 
 export const callback = (definitionProvider: DefinitionProvider) => async function (this: MockoExecution, slug: unknown, payload?: unknown): Promise<void> {
     if(typeof slug !== 'string' || !slug.length) {
@@ -7,17 +9,14 @@ export const callback = (definitionProvider: DefinitionProvider) => async functi
     }
 
     const definitions = await definitionProvider.getDefinitions();
-    const definition = definitions.callbacks
-        .find((item) => item.slug === slug);
+    const definition = findCallbackBySlug(definitions.callbacks, slug);
 
     if(!definition) {
         throw new Error(`No callback found with slug '${slug}'`);
     }
 
     if(definition.host) {
-        const hostSlug = definition.host.toLowerCase();
-        const host = definitions.hosts
-            .find((item) => item.slug.toLowerCase() === hostSlug);
+        const host = findHostBySlug(definitions.hosts, definition.host);
 
         if(!host?.destination) {
             throw new Error(`Callback '${slug}' references host '${definition.host}' which does not exist or has no destination`);

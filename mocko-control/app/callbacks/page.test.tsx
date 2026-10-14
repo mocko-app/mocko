@@ -73,6 +73,29 @@ describe("callbacks page sections", () => {
     expect(screen.getByText("1 callback · 1 pending")).toBeInTheDocument();
   });
 
+  it("matches pending callbacks to their definition regardless of slug case", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "payment-approved", name: "Payment approved" }),
+      ],
+      pendingCallbacks: {
+        isSupported: true,
+        pending: [aPendingCallback({ slug: "Payment-Approved" })],
+      },
+    });
+
+    renderWithProviders(<CallbacksPage />);
+
+    const pendingList = await screen.findByRole("list", {
+      name: "Pending callbacks",
+    });
+    expect(
+      within(pendingList).getByRole("listitem", {
+        name: "Pending callback: Payment approved",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("shows the read-only badge for file-defined callbacks", async () => {
     givenApi({
       callbacks: [

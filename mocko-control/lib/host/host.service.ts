@@ -25,7 +25,8 @@ export class HostService {
 
   async createHost(data: CreateHostInput): Promise<Host> {
     const hosts = await this.store.listHosts();
-    if (hosts.some((host) => host.slug === data.slug)) {
+    const slug = data.slug.toLowerCase();
+    if (hosts.some((host) => host.slug.toLowerCase() === slug)) {
       throw HttpResponseError.hostSlugConflict(data.slug);
     }
 
