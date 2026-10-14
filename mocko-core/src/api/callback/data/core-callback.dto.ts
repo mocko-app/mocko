@@ -12,6 +12,7 @@ export class CoreCallbackDto {
         public readonly headers: Record<string, string>,
         public readonly body: string | undefined,
         public readonly filePath: string | undefined,
+        public readonly id: string | undefined,
     ) { }
 
     static ofCallback(callback: Callback): CoreCallbackDto {
@@ -26,6 +27,7 @@ export class CoreCallbackDto {
             callback.headers,
             callback.body,
             callback.filePath,
+            callback.id,
         );
     }
 }

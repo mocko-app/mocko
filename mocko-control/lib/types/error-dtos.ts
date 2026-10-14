@@ -72,11 +72,8 @@ export class ErrorDto {
     return new ErrorDto("HOST_SLUG_CONFLICT", `Host "${slug}" already exists`);
   }
 
-  static ofCallbackNotFound(slug: string): ErrorDto {
-    return new ErrorDto(
-      "CALLBACK_NOT_FOUND",
-      `Callback "${slug}" was not found`,
-    );
+  static ofCallbackNotFound(id: string): ErrorDto {
+    return new ErrorDto("CALLBACK_NOT_FOUND", `Callback "${id}" was not found`);
   }
 
   static ofCallbackSlugConflict(slug: string): ErrorDto {
@@ -86,10 +83,17 @@ export class ErrorDto {
     );
   }
 
-  static ofCallbackReadOnly(slug: string): ErrorDto {
+  static ofCallbackReadOnly(id: string): ErrorDto {
     return new ErrorDto(
       "CALLBACK_READ_ONLY",
-      `Callback "${slug}" is read-only and cannot be edited`,
+      `Callback "${id}" is read-only and cannot be edited`,
+    );
+  }
+
+  static ofCallbackShadowed(id: string): ErrorDto {
+    return new ErrorDto(
+      "CALLBACK_SHADOWED",
+      `Callback "${id}" is shadowed by a UI callback with the same slug and cannot be fired`,
     );
   }
 

@@ -6,6 +6,7 @@ export type CallbackHttpMethod = typeof CALLBACK_METHODS[number];
 export type CallbackSource = 'FILE' | 'DEPLOYED';
 
 export type Callback = {
+    id?: string,
     slug: string,
     name?: string,
     source?: CallbackSource,

@@ -7,13 +7,13 @@ export const dynamic = "force-dynamic";
 
 type RouteContext = {
   params: Promise<{
-    slug: string;
+    id: string;
   }>;
 };
 
 export const POST = route(async (request, context: RouteContext) => {
   const body = await parseRequestBody(request, fireCallbackSchema);
-  const { slug } = await context.params;
-  const pending = await callbackService.fire(slug, body.payload, body.delay);
+  const { id } = await context.params;
+  const pending = await callbackService.fire(id, body.payload, body.delay);
   return jsonResponse(pending, 202);
 });

@@ -236,11 +236,8 @@ export class DefinitionProvider {
         });
         definition.mocks = this.withFileMetadata(path, definition.mocks);
         definition.hosts = this.withSlugFileMetadata('host', file, definition.hosts);
-        definition.callbacks = definition.callbacks.map((callback) => ({
-            ...callback,
-            filePath: file,
-            source: 'FILE',
-        }));
+        definition.callbacks = this.withSlugFileMetadata('callback', file, definition.callbacks)
+            .map((callback) => ({ ...callback, source: 'FILE' }));
         return definition;
     }
 

@@ -1,4 +1,5 @@
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   PendingCallbackDto,
 } from "@/lib/types/callback-dtos";
@@ -83,6 +84,7 @@ export function aCallback(overrides: Partial<CallbackDto> = {}): CallbackDto {
   callbackCounter += 1;
 
   return {
+    id: `callback-id-${callbackCounter}`,
     slug: `callback-${callbackCounter}`,
     name: undefined,
     method: "POST",
@@ -92,7 +94,18 @@ export function aCallback(overrides: Partial<CallbackDto> = {}): CallbackDto {
     delay: 0,
     headers: {},
     body: undefined,
+    filePath: undefined,
     annotations: [],
+    ...overrides,
+  };
+}
+
+export function aCallbackDetails(
+  overrides: Partial<CallbackDetailsDto> = {},
+): CallbackDetailsDto {
+  return {
+    ...aCallback(),
+    conflict: null,
     ...overrides,
   };
 }

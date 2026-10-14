@@ -68,16 +68,16 @@ export class MemoryStore extends Store {
     return Array.from(this.callbacks.values());
   }
 
-  protected async getOwnCallback(slug: string): Promise<Callback | null> {
-    return this.callbacks.get(slug) ?? null;
+  protected async getOwnCallback(id: string): Promise<Callback | null> {
+    return this.callbacks.get(id) ?? null;
   }
 
   async saveCallback(callback: Callback): Promise<void> {
-    this.callbacks.set(callback.slug, callback);
+    this.callbacks.set(callback.id, callback);
   }
 
-  async deleteCallback(slug: string): Promise<boolean> {
-    return this.callbacks.delete(slug);
+  async deleteCallback(id: string): Promise<boolean> {
+    return this.callbacks.delete(id);
   }
 
   async listFlags(prefix: string, search?: string): Promise<FlagListResult> {

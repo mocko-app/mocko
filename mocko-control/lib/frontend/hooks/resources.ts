@@ -17,6 +17,7 @@ import {
 } from "@/lib/frontend/api";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
@@ -129,17 +130,17 @@ export function useCallbacks(
 }
 
 export function useCallbackDefinition(
-  slug: string | undefined,
-  options?: SWRConfiguration<CallbackDto, ApiError>,
+  id: string | undefined,
+  options?: SWRConfiguration<CallbackDetailsDto, ApiError>,
 ) {
-  return useSWR<CallbackDto, ApiError>(
-    slug ? `/api/callbacks/${encodeURIComponent(slug)}` : null,
+  return useSWR<CallbackDetailsDto, ApiError>(
+    id ? `/api/callbacks/${encodeURIComponent(id)}` : null,
     async () => {
-      if (!slug) {
-        throw new Error("Callback slug is required");
+      if (!id) {
+        throw new Error("Callback id is required");
       }
 
-      return getCallback(slug);
+      return getCallback(id);
     },
     {
       refreshInterval: 0,

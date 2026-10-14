@@ -20,6 +20,7 @@ const WORKSPACE_MOCKS_KEY = "workspace_mocks";
 const HOSTS_KEY = "hosts";
 const CALLBACKS_KEY = "callbacks";
 const LEGACY_HOST_ID_NAMESPACE = "14969568-8202-4351-88ec-58afdd194f2d";
+const LEGACY_CALLBACK_ID_NAMESPACE = "1572ee32-b6aa-40c6-8f39-d1d713a18939";
 const DEPLOYMENT_KEY = "mocks_deployment";
 const FLAG_PREFIX = "flags:";
 const FAILURE_PREFIX = "mock_failure:";
@@ -138,14 +139,14 @@ export class RedisStore extends Store {
     return this.readOwnCallbacks();
   }
 
-  protected async getOwnCallback(slug: string): Promise<Callback | null> {
+  protected async getOwnCallback(id: string): Promise<Callback | null> {
     const callbacks = await this.readOwnCallbacks();
-    return callbacks.find((callback) => callback.slug === slug) ?? null;
+    return callbacks.find((callback) => callback.id === id) ?? null;
   }
 
   async saveCallback(callback: Callback): Promise<void> {
     const callbacks = await this.readOwnCallbacks();
-    const index = callbacks.findIndex((item) => item.slug === callback.slug);
+    const index = callbacks.findIndex((item) => item.id === callback.id);
     if (index === -1) {
       callbacks.push(callback);
     } else {
@@ -154,11 +155,9 @@ export class RedisStore extends Store {
     await this.writeOwnCallbacks(callbacks);
   }
 
-  async deleteCallback(slug: string): Promise<boolean> {
+  async deleteCallback(id: string): Promise<boolean> {
     const callbacks = await this.readOwnCallbacks();
-    const nextCallbacks = callbacks.filter(
-      (callback) => callback.slug !== slug,
-    );
+    const nextCallbacks = callbacks.filter((callback) => callback.id !== id);
     if (nextCallbacks.length === callbacks.length) {
       return false;
     }
@@ -816,7 +815,10 @@ export class RedisStore extends Store {
       return [];
     }
 
-    return JSON.parse(payload) as Callback[];
+    const callbacks = JSON.parse(payload) as Array<
+      Omit<Callback, "id"> & { id?: string }
+    >;
+    return withSlugDerivedIds(callbacks, LEGACY_CALLBACK_ID_NAMESPACE);
   }
 
   private async writeOwnCallbacks(callbacks: Callback[]): Promise<void> {

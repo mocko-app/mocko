@@ -14,8 +14,8 @@ export function buildCallbackListUrl(search: string): string {
   return withSearch("/callbacks", search);
 }
 
-export function buildCallbackUrl(slug: string, search: string): string {
-  return withSearch(`/callbacks/${slug}`, search);
+export function buildCallbackUrl(id: string, search: string): string {
+  return withSearch(`/callbacks/${id}`, search);
 }
 
 export function buildNewCallbackUrl(search: string): string {

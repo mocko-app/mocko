@@ -155,6 +155,7 @@ describeRedis('redis control persistence', () => {
         url: `${capture.url}/persisted`,
       });
       expect(createRes.status).toBe(201);
+      const callbackId = createRes.data.id;
 
       await subject.stop();
       subject = null;
@@ -167,14 +168,14 @@ describeRedis('redis control persistence', () => {
 
       const restartedControl = subject.ensureControl();
       const detailsRes = await restartedControl.get(
-        '/api/callbacks/persisted-callback',
+        `/api/callbacks/${callbackId}`,
       );
       expect(detailsRes.status).toBe(200);
       expect(detailsRes.data.url).toBe(`${capture.url}/persisted`);
       expect(detailsRes.data.annotations).not.toContain('READ_ONLY');
 
       const fireRes = await restartedControl.post(
-        '/api/callbacks/persisted-callback/fire',
+        `/api/callbacks/${callbackId}/fire`,
         {},
       );
       expect(fireRes.status).toBe(202);

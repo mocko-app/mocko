@@ -30,3 +30,17 @@ export function findBySlugPreferringUi<T extends SlugDefinition>(
     (item) => item.slug.toLowerCase() === target,
   );
 }
+
+export function isOverriddenByUi<T extends SlugDefinition>(
+  item: T,
+  items: readonly T[],
+): boolean {
+  if (isUiDefinition(item)) {
+    return false;
+  }
+
+  const target = item.slug.toLowerCase();
+  return items.some(
+    (other) => isUiDefinition(other) && other.slug.toLowerCase() === target,
+  );
+}

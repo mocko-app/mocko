@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { CircleHelpIcon, XIcon } from "lucide-react";
 import { CallbackActionsMenu } from "@/components/callbacks/callback-actions-menu";
+import { CallbackConflictBadge } from "@/components/callbacks/callback-conflict-badge";
+import { CallbackConflictNotice } from "@/components/callbacks/callback-conflict-notice";
 import { Callout } from "@/components/callout";
 import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
+import { CopyButton } from "@/components/copy-button";
 import { HeadersEditor } from "@/components/headers-editor";
 import { BodyEditor } from "@/components/monaco-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -30,12 +38,15 @@ import {
   type CallbackTargetMode,
 } from "@/lib/frontend/hooks/use-callback-form";
 import { CALLBACK_METHODS } from "@/lib/types/callback";
-import type { CallbackDto } from "@/lib/types/callback-dtos";
+import type {
+  CallbackDetailsDto,
+  CallbackDto,
+} from "@/lib/types/callback-dtos";
 import { cn } from "@/lib/utils";
 import { uniqueBySlugPreferringUi } from "@/lib/utils/slugs";
 
 type CallbackFormProps = {
-  initial?: CallbackDto;
+  initial?: CallbackDetailsDto;
   mode: "create" | "edit";
   onFire?: (definition: CallbackDto) => void;
   onDelete?: (definition: CallbackDto) => void;
@@ -100,6 +111,9 @@ export function CallbackForm({
   onDelete,
 }: CallbackFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const isOverriddenByUi =
+    isReadOnly &&
+    Boolean(initial?.conflict?.related.some((item) => item.origin === "UI"));
   const title = getFormTitle(mode, isReadOnly);
   const { data: hosts } = useHosts();
   const {
@@ -137,6 +151,12 @@ export function CallbackForm({
                 Read Only
               </Badge>
             )}
+            {mode === "edit" && initial && (
+              <CallbackConflictBadge
+                annotations={initial.annotations}
+                className="text-xs"
+              />
+            )}
           </div>
           {mode === "edit" && initial && (
             <CallbackActionsMenu
@@ -148,6 +168,7 @@ export function CallbackForm({
                   aria-label={`Actions for ${initial.name || initial.slug}`}
                 />
               }
+              canFire={!isOverriddenByUi}
               onFire={(definition) => onFire?.(definition)}
               onDelete={(definition) => onDelete?.(definition)}
             />
@@ -170,6 +191,10 @@ export function CallbackForm({
           title="Read-only callback"
           message="This callback is defined in a .hcl file and cannot be edited here."
         />
+      )}
+
+      {mode === "edit" && initial?.conflict && (
+        <CallbackConflictNotice conflict={initial.conflict} />
       )}
 
       {showErrors && errors.form && (
@@ -224,6 +249,22 @@ export function CallbackForm({
             >
               {initial?.slug}
             </div>
+          </div>
+        )}
+
+        {initial?.filePath && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="callback-source-file">Source file</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="callback-source-file"
+                value={initial.filePath}
+                readOnly
+              />
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={initial.filePath} label="Source file" />
+              </InputGroupAddon>
+            </InputGroup>
           </div>
         )}
 

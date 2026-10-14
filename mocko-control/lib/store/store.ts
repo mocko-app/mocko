@@ -14,6 +14,7 @@ import type {
 } from "@/lib/types/operation";
 
 const FILE_HOST_FALLBACK_NAMESPACE = "1800c9d2-ba7e-4bf8-ab77-1167a06ce568";
+const FILE_CALLBACK_FALLBACK_NAMESPACE = "6d4b2f0e-93a1-4c57-b8e2-0f3c71a9d845";
 
 export type StoreFlag = {
   key: string;
@@ -67,25 +68,20 @@ export abstract class Store {
   }
 
   async listCallbacks(): Promise<Callback[]> {
-    const ownCallbacks = await this.listOwnCallbacks();
-    const ownSlugs = new Set(ownCallbacks.map((callback) => callback.slug));
-
     return [
-      ...ownCallbacks,
-      ...(await this.listReadOnlyCallbacks()).filter(
-        (callback) => !ownSlugs.has(callback.slug),
-      ),
+      ...(await this.listOwnCallbacks()),
+      ...(await this.listReadOnlyCallbacks()),
     ];
   }
 
-  async getCallback(slug: string): Promise<Callback | null> {
-    const callback = await this.getOwnCallback(slug);
+  async getCallback(id: string): Promise<Callback | null> {
+    const callback = await this.getOwnCallback(id);
     if (callback) {
       return callback;
     }
 
     const readOnlyCallbacks = await this.listReadOnlyCallbacks();
-    return readOnlyCallbacks.find((item) => item.slug === slug) ?? null;
+    return readOnlyCallbacks.find((item) => item.id === id) ?? null;
   }
 
   async listPendingCallbacks(): Promise<PendingCallbackDto[] | null> {
@@ -137,7 +133,7 @@ export abstract class Store {
   abstract saveMock(mock: Mock): Promise<void>;
   abstract saveHost(host: Host): Promise<void>;
   abstract saveCallback(callback: Callback): Promise<void>;
-  abstract deleteCallback(slug: string): Promise<boolean>;
+  abstract deleteCallback(id: string): Promise<boolean>;
   abstract getCreatedAnnotations(): MockAnnotation[];
   abstract readonly isManagementSupported: boolean;
   abstract createOperation(op: Operation): Promise<void>;
@@ -178,7 +174,7 @@ export abstract class Store {
   protected abstract listOwnHosts(): Promise<Host[]>;
   protected abstract getOwnHost(id: string): Promise<Host | null>;
   protected abstract listOwnCallbacks(): Promise<Callback[]>;
-  protected abstract getOwnCallback(slug: string): Promise<Callback | null>;
+  protected abstract getOwnCallback(id: string): Promise<Callback | null>;
 
   protected async listReadOnlyMocks(): Promise<Mock[]> {
     try {
@@ -229,18 +225,25 @@ export abstract class Store {
   protected async listReadOnlyCallbacks(): Promise<Callback[]> {
     try {
       const coreCallbacks = await this.coreClient.listCoreCallbacks();
-      return coreCallbacks.map((callback) => ({
-        slug: callback.slug,
-        name: callback.name,
-        method: callback.method as CallbackMethod,
-        host: callback.host,
-        path: callback.path,
-        url: callback.url,
-        delay: callback.delay,
-        headers: { ...callback.headers },
-        body: callback.body,
-        annotations: ["READ_ONLY"],
-      }));
+      return withSlugDerivedIds(
+        coreCallbacks.map(
+          (callback): Omit<Callback, "id"> & { id?: string } => ({
+            id: callback.id,
+            slug: callback.slug,
+            name: callback.name,
+            method: callback.method as CallbackMethod,
+            host: callback.host,
+            path: callback.path,
+            url: callback.url,
+            delay: callback.delay,
+            headers: { ...callback.headers },
+            body: callback.body,
+            filePath: callback.filePath,
+            annotations: ["READ_ONLY"],
+          }),
+        ),
+        FILE_CALLBACK_FALLBACK_NAMESPACE,
+      );
     } catch (error) {
       console.error(
         "Failed to fetch file-based callbacks from mocko-core:",

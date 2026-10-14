@@ -90,6 +90,7 @@ export type CoreCallbackDto = {
   headers: Record<string, string>;
   body?: string;
   filePath?: string;
+  id?: string;
 };
 
 export type CorePendingCallbackDto = {

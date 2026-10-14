@@ -14,7 +14,10 @@ import { buildCallbackListUrl } from "@/lib/callback/callback-list-url";
 import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import type { CallbackMethod } from "@/lib/types/callback";
-import type { CallbackDto, PatchCallbackDto } from "@/lib/types/callback-dtos";
+import type {
+  CallbackDetailsDto,
+  PatchCallbackDto,
+} from "@/lib/types/callback-dtos";
 import type { ParsingError } from "@/lib/types/error-dtos";
 
 type CallbackFormMode = "create" | "edit";
@@ -59,7 +62,7 @@ function rowsToHeaders(rows: Array<{ key: string; value: string }>) {
   return headers;
 }
 
-function getInitialFormState(initial?: CallbackDto): CallbackFormState {
+function getInitialFormState(initial?: CallbackDetailsDto): CallbackFormState {
   return {
     slug: initial?.slug ?? "",
     name: initial?.name ?? "",
@@ -121,7 +124,7 @@ function getFormErrors(
 }
 
 export function useCallbackForm(
-  initial: CallbackDto | undefined,
+  initial: CallbackDetailsDto | undefined,
   mode: CallbackFormMode,
 ) {
   const router = useRouter();
@@ -217,10 +220,10 @@ export function useCallbackForm(
         toast.success("Callback created.");
       } else {
         if (!initial) {
-          throw new Error("Callback slug is required for edit mode");
+          throw new Error("Callback id is required for edit mode");
         }
 
-        await patchCallback(initial.slug, buildPayload());
+        await patchCallback(initial.id, buildPayload());
         toast.success("Callback updated.");
       }
 

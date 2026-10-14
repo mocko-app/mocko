@@ -10,6 +10,7 @@ export const CALLBACK_METHODS = [
 export type CallbackMethod = (typeof CALLBACK_METHODS)[number];
 
 export type Callback = {
+  id: string;
   slug: string;
   name?: string;
   method: CallbackMethod;
@@ -19,5 +20,6 @@ export type Callback = {
   delay: number;
   headers: Record<string, string>;
   body?: string;
+  filePath?: string;
   annotations: MockAnnotation[];
 };

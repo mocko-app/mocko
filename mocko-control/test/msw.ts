@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { VersionsDto } from "@/app/api/versions/route";
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
@@ -18,6 +19,7 @@ export type ApiState = {
   hosts: HostDto[];
   hostDetails: HostDetailsDto[];
   callbacks: CallbackDto[];
+  callbackDetails: CallbackDetailsDto[];
   pendingCallbacks: PendingCallbacksDto;
   flagList: FlagListDto;
   flagValues: Record<string, FlagDto>;
@@ -32,6 +34,7 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     hosts: initial.hosts ?? [],
     hostDetails: initial.hostDetails ?? [],
     callbacks: initial.callbacks ?? [],
+    callbackDetails: initial.callbackDetails ?? [],
     pendingCallbacks: initial.pendingCallbacks ?? {
       isSupported: true,
       pending: [],
@@ -87,18 +90,22 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     http.get("/api/callbacks/pending", () =>
       HttpResponse.json(state.pendingCallbacks),
     ),
-    http.get("/api/callbacks/:slug", ({ params }) => {
-      const callback = state.callbacks.find((c) => c.slug === params.slug);
+    http.get("/api/callbacks/:id", ({ params }) => {
+      const details = state.callbackDetails.find((c) => c.id === params.id);
+      if (details) {
+        return HttpResponse.json(details);
+      }
+      const callback = state.callbacks.find((c) => c.id === params.id);
       if (!callback) {
         return HttpResponse.json(
           {
             code: "CALLBACK_NOT_FOUND",
-            message: `Callback "${params.slug}" was not found`,
+            message: `Callback "${params.id}" was not found`,
           },
           { status: 404 },
         );
       }
-      return HttpResponse.json(callback);
+      return HttpResponse.json({ ...callback, conflict: null });
     }),
     http.get("/api/flags", () => HttpResponse.json(state.flagList)),
     http.get("/api/flags/:key", ({ params }) => {

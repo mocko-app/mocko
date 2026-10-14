@@ -1,4 +1,5 @@
 import { jsonResponse, parseRequestBody, route } from "@/lib/http";
+import { computeCallbackConflicts } from "@/lib/callback/callback-conflicts";
 import { callbackService } from "@/lib/callback/callback.service";
 import { CallbackDto } from "@/lib/types/callback-dtos";
 import { createCallbackSchema } from "@/lib/validation/callback.schema";
@@ -8,7 +9,10 @@ export const dynamic = "force-dynamic";
 
 export const GET = route(async () => {
   const callbacks = await callbackService.listCallbacks();
-  return callbacks.map(CallbackDto.ofCallback);
+  const conflicts = computeCallbackConflicts(callbacks);
+  return callbacks.map((callback) =>
+    CallbackDto.ofCallback(callback, conflicts.get(callback.id)?.role),
+  );
 });
 
 export const POST = route(async (request) => {
