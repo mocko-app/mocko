@@ -181,9 +181,8 @@ mock "GET /payments/{id}" {
         there you can fire one immediately instead of waiting out a delay,
         cancel it, or clear everything. Definitions can be fired from their
         actions menu too, with a payload editor, so you can push a webhook to
-        your service without
-        involving a mock at all. The tab also creates and edits callbacks, the
-        same way it manages{" "}
+        your service without involving a mock at all. The tab also creates and
+        edits callbacks, the same way it manages{" "}
         <DocsLink href="/creating-mocks/ui-mocks">UI mocks</DocsLink>;
         file-defined callbacks show as read only.
       </DocsP>
