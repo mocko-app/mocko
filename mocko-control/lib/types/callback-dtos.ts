@@ -41,10 +41,12 @@ export type PendingCallbackDto = {
   dueAt: number;
   createdAt: number;
   triggeredByMockId?: string;
+  heldAt?: number;
 };
 
 export type PendingCallbacksDto = {
   isSupported: boolean;
+  canHold: boolean;
   pending: PendingCallbackDto[];
 };
 

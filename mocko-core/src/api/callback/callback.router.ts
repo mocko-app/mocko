@@ -44,6 +44,14 @@ export class CallbackRouter implements IRouter {
                 },
             },
             {
+                method: 'POST',
+                path: '/__mocko__/callbacks/pending/{id}/hold',
+                handler: this.controller.holdPending.bind(this.controller),
+                rules: {
+                    mapSilently: true,
+                },
+            },
+            {
                 method: 'DELETE',
                 path: '/__mocko__/callbacks/pending/{id}',
                 handler: this.controller.cancelPending.bind(this.controller),

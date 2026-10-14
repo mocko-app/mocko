@@ -32,6 +32,8 @@ import {
   deleteCallback,
   fireCallback,
   firePendingCallback,
+  holdPendingCallback,
+  toApiError,
 } from "@/lib/frontend/api";
 import {
   shouldSkipConfirmation,
@@ -70,6 +72,10 @@ const SectionHeader: React.FC<{
 };
 
 const EMPTY_DEFINITIONS: CallbackDto[] = [];
+
+function errorMessage(error: unknown, fallback: string): string {
+  return toApiError(error).body?.message ?? fallback;
+}
 
 const CallbacksListSkeleton: React.FC = () => {
   return (
@@ -144,6 +150,7 @@ const CallbacksPage: React.FC = () => {
   const definitions = definitionsData ?? EMPTY_DEFINITIONS;
   const pending = pendingData?.pending ?? [];
   const isSupported = pendingData?.isSupported ?? true;
+  const canHold = pendingData?.canHold ?? false;
   const isLoading = isLoadingDefinitions || isLoadingPending;
   const error = definitionsError || pendingError;
 
@@ -221,8 +228,18 @@ const CallbacksPage: React.FC = () => {
       await firePendingCallback(target.id);
       await mutatePending();
       toast.success("Callback fired.");
-    } catch {
-      toast.error("Failed to fire pending callback.");
+    } catch (error) {
+      toast.error(errorMessage(error, "Failed to fire pending callback."));
+    }
+  }
+
+  async function handleHoldPending(target: PendingCallbackDto) {
+    try {
+      await holdPendingCallback(target.id);
+      await mutatePending();
+      toast.success("Callback held.");
+    } catch (error) {
+      toast.error(errorMessage(error, "Failed to hold callback."));
     }
   }
 
@@ -379,6 +396,7 @@ const CallbacksPage: React.FC = () => {
                     triggeredByMockName={mockName(item.triggeredByMockId)}
                     now={now}
                     onFire={handleFirePending}
+                    onHold={canHold ? handleHoldPending : undefined}
                     onCancel={handleCancelPending}
                   />
                 ))}

@@ -39,6 +39,7 @@ describe("callbacks page sections", () => {
       ],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [
           aPendingCallback({
             slug: "payment-approved",
@@ -83,6 +84,7 @@ describe("callbacks page sections", () => {
       ],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [aPendingCallback({ slug: "Payment-Approved" })],
       },
     });
@@ -219,6 +221,7 @@ describe("callbacks page slug overlaps", () => {
       ],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [aPendingCallback({ slug: "payment-approved" })],
       },
     });
@@ -300,7 +303,7 @@ describe("callbacks page against an older core", () => {
   it("shows the upgrade empty state and hides the add button", async () => {
     givenApi({
       callbacks: [],
-      pendingCallbacks: { isSupported: false, pending: [] },
+      pendingCallbacks: { isSupported: false, canHold: false, pending: [] },
     });
 
     renderWithProviders(<CallbacksPage />);
@@ -399,6 +402,7 @@ describe("callbacks page pending actions", () => {
       callbacks: [aCallback({ slug: "payment-approved" })],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [
           aPendingCallback({ id: "pending-1", slug: "payment-approved" }),
         ],
@@ -409,7 +413,11 @@ describe("callbacks page pending actions", () => {
     server.use(
       http.post("/api/callbacks/pending/:id/fire", ({ params }) => {
         firedIds.push(String(params.id));
-        state.pendingCallbacks = { isSupported: true, pending: [] };
+        state.pendingCallbacks = {
+          isSupported: true,
+          canHold: true,
+          pending: [],
+        };
         return new HttpResponse(null, { status: 202 });
       }),
     );
@@ -436,6 +444,7 @@ describe("callbacks page pending actions", () => {
       callbacks: [aCallback({ slug: "payment-approved" })],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [
           aPendingCallback({ id: "pending-1", slug: "payment-approved" }),
         ],
@@ -446,7 +455,11 @@ describe("callbacks page pending actions", () => {
     server.use(
       http.delete("/api/callbacks/pending/:id", ({ params }) => {
         cancelledIds.push(String(params.id));
-        state.pendingCallbacks = { isSupported: true, pending: [] };
+        state.pendingCallbacks = {
+          isSupported: true,
+          canHold: true,
+          pending: [],
+        };
         return new HttpResponse(null, { status: 204 });
       }),
     );
@@ -470,6 +483,7 @@ describe("callbacks page pending actions", () => {
       callbacks: [aCallback({ slug: "payment-approved" })],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [aPendingCallback(), aPendingCallback()],
       },
     });
@@ -478,7 +492,11 @@ describe("callbacks page pending actions", () => {
     server.use(
       http.delete("/api/callbacks/pending", () => {
         cleared = true;
-        state.pendingCallbacks = { isSupported: true, pending: [] };
+        state.pendingCallbacks = {
+          isSupported: true,
+          canHold: true,
+          pending: [],
+        };
         return new HttpResponse(null, { status: 204 });
       }),
     );
@@ -494,6 +512,184 @@ describe("callbacks page pending actions", () => {
       await screen.findByText("Pending callbacks cleared."),
     ).toBeInTheDocument();
     expect(cleared).toBe(true);
+  });
+});
+
+describe("callbacks page held callbacks", () => {
+  it("holds a scheduled pending callback and refreshes the list", async () => {
+    const scheduled = aPendingCallback({
+      id: "pending-1",
+      slug: "payment-approved",
+    });
+    const state = givenApi({
+      callbacks: [aCallback({ slug: "payment-approved" })],
+      pendingCallbacks: {
+        isSupported: true,
+        canHold: true,
+        pending: [scheduled],
+      },
+    });
+
+    const heldIds: string[] = [];
+    server.use(
+      http.post("/api/callbacks/pending/:id/hold", ({ params }) => {
+        heldIds.push(String(params.id));
+        const held = { ...scheduled, heldAt: Date.now() };
+        state.pendingCallbacks = {
+          isSupported: true,
+          canHold: true,
+          pending: [held],
+        };
+        return HttpResponse.json(held);
+      }),
+    );
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Actions for pending payment-approved",
+      }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Hold" }));
+
+    expect(await screen.findByText("Callback held.")).toBeInTheDocument();
+    expect(heldIds).toEqual(["pending-1"]);
+    const card = await screen.findByRole("listitem", {
+      name: "Pending callback: payment-approved",
+    });
+    await waitFor(() => expect(card).toHaveTextContent("Held"));
+  });
+
+  it("shows a held callback with its badge and hold time instead of a countdown", async () => {
+    givenApi({
+      callbacks: [aCallback({ slug: "payment-approved" })],
+      pendingCallbacks: {
+        isSupported: true,
+        canHold: true,
+        pending: [
+          aPendingCallback({
+            slug: "payment-approved",
+            dueAt: Date.now() + 90_000,
+            heldAt: Date.now() - 3 * 60_000,
+          }),
+        ],
+      },
+    });
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+    const card = await screen.findByRole("listitem", {
+      name: "Pending callback: payment-approved",
+    });
+    expect(within(card).getByText("Held")).toBeInTheDocument();
+    expect(card).toHaveTextContent("held 3m ago");
+    expect(card).not.toHaveTextContent(/in 1m \d+s/);
+
+    await user.click(
+      within(card).getByRole("button", {
+        name: "Actions for pending payment-approved",
+      }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Fire now" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Cancel" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Hold" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides Hold when the core doesn't support it", async () => {
+    givenApi({
+      callbacks: [aCallback({ slug: "payment-approved" })],
+      pendingCallbacks: {
+        isSupported: true,
+        canHold: false,
+        pending: [aPendingCallback({ slug: "payment-approved" })],
+      },
+    });
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Actions for pending payment-approved",
+      }),
+    );
+
+    expect(
+      await screen.findByRole("menuitem", { name: "Fire now" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Hold" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("counts held callbacks as pending in the header", async () => {
+    givenApi({
+      callbacks: [aCallback({ slug: "payment-approved" })],
+      pendingCallbacks: {
+        isSupported: true,
+        canHold: true,
+        pending: [
+          aPendingCallback({ slug: "payment-approved", heldAt: Date.now() }),
+          aPendingCallback({ slug: "payment-approved" }),
+        ],
+      },
+    });
+
+    renderWithProviders(<CallbacksPage />);
+
+    expect(
+      await screen.findByText("1 callback · 2 pending"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the core's message when Fire now is refused", async () => {
+    givenApi({
+      callbacks: [aCallback({ slug: "payment-approved" })],
+      pendingCallbacks: {
+        isSupported: true,
+        canHold: true,
+        pending: [
+          aPendingCallback({
+            id: "pending-1",
+            slug: "payment-approved",
+            heldAt: Date.now(),
+          }),
+        ],
+      },
+    });
+
+    server.use(
+      http.post("/api/callbacks/pending/:id/fire", () =>
+        HttpResponse.json(
+          {
+            statusCode: 422,
+            error: "Unprocessable Entity",
+            message: "No callback found with slug 'payment-approved'",
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Actions for pending payment-approved",
+      }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Fire now" }));
+
+    expect(
+      await screen.findByText("No callback found with slug 'payment-approved'"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("listitem", {
+        name: "Pending callback: payment-approved",
+      }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -643,6 +839,7 @@ describe("callbacks page search", () => {
       callbacks: searchFixtures(),
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [aPendingCallback({ slug: "payment-approved" })],
       },
     });
@@ -709,6 +906,7 @@ describe("callbacks page search", () => {
       callbacks: [],
       pendingCallbacks: {
         isSupported: true,
+        canHold: true,
         pending: [aPendingCallback({ slug: "deleted-callback" })],
       },
     });
@@ -731,7 +929,7 @@ describe("callbacks page search", () => {
 
     givenApi({
       callbacks: [],
-      pendingCallbacks: { isSupported: false, pending: [] },
+      pendingCallbacks: { isSupported: false, canHold: false, pending: [] },
     });
     renderWithProviders(<CallbacksPage />);
     await screen.findByText("Your Mocko core doesn't support callbacks");

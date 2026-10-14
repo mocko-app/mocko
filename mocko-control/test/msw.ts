@@ -37,6 +37,7 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     callbackDetails: initial.callbackDetails ?? [],
     pendingCallbacks: initial.pendingCallbacks ?? {
       isSupported: true,
+      canHold: true,
       pending: [],
     },
     flagList: initial.flagList ?? { flagKeys: [], isTruncated: false },

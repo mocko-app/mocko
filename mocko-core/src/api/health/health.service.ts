@@ -3,6 +3,8 @@ import {RedisProvider} from "../../redis/redis.provider";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../../package.json') as { version: string };
 
+const CAPABILITIES = ['callback-hold'];
+
 @Service()
 export class HealthService {
     private revision = 0;
@@ -15,7 +17,7 @@ export class HealthService {
         if(this.redisProvider.isEnabled) {
             await this.redisProvider.ping();
         }
-        return { revision: this.revision, version };
+        return { revision: this.revision, version, capabilities: CAPABILITIES };
     }
 
     bumpRevision(): void {

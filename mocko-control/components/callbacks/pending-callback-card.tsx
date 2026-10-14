@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import {
+  HandIcon,
   HourglassIcon,
   MoreHorizontalIcon,
   XIcon,
   ZapIcon,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatCountdown } from "@/lib/callback/callback-format";
+import { formatCountdown, formatHeldAgo } from "@/lib/callback/callback-format";
 import type {
   CallbackDto,
   PendingCallbackDto,
@@ -28,9 +30,19 @@ export const PendingCallbackCard: React.FC<{
   triggeredByMockName?: string;
   now: number;
   onFire: (pending: PendingCallbackDto) => void;
+  onHold?: (pending: PendingCallbackDto) => void;
   onCancel: (pending: PendingCallbackDto) => void;
-}> = ({ pending, definition, triggeredByMockName, now, onFire, onCancel }) => {
+}> = ({
+  pending,
+  definition,
+  triggeredByMockName,
+  now,
+  onFire,
+  onHold,
+  onCancel,
+}) => {
   const displayName = definition?.name || pending.slug;
+  const heldAt = pending.heldAt;
 
   return (
     <div
@@ -54,10 +66,20 @@ export const PendingCallbackCard: React.FC<{
                 {pending.slug}
               </span>
             )}
-            <span className="inline-flex items-center gap-1 rounded-4xl bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums shrink-0">
-              <HourglassIcon className="size-3" aria-hidden="true" />
-              {formatCountdown(pending.dueAt - now)}
-            </span>
+            {heldAt === undefined ? (
+              <span className="inline-flex items-center gap-1 rounded-4xl bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums shrink-0">
+                <HourglassIcon className="size-3" aria-hidden="true" />
+                {formatCountdown(pending.dueAt - now)}
+              </span>
+            ) : (
+              <>
+                <Badge variant="statusWarning">Held</Badge>
+                <span className="inline-flex items-center gap-1 rounded-4xl bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums shrink-0">
+                  <HandIcon className="size-3" aria-hidden="true" />
+                  {formatHeldAgo(now - heldAt)}
+                </span>
+              </>
+            )}
           </div>
           <div className="mt-1.5 font-mono text-xs text-muted-foreground truncate">
             {JSON.stringify(pending.payload)}
@@ -99,6 +121,12 @@ export const PendingCallbackCard: React.FC<{
                 <ZapIcon aria-hidden="true" />
                 Fire now
               </DropdownMenuItem>
+              {onHold && heldAt === undefined && (
+                <DropdownMenuItem onClick={() => onHold(pending)}>
+                  <HandIcon aria-hidden="true" />
+                  Hold
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"

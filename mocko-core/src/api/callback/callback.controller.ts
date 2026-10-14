@@ -52,6 +52,13 @@ export class CallbackController {
         return h.response().code(202);
     }
 
+    async holdPending(request: Hapi.Request): Promise<PendingCallbackDto> {
+        this.deployService.authorizeCallbacks(request.headers.authorization);
+        const id = decodeURIComponent(firstString(request.params['id']));
+
+        return await this.service.holdPending(id);
+    }
+
     async cancelPending(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
         this.deployService.authorizeCallbacks(request.headers.authorization);
         const id = decodeURIComponent(firstString(request.params['id']));

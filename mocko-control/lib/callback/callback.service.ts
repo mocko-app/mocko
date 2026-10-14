@@ -1,5 +1,6 @@
 import { $template } from "bigodon/dist/parser";
 import { State } from "pierrejs";
+import { sortPendingCallbacks } from "@/lib/callback/pending-sort";
 import { isFileDefinition } from "@/lib/conflict/conflicts";
 import { HttpResponseError } from "@/lib/http";
 import { getStore } from "@/lib/store";
@@ -14,6 +15,8 @@ import type {
   PatchCallbackInput,
 } from "@/lib/validation/callback.schema";
 import { isOverriddenByUi } from "@/lib/utils/slugs";
+
+const CALLBACK_HOLD_CAPABILITY = "callback-hold";
 
 export class CallbackService {
   constructor(private readonly store: Store) {}
@@ -94,14 +97,18 @@ export class CallbackService {
   }
 
   async listPending(): Promise<PendingCallbacksDto> {
-    const pending = await this.store.listPendingCallbacks();
+    const [pending, capabilities] = await Promise.all([
+      this.store.listPendingCallbacks(),
+      this.store.getCoreCapabilities(),
+    ]);
     if (pending === null) {
-      return { isSupported: false, pending: [] };
+      return { isSupported: false, canHold: false, pending: [] };
     }
 
     return {
       isSupported: true,
-      pending: [...pending].sort((a, b) => a.dueAt - b.dueAt),
+      canHold: capabilities.includes(CALLBACK_HOLD_CAPABILITY),
+      pending: sortPendingCallbacks(pending),
     };
   }
 
@@ -124,6 +131,17 @@ export class CallbackService {
 
   async firePending(id: string): Promise<void> {
     await this.store.firePendingCallback(id);
+  }
+
+  async holdPending(id: string): Promise<PendingCallbackDto> {
+    const capabilities = await this.store.getCoreCapabilities();
+    if (!capabilities.includes(CALLBACK_HOLD_CAPABILITY)) {
+      throw HttpResponseError.unprocessableEntity(
+        "Your Mocko core doesn't support holding callbacks. Upgrade it to use Hold.",
+      );
+    }
+
+    return this.store.holdPendingCallback(id);
   }
 
   async cancelPending(id: string): Promise<void> {

@@ -145,6 +145,13 @@ export const firePendingCallback = (id: string) =>
     api.post<void>(`/api/callbacks/pending/${encodeURIComponent(id)}/fire`),
   );
 
+export const holdPendingCallback = (id: string) =>
+  request(() =>
+    api.post<PendingCallbackDto>(
+      `/api/callbacks/pending/${encodeURIComponent(id)}/hold`,
+    ),
+  );
+
 export const cancelPendingCallback = (id: string) =>
   request(() =>
     api.delete<void>(`/api/callbacks/pending/${encodeURIComponent(id)}`),

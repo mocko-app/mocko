@@ -128,6 +128,9 @@ export class MockoClient {
   /**
    * Lists scheduled callback deliveries that have not fired yet, ordered by
    * due time.
+   *
+   * Also includes callbacks held from the control panel, marked with
+   * `heldAt`.
    */
   async listPendingCallbacks(): Promise<PendingCallback[]> {
     return await this.transport.listPendingCallbacks();
@@ -135,6 +138,7 @@ export class MockoClient {
 
   /**
    * Fires a pending callback immediately, skipping the rest of its delay.
+   * Works on held callbacks too.
    *
    * Prefer this over waiting in tests that assert on delayed callbacks.
    */
@@ -143,14 +147,15 @@ export class MockoClient {
   }
 
   /**
-   * Cancels a pending callback so it never fires.
+   * Cancels a pending callback so it never fires. Works on held callbacks too.
    */
   async cancelPendingCallback(id: string): Promise<void> {
     await this.transport.cancelPendingCallback(id);
   }
 
   /**
-   * Cancels all pending callbacks. Useful for isolating tests.
+   * Cancels all pending callbacks, held ones included. Useful for isolating
+   * tests.
    */
   async clearPendingCallbacks(): Promise<void> {
     await this.transport.clearPendingCallbacks();

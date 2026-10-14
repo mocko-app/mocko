@@ -100,6 +100,10 @@ export abstract class Store {
     await this.coreClient.firePendingCoreCallback(id);
   }
 
+  async holdPendingCallback(id: string): Promise<PendingCallbackDto> {
+    return this.coreClient.holdPendingCoreCallback(id);
+  }
+
   async cancelPendingCallback(id: string): Promise<void> {
     await this.coreClient.cancelPendingCoreCallback(id);
   }
@@ -110,6 +114,10 @@ export abstract class Store {
 
   async getCoreVersion(): Promise<string | null> {
     return this.coreClient.getCoreVersion();
+  }
+
+  async getCoreCapabilities(): Promise<string[]> {
+    return this.coreClient.getCoreCapabilities();
   }
 
   async hasOwnMocks(): Promise<boolean> {

@@ -104,7 +104,7 @@ Schedules delivery of a [callback block](HCL-REFERENCE.md) (a simulated webhook)
 - The optional positional argument is the **payload** — any JSON-serializable value, available as `payload` in the callback's templates at delivery time. Positional arguments must come before named ones.
 - Delay precedence: helper `delay=` > stanza `delay` > 0. The callback is enqueued when the mock responds, so the delay is measured from the response, and delivery never holds the response up.
 - Trigger-time validation: an unknown slug, a host with no destination, or a non-serializable payload throws — the mock responds 500, like `{{proxy '@bad-slug'}}`.
-- **Rendered at fire time, not trigger time**: `body`, `path`/`url`, and header values render when the callback actually fires, with context `{payload, data}`. Definition or host edits made while the callback is pending apply; if the definition was deleted meanwhile, the delivery is dropped with a warning.
+- **Rendered at fire time, not trigger time**: `body`, `path`/`url`, and header values render when the callback actually fires, with context `{payload, data}`. Definition or host edits made while the callback is pending apply; if the definition was deleted meanwhile, the automatic delivery is dropped with a warning. Firing a pending callback by hand (control panel Fire now, `firePendingCallback`) is refused instead, and the callback stays pending.
 - Callback templates can use flag helpers (`setFlag` at delivery time is the idiomatic state-transition trigger) and everything else **except** `setStatus`, `setHeader`, `proxy`, and `callback` itself — callbacks cannot chain callbacks.
 - Delivery failures (non-2xx, network errors) are logged with the slug and dropped; there are no automatic retries.
 

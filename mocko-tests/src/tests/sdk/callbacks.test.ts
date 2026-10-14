@@ -96,6 +96,65 @@ describe('sdk callbacks', () => {
     expect(await mocko.listPendingCallbacks()).toHaveLength(0);
   });
 
+  describe('held callbacks', () => {
+    async function scheduleAndHold(id: string): Promise<string> {
+      const scheduled = await mocko.fireCallback(
+        'payment-approved',
+        { id },
+        { delay: 60_000 },
+      );
+      const held = await subject.client.post(
+        `/__mocko__/callbacks/pending/${scheduled.id}/hold`,
+      );
+      expect(held.status).toBe(200);
+      return scheduled.id;
+    }
+
+    it('lists held callbacks with heldAt', async () => {
+      const heldId = await scheduleAndHold('pay-held');
+      const scheduled = await mocko.fireCallback(
+        'payment-approved',
+        { id: 'pay-scheduled' },
+        { delay: 60_000 },
+      );
+
+      const pending = await mocko.listPendingCallbacks();
+      expect(pending).toHaveLength(2);
+      const held = pending.find((item) => item.id === heldId);
+      const notHeld = pending.find((item) => item.id === scheduled.id);
+      expect(held?.heldAt).toEqual(expect.any(Number));
+      expect(notHeld?.heldAt).toBeUndefined();
+    });
+
+    it('fires a held callback', async () => {
+      const heldId = await scheduleAndHold('pay-held-fired');
+
+      await mocko.firePendingCallback(heldId);
+
+      await capture.waitForRequests(1);
+      expect(capture.requests[0].url).toBe('/payments/pay-held-fired');
+      expect(await mocko.listPendingCallbacks()).toHaveLength(0);
+    });
+
+    it('cancels a held callback', async () => {
+      const heldId = await scheduleAndHold('pay-held-cancelled');
+
+      await mocko.cancelPendingCallback(heldId);
+
+      expect(await mocko.listPendingCallbacks()).toHaveLength(0);
+      await sleep(300);
+      expect(capture.requests).toHaveLength(0);
+    });
+
+    it('clears held callbacks', async () => {
+      await scheduleAndHold('pay-held-cleared');
+
+      await mocko.clearPendingCallbacks();
+
+      expect(await mocko.listPendingCallbacks()).toHaveLength(0);
+    });
+  });
+
   it('throws a descriptive error for unknown slugs', async () => {
     await expect(mocko.fireCallback('nope')).rejects.toThrow(
       'Mocko failed to fire callback "nope": HTTP 404',
