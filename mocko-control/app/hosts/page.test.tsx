@@ -30,15 +30,18 @@ describe("hosts page loading state", () => {
 describe("hosts page delete flow", () => {
   it("asks for confirmation before deleting a host", async () => {
     const state = givenApi({
-      hosts: [aHost({ slug: "alpha" }), aHost({ slug: "beta" })],
+      hosts: [
+        aHost({ id: "alpha-id", slug: "alpha" }),
+        aHost({ id: "beta-id", slug: "beta" }),
+      ],
     });
 
-    const deletedSlugs: string[] = [];
+    const deletedIds: string[] = [];
     server.use(
-      http.delete("/api/hosts/:slug", ({ params }) => {
-        const slug = String(params.slug);
-        deletedSlugs.push(slug);
-        state.hosts = state.hosts.filter((host) => host.slug !== slug);
+      http.delete("/api/hosts/:id", ({ params }) => {
+        const id = String(params.id);
+        deletedIds.push(id);
+        state.hosts = state.hosts.filter((host) => host.id !== id);
         return new HttpResponse(null, { status: 204 });
       }),
     );
@@ -53,7 +56,7 @@ describe("hosts page delete flow", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Delete host");
     expect(dialog).toHaveTextContent("alpha");
-    expect(deletedSlugs).toEqual([]);
+    expect(deletedIds).toEqual([]);
 
     await user.click(
       within(dialog).getByRole("button", {
@@ -62,7 +65,7 @@ describe("hosts page delete flow", () => {
     );
 
     expect(await screen.findByText("Host deleted.")).toBeInTheDocument();
-    expect(deletedSlugs).toEqual(["alpha"]);
+    expect(deletedIds).toEqual(["alpha-id"]);
     await waitFor(() =>
       expect(
         within(screen.getByRole("list", { name: "Hosts list" })).getAllByRole(
@@ -74,7 +77,7 @@ describe("hosts page delete flow", () => {
 
   it("toasts when deleting a host fails", async () => {
     givenApi({ hosts: [aHost({ slug: "fragile" })] });
-    givenApiError("delete", "/api/hosts/:slug");
+    givenApiError("delete", "/api/hosts/:id");
 
     const { user } = renderWithProviders(<HostsPage />);
     await screen.findByRole("list", { name: "Hosts list" });
@@ -95,6 +98,65 @@ describe("hosts page delete flow", () => {
     expect(
       screen.getByRole("listitem", { name: "Host: fragile" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("hosts page shared slugs", () => {
+  it("lists every host of a shared slug with its role badge and id link", async () => {
+    givenApi({
+      hosts: [
+        aHost({ id: "ui-id", slug: "shared", annotations: [] }),
+        aHost({
+          id: "file-id",
+          slug: "Shared",
+          filePath: "hosts/shared.hcl",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+        aHost({
+          id: "dup-a",
+          slug: "dup",
+          filePath: "hosts/a.hcl",
+          annotations: ["READ_ONLY", "CONFLICT"],
+        }),
+        aHost({
+          id: "dup-b",
+          slug: "dup",
+          filePath: "hosts/b.hcl",
+          annotations: ["READ_ONLY", "CONFLICT"],
+        }),
+      ],
+    });
+    renderWithProviders(<HostsPage />);
+
+    const list = await screen.findByRole("list", { name: "Hosts list" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+
+    const uiCard = screen.getByRole("listitem", { name: "Host: shared" });
+    expect(
+      within(uiCard).getByRole("link", { name: "Open shared" }),
+    ).toHaveAttribute("href", "/hosts/ui-id");
+    expect(within(uiCard).queryByText("Shadowed")).not.toBeInTheDocument();
+    expect(within(uiCard).queryByText("Conflict")).not.toBeInTheDocument();
+
+    const fileCard = screen.getByRole("listitem", { name: "Host: Shared" });
+    expect(
+      within(fileCard).getByRole("link", { name: "Open Shared" }),
+    ).toHaveAttribute("href", "/hosts/file-id");
+    expect(within(fileCard).getByText("Shadowed")).toBeInTheDocument();
+    expect(within(fileCard).getByText("hosts/shared.hcl")).toBeInTheDocument();
+
+    const dupCards = screen.getAllByRole("listitem", { name: "Host: dup" });
+    expect(dupCards).toHaveLength(2);
+    expect(
+      dupCards.map((card) =>
+        within(card)
+          .getByRole("link", { name: "Open dup" })
+          .getAttribute("href"),
+      ),
+    ).toEqual(["/hosts/dup-a", "/hosts/dup-b"]);
+    for (const card of dupCards) {
+      expect(within(card).getByText("Conflict")).toBeInTheDocument();
+    }
   });
 });
 

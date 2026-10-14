@@ -52,16 +52,16 @@ export class MemoryStore extends Store {
     return Array.from(this.hosts.values());
   }
 
-  protected async getOwnHost(slug: string): Promise<Host | null> {
-    return this.hosts.get(slug) ?? null;
+  protected async getOwnHost(id: string): Promise<Host | null> {
+    return this.hosts.get(id) ?? null;
   }
 
   async saveHost(host: Host): Promise<void> {
-    this.hosts.set(host.slug, host);
+    this.hosts.set(host.id, host);
   }
 
-  async deleteHost(slug: string): Promise<boolean> {
-    return this.hosts.delete(slug);
+  async deleteHost(id: string): Promise<boolean> {
+    return this.hosts.delete(id);
   }
 
   protected async listOwnCallbacks(): Promise<Callback[]> {

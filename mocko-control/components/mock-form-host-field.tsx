@@ -18,6 +18,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import type { HostDto } from "@/lib/types/host-dtos";
+import {
+  findBySlugPreferringUi,
+  uniqueBySlugPreferringUi,
+} from "@/lib/utils/slugs";
 
 const ANY_HOST_VALUE = "__any_host__";
 
@@ -29,14 +33,6 @@ function getHostLabel(host?: HostDto): string {
   return host.name ? `${host.slug} (${host.name})` : host.slug;
 }
 
-function findHostOption(
-  hostOptions: HostDto[],
-  hostSlug: string,
-): HostDto | undefined {
-  const target = hostSlug.toLowerCase();
-  return hostOptions.find((option) => option.slug.toLowerCase() === target);
-}
-
 function getSelectedHostLabel(
   hostSlug: string,
   hostOptions: HostDto[],
@@ -45,7 +41,7 @@ function getSelectedHostLabel(
     return "Any host";
   }
 
-  const host = findHostOption(hostOptions, hostSlug);
+  const host = findBySlugPreferringUi(hostOptions, hostSlug);
   return host ? getHostLabel(host) : hostSlug;
 }
 
@@ -60,10 +56,11 @@ export function MockFormHostField({
   isReadOnly = false,
   onHostSlugChange,
 }: MockFormHostFieldProps) {
-  const { data: hostOptions = [] } = useHosts({
+  const { data: hosts = [] } = useHosts({
     refreshInterval: 0,
   });
-  const matchedHost = findHostOption(hostOptions, hostSlug);
+  const hostOptions = uniqueBySlugPreferringUi(hosts);
+  const matchedHost = findBySlugPreferringUi(hostOptions, hostSlug);
   const isReadOnlyRawHost = isReadOnly && Boolean(hostSlug) && !matchedHost;
   const label = (
     <div className="flex items-center gap-1.5">
@@ -130,7 +127,7 @@ export function MockFormHostField({
         <SelectContent>
           <SelectItem value={ANY_HOST_VALUE}>Any host</SelectItem>
           {hostOptions.map((host) => (
-            <SelectItem key={host.slug} value={host.slug}>
+            <SelectItem key={host.id} value={host.slug}>
               {getHostLabel(host)}
             </SelectItem>
           ))}

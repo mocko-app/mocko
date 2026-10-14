@@ -21,7 +21,7 @@ import type {
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto, HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type { OperationsResponse } from "@/lib/types/operation";
 import type { VersionsDto } from "@/app/api/versions/route";
@@ -94,17 +94,17 @@ export function useHosts(options?: SWRConfiguration<HostDto[], ApiError>) {
 }
 
 export function useHost(
-  slug: string | undefined,
-  options?: SWRConfiguration<HostDto, ApiError>,
+  id: string | undefined,
+  options?: SWRConfiguration<HostDetailsDto, ApiError>,
 ) {
-  return useSWR<HostDto, ApiError>(
-    slug ? `/api/hosts/${slug}` : null,
+  return useSWR<HostDetailsDto, ApiError>(
+    id ? `/api/hosts/${id}` : null,
     async () => {
-      if (!slug) {
-        throw new Error("Host slug is required");
+      if (!id) {
+        throw new Error("Host id is required");
       }
 
-      return getHost(slug);
+      return getHost(id);
     },
     {
       refreshInterval: 0,

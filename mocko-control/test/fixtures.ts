@@ -3,7 +3,7 @@ import type {
   PendingCallbackDto,
 } from "@/lib/types/callback-dtos";
 import type { FlagKey } from "@/lib/types/flag";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto, HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type {
   MatchingFlagsOperation,
@@ -58,11 +58,23 @@ export function aHost(overrides: Partial<HostDto> = {}): HostDto {
   hostCounter += 1;
 
   return {
+    id: `host-id-${hostCounter}`,
     slug: `host-${hostCounter}`,
     name: undefined,
     source: `host-${hostCounter}.example.com`,
     destination: undefined,
+    filePath: undefined,
     annotations: [],
+    ...overrides,
+  };
+}
+
+export function aHostDetails(
+  overrides: Partial<HostDetailsDto> = {},
+): HostDetailsDto {
+  return {
+    ...aHost(),
+    conflict: null,
     ...overrides,
   };
 }

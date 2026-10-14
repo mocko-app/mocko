@@ -18,12 +18,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Callout } from "@/components/callout";
+import { HostConflictBadge } from "@/components/host-conflict-badge";
+import { HostConflictNotice } from "@/components/host-conflict-notice";
 import { useHostForm } from "@/lib/frontend/hooks/use-host-form";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto } from "@/lib/types/host-dtos";
 import { cn } from "@/lib/utils";
 
 type HostFormProps = {
-  initial?: HostDto;
+  initial?: HostDetailsDto;
   mode: "create" | "edit";
 };
 
@@ -67,6 +69,12 @@ export function HostForm({ initial, mode }: HostFormProps) {
               Read Only
             </Badge>
           )}
+          {mode === "edit" && initial && (
+            <HostConflictBadge
+              annotations={initial.annotations}
+              className="text-xs"
+            />
+          )}
         </div>
         <Button
           variant="ghost"
@@ -85,6 +93,10 @@ export function HostForm({ initial, mode }: HostFormProps) {
           title="Read-only host"
           message="This host is defined in a .hcl file and cannot be edited here."
         />
+      )}
+
+      {mode === "edit" && initial?.conflict && (
+        <HostConflictNotice conflict={initial.conflict} />
       )}
 
       {showErrors && errors.form && (
@@ -162,6 +174,22 @@ export function HostForm({ initial, mode }: HostFormProps) {
             >
               {initial?.slug}
             </div>
+          </div>
+        )}
+
+        {initial?.filePath && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="host-source-file">Source file</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="host-source-file"
+                value={initial.filePath}
+                readOnly
+              />
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={initial.filePath} label="Source file" />
+              </InputGroupAddon>
+            </InputGroup>
           </div>
         )}
 

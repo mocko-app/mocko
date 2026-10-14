@@ -6,7 +6,7 @@ import type {
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto, HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type { OperationsResponse } from "@/lib/types/operation";
 
@@ -16,6 +16,7 @@ export type ApiState = {
   mocks: MockDto[];
   mockDetails: MockDetailsDto[];
   hosts: HostDto[];
+  hostDetails: HostDetailsDto[];
   callbacks: CallbackDto[];
   pendingCallbacks: PendingCallbacksDto;
   flagList: FlagListDto;
@@ -29,6 +30,7 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     mocks: initial.mocks ?? [],
     mockDetails: initial.mockDetails ?? [],
     hosts: initial.hosts ?? [],
+    hostDetails: initial.hostDetails ?? [],
     callbacks: initial.callbacks ?? [],
     pendingCallbacks: initial.pendingCallbacks ?? {
       isSupported: true,
@@ -64,18 +66,22 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
       return HttpResponse.json(mock);
     }),
     http.get("/api/hosts", () => HttpResponse.json(state.hosts)),
-    http.get("/api/hosts/:slug", ({ params }) => {
-      const host = state.hosts.find((h) => h.slug === params.slug);
+    http.get("/api/hosts/:id", ({ params }) => {
+      const details = state.hostDetails.find((h) => h.id === params.id);
+      if (details) {
+        return HttpResponse.json(details);
+      }
+      const host = state.hosts.find((h) => h.id === params.id);
       if (!host) {
         return HttpResponse.json(
           {
             code: "HOST_NOT_FOUND",
-            message: `Host "${params.slug}" was not found`,
+            message: `Host "${params.id}" was not found`,
           },
           { status: 404 },
         );
       }
-      return HttpResponse.json(host);
+      return HttpResponse.json({ ...host, conflict: null });
     }),
     http.get("/api/callbacks", () => HttpResponse.json(state.callbacks)),
     http.get("/api/callbacks/pending", () =>

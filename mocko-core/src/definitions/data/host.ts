@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
 
 export type Host = {
+    id?: string,
     slug: string,
     name?: string,
     source: string,

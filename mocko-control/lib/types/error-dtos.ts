@@ -50,8 +50,15 @@ export class ErrorDto {
     return new ErrorDto("FLAG_NOT_FOUND", `Flag "${key}" was not found`);
   }
 
-  static ofHostNotFound(slug: string): ErrorDto {
-    return new ErrorDto("HOST_NOT_FOUND", `Host "${slug}" was not found`);
+  static ofHostNotFound(id: string): ErrorDto {
+    return new ErrorDto("HOST_NOT_FOUND", `Host "${id}" was not found`);
+  }
+
+  static ofHostReadOnly(id: string): ErrorDto {
+    return new ErrorDto(
+      "HOST_READ_ONLY",
+      `Host "${id}" is read-only and cannot be edited`,
+    );
   }
 
   static ofOperationNotFound(id: string): ErrorDto {

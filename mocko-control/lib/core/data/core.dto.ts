@@ -75,6 +75,8 @@ export type CoreHostDto = {
   name?: string;
   source: string;
   destination?: string;
+  id?: string;
+  filePath?: string;
 };
 
 export type CoreCallbackDto = {

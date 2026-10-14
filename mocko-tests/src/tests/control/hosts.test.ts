@@ -76,9 +76,18 @@ describe('control hosts integration', () => {
     expect(unnamedHost.name).toBeUndefined();
     expect(unnamedHost.annotations).toContain('READ_ONLY');
 
-    const detailsRes = await control.get('/api/hosts/named');
+    expect(namedHost.id).toEqual(expect.any(String));
+    expect(namedHost.filePath).toBe(normalizedFilePath);
+    expect(
+      new Set(listRes.data.map((host: { id: string }) => host.id)).size,
+    ).toBe(listRes.data.length);
+
+    const detailsRes = await control.get(`/api/hosts/${namedHost.id}`);
     expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.id).toBe(namedHost.id);
     expect(detailsRes.data.slug).toBe('named');
+    expect(detailsRes.data.filePath).toBe(normalizedFilePath);
+    expect(detailsRes.data.conflict).toBeNull();
     expect(detailsRes.data.name).toBe('Friendly name');
     expect(detailsRes.data.source).toBe('named.local');
     expect(detailsRes.data.destination).toBe(
@@ -86,15 +95,28 @@ describe('control hosts integration', () => {
     );
     expect(detailsRes.data.annotations).toEqual(['READ_ONLY']);
 
-    const emptyNameDetailsRes = await control.get('/api/hosts/empty-name');
+    const emptyNameDetailsRes = await control.get(
+      `/api/hosts/${emptyNameHost.id}`,
+    );
     expect(emptyNameDetailsRes.status).toBe(200);
     expect(emptyNameDetailsRes.data.name).toBe('');
 
-    const unnamedDetailsRes = await control.get('/api/hosts/unnamed');
+    const unnamedDetailsRes = await control.get(`/api/hosts/${unnamedHost.id}`);
     expect(unnamedDetailsRes.status).toBe(200);
     expect(unnamedDetailsRes.data.name).toBeUndefined();
 
+    expect((await control.get('/api/hosts/named')).status).toBe(404);
     expect(normalizedFilePath).toContain('.hcl');
+
+    const patchRes = await control.patch(`/api/hosts/${namedHost.id}`, {
+      name: 'Changed',
+    });
+    expect(patchRes.status).toBe(409);
+    expect(patchRes.data.code).toBe('HOST_READ_ONLY');
+
+    const deleteRes = await control.delete(`/api/hosts/${namedHost.id}`);
+    expect(deleteRes.status).toBe(409);
+    expect(deleteRes.data.code).toBe('HOST_READ_ONLY');
   });
 
   it('creates, updates, lists, and deletes ui hosts in storeless mode', async () => {
@@ -115,6 +137,10 @@ describe('control hosts integration', () => {
     });
 
     expect(createRes.status).toBe(201);
+    expect(createRes.data.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    const hostId = createRes.data.id;
     expect(createRes.data.slug).toBe('storeless');
     expect(createRes.data.name).toBe('Storeless host');
     expect(createRes.data.annotations).toContain('TEMPORARY');
@@ -123,7 +149,12 @@ describe('control hosts integration', () => {
     const listRes = await control.get('/api/hosts');
     expect(listRes.status).toBe(200);
     const listedHost = findHost(listRes.data, 'storeless');
+    expect(listedHost.id).toBe(hostId);
     expect(listedHost.annotations).toContain('TEMPORARY');
+
+    const bySlugRes = await control.get('/api/hosts/storeless');
+    expect(bySlugRes.status).toBe(404);
+    expect(bySlugRes.data.code).toBe('HOST_NOT_FOUND');
 
     const proxiedRes = await subject.client.get('/storeless-host', {
       headers: { Host: 'storeless.local' },
@@ -131,7 +162,7 @@ describe('control hosts integration', () => {
     expect(proxiedRes.status).toBe(200);
     expect(proxiedRes.data).toBe('proxied from control host');
 
-    const updateRes = await control.patch('/api/hosts/storeless', {
+    const updateRes = await control.patch(`/api/hosts/${hostId}`, {
       name: '',
       source: 'updated.local',
     });
@@ -154,14 +185,17 @@ describe('control hosts integration', () => {
     expect(updatedProxyRes.status).toBe(200);
     expect(updatedProxyRes.data).toBe('proxied from control host');
 
-    const detailsRes = await control.get('/api/hosts/storeless');
+    const detailsRes = await control.get(`/api/hosts/${hostId}`);
     expect(detailsRes.status).toBe(200);
+    expect(detailsRes.data.id).toBe(hostId);
     expect(detailsRes.data.name).toBe('');
     expect(detailsRes.data.source).toBe('updated.local');
+    expect(detailsRes.data.conflict).toBeNull();
 
-    const deleteRes = await control.delete('/api/hosts/storeless');
+    expect((await control.delete('/api/hosts/storeless')).status).toBe(404);
+    const deleteRes = await control.delete(`/api/hosts/${hostId}`);
     expect(deleteRes.status).toBe(204);
-    expect((await control.get('/api/hosts/storeless')).status).toBe(404);
+    expect((await control.get(`/api/hosts/${hostId}`)).status).toBe(404);
     expect(
       (
         await subject.client.get('/storeless-host', {
@@ -295,13 +329,14 @@ describe('control hosts integration', () => {
     });
     expect(createRes.status).toBe(201);
 
-    const patchRes = await control.patch('/api/hosts/validate', {
+    const hostId = createRes.data.id;
+    const patchRes = await control.patch(`/api/hosts/${hostId}`, {
       slug: 'other',
     });
     expect(patchRes.status).toBe(400);
     expect(patchRes.data.code).toBe('BAD_REQUEST');
 
-    const emptyPatchRes = await control.patch('/api/hosts/validate', {});
+    const emptyPatchRes = await control.patch(`/api/hosts/${hostId}`, {});
     expect(emptyPatchRes.status).toBe(400);
     expect(emptyPatchRes.data.code).toBe('BAD_REQUEST');
   });
@@ -323,7 +358,7 @@ describe('control hosts integration', () => {
     expect(listRes.status).toBe(200);
     expect(findHost(listRes.data, 'header-only').destination).toBeUndefined();
 
-    const detailsRes = await control.get('/api/hosts/header-only');
+    const detailsRes = await control.get(`/api/hosts/${createHostRes.data.id}`);
     expect(detailsRes.status).toBe(200);
     expect(detailsRes.data.destination).toBeUndefined();
 
@@ -381,9 +416,12 @@ describe('control hosts integration', () => {
     expect(proxiedBeforeClear.status).toBe(200);
     expect(proxiedBeforeClear.data).toBe('proxied before clear');
 
-    const updateHostRes = await control.patch('/api/hosts/cleardest', {
-      destination: null,
-    });
+    const updateHostRes = await control.patch(
+      `/api/hosts/${createHostRes.data.id}`,
+      {
+        destination: null,
+      },
+    );
     expect(updateHostRes.status).toBe(200);
     expect(updateHostRes.data.destination).toBeUndefined();
 
@@ -440,5 +478,108 @@ describe('control hosts integration', () => {
     });
     expect(proxiedRes.status).toBe(200);
     expect(proxiedRes.data).toBe('from global proxy');
+  });
+
+  it('lists a ui host and a later file host with the same slug as active and shadowed', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/hosts', {
+      slug: 'Overlap',
+      source: 'overlap-ui.local',
+    });
+    expect(createRes.status).toBe(201);
+    const uiId = createRes.data.id;
+
+    const filePath = await subject.createMock(`
+      host "overlap" {
+        source = "overlap-file.local"
+      }
+    `);
+    const normalizedFilePath = normalizeHostFilePath(subject, filePath);
+
+    const listRes = await control.get('/api/hosts');
+    expect(listRes.status).toBe(200);
+    const overlapping = listRes.data.filter(
+      (host: { slug: string }) => host.slug.toLowerCase() === 'overlap',
+    );
+    expect(overlapping).toHaveLength(2);
+
+    const uiHost = overlapping.find((host: any) => host.id === uiId);
+    const fileHost = overlapping.find((host: any) => host.id !== uiId);
+    expect(uiHost.annotations).toEqual(['TEMPORARY']);
+    expect(fileHost.annotations).toEqual(['READ_ONLY', 'SHADOWED']);
+    expect(fileHost.filePath).toBe(normalizedFilePath);
+
+    const uiDetails = await control.get(`/api/hosts/${uiId}`);
+    expect(uiDetails.status).toBe(200);
+    expect(uiDetails.data.conflict).toEqual({
+      role: 'active',
+      related: [
+        {
+          id: fileHost.id,
+          slug: 'overlap',
+          source: 'overlap-file.local',
+          filePath: normalizedFilePath,
+          origin: 'FILE',
+        },
+      ],
+    });
+
+    const fileDetails = await control.get(`/api/hosts/${fileHost.id}`);
+    expect(fileDetails.status).toBe(200);
+    expect(fileDetails.data.source).toBe('overlap-file.local');
+    expect(fileDetails.data.annotations).toEqual(['READ_ONLY', 'SHADOWED']);
+    expect(fileDetails.data.conflict).toEqual({
+      role: 'shadowed',
+      related: [
+        {
+          id: uiId,
+          slug: 'Overlap',
+          source: 'overlap-ui.local',
+          origin: 'UI',
+        },
+      ],
+    });
+  });
+
+  it('flags two file hosts with the same slug as conflicting', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    await subject.createMock(`
+      host "twin" {
+        source = "twin-one.local"
+      }
+    `);
+    await subject.createMock(`
+      host "Twin" {
+        source = "twin-two.local"
+      }
+    `);
+
+    const listRes = await control.get('/api/hosts');
+    expect(listRes.status).toBe(200);
+    const twins = listRes.data.filter(
+      (host: { slug: string }) => host.slug.toLowerCase() === 'twin',
+    );
+    expect(twins).toHaveLength(2);
+    expect(new Set(twins.map((host: any) => host.id)).size).toBe(2);
+
+    for (const twin of twins) {
+      expect(twin.annotations).toEqual(['READ_ONLY', 'CONFLICT']);
+
+      const detailsRes = await control.get(`/api/hosts/${twin.id}`);
+      expect(detailsRes.status).toBe(200);
+      expect(detailsRes.data.source).toBe(twin.source);
+      expect(detailsRes.data.conflict.role).toBe('conflict');
+      expect(
+        detailsRes.data.conflict.related.map((host: any) => host.id),
+      ).toEqual(
+        twins
+          .filter((other: any) => other.id !== twin.id)
+          .map((other: any) => other.id),
+      );
+    }
   });
 });

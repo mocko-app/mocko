@@ -1,5 +1,6 @@
 import type { HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto } from "@/lib/types/mock-dtos";
+import { uniqueBySlugPreferringUi } from "@/lib/utils/slugs";
 
 const REQUEST_REF =
   /(?:\$(?:root|parent)\.)*request\.(body|headers|query)(?![\w-])((?:\.[\w-]+)*)/g;
@@ -15,7 +16,7 @@ const PSEUDO_HEADERS = new Set([
   "user-agent",
 ]);
 
-type HostSource = Pick<HostDto, "slug" | "source">;
+type HostSource = Pick<HostDto, "slug" | "source" | "annotations">;
 
 type BodyNode = {
   children: Map<string, BodyNode>;
@@ -180,7 +181,7 @@ function resolveHostSource(
   }
 
   const target = hostName.toLowerCase();
-  const host = hosts.find(
+  const host = uniqueBySlugPreferringUi(hosts).find(
     (item) =>
       item.slug.toLowerCase() === target ||
       item.source.toLowerCase() === target,

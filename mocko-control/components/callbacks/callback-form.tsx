@@ -32,6 +32,7 @@ import {
 import { CALLBACK_METHODS } from "@/lib/types/callback";
 import type { CallbackDto } from "@/lib/types/callback-dtos";
 import { cn } from "@/lib/utils";
+import { uniqueBySlugPreferringUi } from "@/lib/utils/slugs";
 
 type CallbackFormProps = {
   initial?: CallbackDto;
@@ -116,7 +117,9 @@ export function CallbackForm({
     handleSubmit,
   } = useCallbackForm(initial, mode);
 
-  const hostSlugs = (hosts ?? []).map((host) => host.slug);
+  const hostSlugs = uniqueBySlugPreferringUi(hosts ?? []).map(
+    (host) => host.slug,
+  );
   const hasNoHosts = hosts !== undefined && hostSlugs.length === 0;
 
   return (

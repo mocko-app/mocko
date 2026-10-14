@@ -19,7 +19,7 @@ import {
 } from "@/lib/frontend/confirmation-preferences";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
-import type { Host } from "@/lib/types/host";
+import type { HostDto } from "@/lib/types/host-dtos";
 
 const HostsListSkeleton: React.FC = () => {
   return (
@@ -55,7 +55,7 @@ const HostsPage: React.FC = () => {
   const router = useRouter();
   const { data, error, isLoading, mutate } = useHosts();
   const hosts = data ?? [];
-  const [deleteTarget, setDeleteTarget] = useState<Host>();
+  const [deleteTarget, setDeleteTarget] = useState<HostDto>();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const countsDescription = data ? (
@@ -64,14 +64,14 @@ const HostsPage: React.FC = () => {
     <Skeleton className="my-0.5 h-4 w-16" />
   ) : undefined;
 
-  function handleEdit(slug: string) {
-    router.push(`/hosts/${slug}`);
+  function handleEdit(id: string) {
+    router.push(`/hosts/${id}`);
   }
 
-  async function deleteSelectedHost(host: Host) {
+  async function deleteSelectedHost(host: HostDto) {
     setIsDeleting(true);
     try {
-      await deleteHost(host.slug);
+      await deleteHost(host.id);
       await mutate();
       toast.success("Host deleted.");
     } catch {
@@ -82,7 +82,7 @@ const HostsPage: React.FC = () => {
     }
   }
 
-  function handleDelete(host: Host) {
+  function handleDelete(host: HostDto) {
     if (shouldSkipConfirmation("hosts", "delete")) {
       void deleteSelectedHost(host);
       return;
@@ -151,7 +151,7 @@ const HostsPage: React.FC = () => {
         >
           {hosts.map((host) => (
             <HostCard
-              key={host.slug}
+              key={host.id}
               host={host}
               onEdit={handleEdit}
               onDelete={handleDelete}

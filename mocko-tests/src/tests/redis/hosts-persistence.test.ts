@@ -1,8 +1,12 @@
 import {
   createContent,
+  createRedisClient,
+  createRedisReplicaSet,
   createRedisSubject,
+  createRedisTestConfig,
   describeRedis,
   flushRedis,
+  getEffectiveRedisPrefix,
   MockoInstance,
   randomPath,
   RedisTestConfig,
@@ -16,6 +20,7 @@ function findHost(list: any[], slug: string) {
 
 describeRedis('redis hosts persistence', () => {
   let subject: MockoInstance | null = null;
+  let replicas: MockoInstance[] = [];
   let content: MockoInstance | null = null;
   let redis: RedisTestConfig | null = null;
 
@@ -30,6 +35,8 @@ describeRedis('redis hosts persistence', () => {
   });
 
   afterEach(async () => {
+    await Promise.all(replicas.map((replica) => replica.stop()));
+    replicas = [];
     if (subject) {
       await subject.stop();
       subject = null;
@@ -71,8 +78,9 @@ describeRedis('redis hosts persistence', () => {
     expect(proxyRes.status).toBe(200);
     expect(proxyRes.data).toBe('proxied from redis host');
 
+    const hostId = createRes.data.id;
     revision = await subject.getRevision();
-    const updateRes = await control.patch('/api/hosts/redis-host', {
+    const updateRes = await control.patch(`/api/hosts/${hostId}`, {
       source: 'redis-updated.local',
     });
     expect(updateRes.status).toBe(200);
@@ -89,7 +97,7 @@ describeRedis('redis hosts persistence', () => {
     }));
 
     const restartedControl = subject.ensureControl();
-    const detailsRes = await restartedControl.get('/api/hosts/redis-host');
+    const detailsRes = await restartedControl.get(`/api/hosts/${hostId}`);
     expect(detailsRes.status).toBe(200);
     expect(detailsRes.data.name).toBe('');
     expect(detailsRes.data.source).toBe('redis-updated.local');
@@ -119,7 +127,7 @@ describeRedis('redis hosts persistence', () => {
     );
     expect(findHost(listRes.data, 'file-host').name).toBe('File host');
 
-    const deleteRes = await restartedControl.delete('/api/hosts/redis-host');
+    const deleteRes = await restartedControl.delete(`/api/hosts/${hostId}`);
     expect(deleteRes.status).toBe(204);
 
     await subject.stop();
@@ -140,7 +148,7 @@ describeRedis('redis hosts persistence', () => {
     `);
 
     expect(
-      (await subject.ensureControl().get('/api/hosts/redis-host')).status,
+      (await subject.ensureControl().get(`/api/hosts/${hostId}`)).status,
     ).toBe(404);
     const finalListRes = await subject.ensureControl().get('/api/hosts');
     expect(finalListRes.status).toBe(200);
@@ -274,5 +282,80 @@ describeRedis('redis hosts persistence', () => {
     });
     expect(withHostRes.status).toBe(200);
     expect(withHostRes.data).toBe('host scoped');
+  });
+
+  it('gives legacy ui hosts without ids a stable id shared by replicas and persists it on the next write', async () => {
+    redis = createRedisTestConfig();
+    const hostsKey = `${getEffectiveRedisPrefix(redis.prefix)}hosts`;
+    const legacyHosts = [
+      { slug: 'legacy', source: 'legacy.local', annotations: [] },
+      { slug: 'Legacy-two', source: 'legacy-two.local', annotations: [] },
+    ];
+    const redisClient = createRedisClient(redis);
+    try {
+      await redisClient.set(hostsKey, JSON.stringify(legacyHosts));
+
+      const replicaSet = await createRedisReplicaSet(
+        [
+          { options: { '--ui': true }, mode: 'url' },
+          { options: { '--ui': true }, mode: 'url' },
+        ],
+        redis,
+      );
+      replicas = replicaSet.instances;
+      const [first, second] = replicas.map((replica) =>
+        replica.ensureControl(),
+      );
+
+      const firstList = await first.get('/api/hosts');
+      expect(firstList.status).toBe(200);
+      const legacyId = findHost(firstList.data, 'legacy').id;
+      const legacyTwoId = findHost(firstList.data, 'Legacy-two').id;
+      expect(legacyId).toEqual(expect.any(String));
+      expect(legacyTwoId).not.toBe(legacyId);
+
+      expect(findHost((await first.get('/api/hosts')).data, 'legacy').id).toBe(
+        legacyId,
+      );
+      const secondList = await second.get('/api/hosts');
+      expect(findHost(secondList.data, 'legacy').id).toBe(legacyId);
+      expect(findHost(secondList.data, 'Legacy-two').id).toBe(legacyTwoId);
+
+      const detailsRes = await second.get(`/api/hosts/${legacyId}`);
+      expect(detailsRes.status).toBe(200);
+      expect(detailsRes.data.slug).toBe('legacy');
+      expect((await second.get('/api/hosts/legacy')).status).toBe(404);
+
+      expect(
+        JSON.parse((await redisClient.get(hostsKey)) as string)[0].id,
+      ).toBeUndefined();
+
+      const createRes = await first.post('/api/hosts', {
+        slug: 'fresh',
+        source: 'fresh.local',
+      });
+      expect(createRes.status).toBe(201);
+
+      const persisted = JSON.parse((await redisClient.get(hostsKey)) as string);
+      expect(persisted.map((host: { id: string }) => host.id)).toEqual([
+        legacyId,
+        legacyTwoId,
+        createRes.data.id,
+      ]);
+
+      const patchRes = await second.patch(`/api/hosts/${legacyTwoId}`, {
+        source: 'legacy-two-updated.local',
+      });
+      expect(patchRes.status).toBe(200);
+      expect(patchRes.data.id).toBe(legacyTwoId);
+      expect(
+        findHost((await first.get('/api/hosts')).data, 'Legacy-two'),
+      ).toMatchObject({
+        id: legacyTwoId,
+        source: 'legacy-two-updated.local',
+      });
+    } finally {
+      redisClient.disconnect();
+    }
   });
 });

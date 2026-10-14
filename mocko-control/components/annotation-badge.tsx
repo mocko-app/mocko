@@ -61,8 +61,9 @@ const ANNOTATION_META: Record<AnnotationBadgeKind, AnnotationMeta> = {
 
 export const AnnotationBadge: React.FC<{
   annotation: AnnotationBadgeKind;
+  tooltip?: string;
   className?: string;
-}> = ({ annotation, className }) => {
+}> = ({ annotation, tooltip, className }) => {
   const meta = ANNOTATION_META[annotation];
   const Icon = meta.icon;
 
@@ -76,7 +77,7 @@ export const AnnotationBadge: React.FC<{
           </Badge>
         }
       />
-      <TooltipContent>{meta.tooltip}</TooltipContent>
+      <TooltipContent>{tooltip ?? meta.tooltip}</TooltipContent>
     </Tooltip>
   );
 };

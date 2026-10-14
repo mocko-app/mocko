@@ -63,8 +63,12 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(404, ErrorDto.ofFlagNotFound(key));
   }
 
-  static hostNotFound(slug: string): HttpResponseError {
-    return new HttpResponseError(404, ErrorDto.ofHostNotFound(slug));
+  static hostNotFound(id: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofHostNotFound(id));
+  }
+
+  static hostReadOnly(id: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofHostReadOnly(id));
   }
 
   static operationNotFound(id: string): HttpResponseError {

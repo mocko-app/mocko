@@ -1,3 +1,9 @@
+import { annotationsWithConflict } from "@/lib/conflict/conflicts";
+import type {
+  ConflictDto,
+  ConflictOrigin,
+  ConflictRole,
+} from "@/lib/types/conflict-dtos";
 import type {
   DisplayMockAnnotation,
   HttpMethod,
@@ -10,7 +16,7 @@ export type MockFailure = {
   date: string;
 };
 
-export type MockConflictRole = "active" | "shadowed" | "conflict";
+export type MockConflictRole = ConflictRole;
 
 export type MockSummaryDto = {
   id: string;
@@ -19,13 +25,10 @@ export type MockSummaryDto = {
   path: string;
   host?: string;
   filePath?: string;
-  source: "UI" | "FILE";
+  source: ConflictOrigin;
 };
 
-export type MockConflictDto = {
-  role: MockConflictRole;
-  related: MockSummaryDto[];
-};
+export type MockConflictDto = ConflictDto<MockSummaryDto>;
 
 export type CreateMockDto = {
   name: string;
@@ -63,19 +66,6 @@ export class MockResponseDto {
   }
 }
 
-function annotationsWithConflict(
-  mock: Mock,
-  role: MockConflictRole | undefined,
-): DisplayMockAnnotation[] {
-  const annotations: DisplayMockAnnotation[] = [...mock.annotations];
-  if (role === "shadowed") {
-    annotations.push("SHADOWED");
-  } else if (role === "conflict") {
-    annotations.push("CONFLICT");
-  }
-  return annotations;
-}
-
 export class MockDto {
   private constructor(
     public readonly id: string,
@@ -101,7 +91,7 @@ export class MockDto {
       mock.format,
       mock.isEnabled,
       [...mock.labels],
-      annotationsWithConflict(mock, conflictRole),
+      annotationsWithConflict(mock.annotations, conflictRole),
     );
   }
 }
@@ -138,7 +128,7 @@ export class MockDetailsDto {
       mock.format,
       mock.isEnabled,
       [...mock.labels],
-      annotationsWithConflict(mock, conflict?.role),
+      annotationsWithConflict(mock.annotations, conflict?.role),
       MockResponseDto.ofResponse(mock.response),
       failure,
       conflict,

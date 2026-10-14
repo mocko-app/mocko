@@ -235,10 +235,7 @@ export class DefinitionProvider {
             });
         });
         definition.mocks = this.withFileMetadata(path, definition.mocks);
-        definition.hosts = definition.hosts.map((host) => ({
-            ...host,
-            filePath: file,
-        }));
+        definition.hosts = this.withSlugFileMetadata('host', file, definition.hosts);
         definition.callbacks = definition.callbacks.map((callback) => ({
             ...callback,
             filePath: file,
@@ -289,6 +286,21 @@ export class DefinitionProvider {
             name: mock.name?.trim() || normalizedFilePath,
             filePath: normalizedFilePath,
             source: 'FILE',
+        }));
+    }
+
+    private withSlugFileMetadata<T extends { slug: string, id?: string, filePath?: string }>(
+        kind: string,
+        normalizedFilePath: string,
+        items: T[],
+    ): T[] {
+        const seeds = items.map((item) => `${kind}\u0000${normalizedFilePath}\u0000${item.slug}`);
+        const idSeeds = this.disambiguateSeeds(seeds);
+
+        return items.map((item, index) => ({
+            ...item,
+            id: uuidv5(idSeeds[index], FILE_ID_NAMESPACE),
+            filePath: normalizedFilePath,
         }));
     }
 

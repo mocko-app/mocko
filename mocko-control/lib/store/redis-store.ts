@@ -2,6 +2,7 @@ import Redis, { type Redis as RedisClient, type RedisOptions } from "ioredis";
 import { toV2Mock } from "@/lib/management/v1-mock.mapper";
 import { toDeployDefinition } from "@/lib/mock/mock.mapper";
 import { CoreClient } from "@/lib/store/core-client";
+import { withSlugDerivedIds } from "@/lib/store/slug-ids";
 import { Store, type FlagListResult, type StoreFlag } from "@/lib/store/store";
 import type { Callback } from "@/lib/types/callback";
 import type { FlagKey, FlagSource } from "@/lib/types/flag";
@@ -18,6 +19,7 @@ import type {
 const WORKSPACE_MOCKS_KEY = "workspace_mocks";
 const HOSTS_KEY = "hosts";
 const CALLBACKS_KEY = "callbacks";
+const LEGACY_HOST_ID_NAMESPACE = "14969568-8202-4351-88ec-58afdd194f2d";
 const DEPLOYMENT_KEY = "mocks_deployment";
 const FLAG_PREFIX = "flags:";
 const FAILURE_PREFIX = "mock_failure:";
@@ -105,14 +107,14 @@ export class RedisStore extends Store {
     return this.readOwnHosts();
   }
 
-  protected async getOwnHost(slug: string): Promise<Host | null> {
+  protected async getOwnHost(id: string): Promise<Host | null> {
     const hosts = await this.readOwnHosts();
-    return hosts.find((host) => host.slug === slug) ?? null;
+    return hosts.find((host) => host.id === id) ?? null;
   }
 
   async saveHost(host: Host): Promise<void> {
     const hosts = await this.readOwnHosts();
-    const index = hosts.findIndex((item) => item.slug === host.slug);
+    const index = hosts.findIndex((item) => item.id === host.id);
     if (index === -1) {
       hosts.push(host);
     } else {
@@ -121,9 +123,9 @@ export class RedisStore extends Store {
     await this.writeOwnHosts(hosts);
   }
 
-  async deleteHost(slug: string): Promise<boolean> {
+  async deleteHost(id: string): Promise<boolean> {
     const hosts = await this.readOwnHosts();
-    const nextHosts = hosts.filter((host) => host.slug !== slug);
+    const nextHosts = hosts.filter((host) => host.id !== id);
     if (nextHosts.length === hosts.length) {
       return false;
     }
@@ -798,7 +800,10 @@ export class RedisStore extends Store {
       return [];
     }
 
-    return JSON.parse(payload) as Host[];
+    const hosts = JSON.parse(payload) as Array<
+      Omit<Host, "id"> & { id?: string }
+    >;
+    return withSlugDerivedIds(hosts, LEGACY_HOST_ID_NAMESPACE);
   }
 
   private async writeOwnHosts(hosts: Host[]): Promise<void> {

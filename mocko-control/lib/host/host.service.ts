@@ -14,10 +14,10 @@ export class HostService {
     return this.store.listHosts();
   }
 
-  async getHost(slug: string): Promise<Host> {
-    const host = await this.store.getHost(slug);
+  async getHost(id: string): Promise<Host> {
+    const host = await this.store.getHost(id);
     if (!host) {
-      throw HttpResponseError.hostNotFound(slug);
+      throw HttpResponseError.hostNotFound(id);
     }
 
     return host;
@@ -31,6 +31,7 @@ export class HostService {
     }
 
     const host: Host = {
+      id: crypto.randomUUID(),
       slug: data.slug,
       name: data.name,
       source: data.source,
@@ -43,10 +44,13 @@ export class HostService {
     return host;
   }
 
-  async updateHost(slug: string, data: PatchHostInput): Promise<Host> {
-    const host = await this.store.getHost(slug);
+  async updateHost(id: string, data: PatchHostInput): Promise<Host> {
+    const host = await this.store.getHost(id);
     if (!host) {
-      throw HttpResponseError.hostNotFound(slug);
+      throw HttpResponseError.hostNotFound(id);
+    }
+    if (host.annotations.includes("READ_ONLY")) {
+      throw HttpResponseError.hostReadOnly(id);
     }
 
     let destination = host.destination;
@@ -68,10 +72,14 @@ export class HostService {
     return updatedHost;
   }
 
-  async deleteHost(slug: string): Promise<void> {
-    const deleted = await this.store.deleteHost(slug);
+  async deleteHost(id: string): Promise<void> {
+    const deleted = await this.store.deleteHost(id);
     if (!deleted) {
-      throw HttpResponseError.hostNotFound(slug);
+      const host = await this.store.getHost(id);
+      if (host?.annotations.includes("READ_ONLY")) {
+        throw HttpResponseError.hostReadOnly(id);
+      }
+      throw HttpResponseError.hostNotFound(id);
     }
 
     await this.store.deploy();

@@ -123,9 +123,9 @@ describe("new callback page", () => {
   it("selects a host from the existing hosts", async () => {
     givenApi({
       hosts: [
-        { slug: "workflows", source: "wf.local", annotations: [] },
-        { slug: "payments", source: "pay.local", annotations: [] },
-      ].map((host) => ({ name: undefined, destination: undefined, ...host })),
+        aHost({ slug: "workflows", source: "wf.local" }),
+        aHost({ slug: "payments", source: "pay.local" }),
+      ],
     });
     const payloads = captureCreates();
     const { user } = renderWithProviders(<NewCallbackPage />);
