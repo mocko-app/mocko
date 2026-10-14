@@ -14,7 +14,7 @@ import { CallbackSchedulerService } from "../callback/callback-scheduler.service
 import { DefinitionProvider } from "../../definitions/definition.provider";
 import Bigodon from "bigodon";
 import { Mock } from "../../definitions/data/mock";
-import { Host } from "../../definitions/data/host";
+import { Host, resolveVhost } from "../../definitions/data/host";
 import { CoreMockDetailsDto, CoreMockDto } from "./data/core-mock.dto";
 
 export function isReservedPath(path: string): boolean {
@@ -56,7 +56,7 @@ export class MockService {
             mock,
             data,
         ).handle;
-        const vhost = this.resolveMockHost(mock.host, hosts);
+        const vhost = resolveVhost(mock.host, hosts);
 
         if (mock.parse === false) {
             config = {
@@ -80,17 +80,6 @@ export class MockService {
     async listMocks(): Promise<CoreMockDto[]> {
         const options = await this.definitionProvider.getDefinitions();
         return options.mocks.map((mock) => CoreMockDto.ofMock(mock));
-    }
-
-    private resolveMockHost(hostName: string | undefined, hosts: Host[]): string | undefined {
-        if(!hostName) {
-            return undefined;
-        }
-
-        const host = hosts.find((item) =>
-            item.slug === hostName || item.source === hostName
-        );
-        return host?.source || hostName;
     }
 
     async getMockById(id: string): Promise<CoreMockDetailsDto | null> {

@@ -25,6 +25,7 @@ const HINTS = {
     'hcl-parse-error': { docs: FILE_MOCKS_DOCS },
     'invalid-mock': { docs: FILE_MOCKS_DOCS },
     'invalid-host': { docs: HOSTS_DOCS },
+    'duplicate-host': { docs: HOSTS_DOCS },
     'invalid-callback': {
         hint: 'The callback is skipped, triggering it responds with a 500 until it is fixed',
         docs: CALLBACKS_DOCS,

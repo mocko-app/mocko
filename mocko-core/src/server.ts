@@ -102,6 +102,10 @@ export class Server {
                 request: false,
             },
         });
+        this.app.ext('onRequest', (request, h) => {
+            request.info.hostname = request.info.hostname.toLowerCase();
+            return h.continue;
+        });
 
         this.logger.info('Mapping routes');
         debug('mapping routes');

@@ -103,6 +103,10 @@ mock "GET /passthrough" {
 }
 ```
 
+Host slugs and sources match case-insensitively: `host = "Backend"` and `{{proxy 'BACKEND'}}` both target host `backend`, and a source of `API.example.com` matches requests for `api.example.com`. Slugs still display as written.
+
+One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and both `{{proxy '@<slug>'}}` and callbacks use the UI host's `destination`. This is how to override a file host without editing the file: in the UI, the file host's "Override" action opens the new-host form prefilled from it. Deleting the UI host restores the file host. If two file host blocks share a slug, only the first one loaded is used and `mocko validate` reports the other as an error.
+
 ## Callback blocks
 
 Callbacks simulate the webhooks your real integrations send back. A mock schedules one with the `{{callback}}` helper (see [TEMPLATE-HELPERS.md](TEMPLATE-HELPERS.md)), and Mocko delivers an HTTP request to your service after the mock has responded, optionally delayed. They can also be fired manually from the UI, the management API, or the SDK.
@@ -139,7 +143,8 @@ callback "payment-approved" {
 - `path`, `url`, `body`, and header values are Bigodon templates rendered **when the callback fires**, with context `payload` (from the trigger) and `data` — `request` is not available.
 - `Content-Type` defaults to `application/json` when a `body` is set and no header overrides it.
 - An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
-- Definitions merge like hosts: UI/deployed callbacks shadow file callbacks with the same slug.
+- Callback slugs match case-insensitively: `{{callback 'Payment-Approved'}}` and firing `Payment-Approved` both use `payment-approved`.
+- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely: `{{callback '<slug>'}}` delivers through the UI callback, and firing the file one from the UI or the control API is refused until the UI callback is deleted. This is how to override a file callback without editing the file: in the UI, the file callback's "Override" action opens the new-callback form prefilled from it. Two file callbacks sharing a slug are reported by `mocko validate` as an error.
 
 ## Match priority
 

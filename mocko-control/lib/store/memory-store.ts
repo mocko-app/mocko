@@ -52,32 +52,32 @@ export class MemoryStore extends Store {
     return Array.from(this.hosts.values());
   }
 
-  protected async getOwnHost(slug: string): Promise<Host | null> {
-    return this.hosts.get(slug) ?? null;
+  protected async getOwnHost(id: string): Promise<Host | null> {
+    return this.hosts.get(id) ?? null;
   }
 
   async saveHost(host: Host): Promise<void> {
-    this.hosts.set(host.slug, host);
+    this.hosts.set(host.id, host);
   }
 
-  async deleteHost(slug: string): Promise<boolean> {
-    return this.hosts.delete(slug);
+  async deleteHost(id: string): Promise<boolean> {
+    return this.hosts.delete(id);
   }
 
   protected async listOwnCallbacks(): Promise<Callback[]> {
     return Array.from(this.callbacks.values());
   }
 
-  protected async getOwnCallback(slug: string): Promise<Callback | null> {
-    return this.callbacks.get(slug) ?? null;
+  protected async getOwnCallback(id: string): Promise<Callback | null> {
+    return this.callbacks.get(id) ?? null;
   }
 
   async saveCallback(callback: Callback): Promise<void> {
-    this.callbacks.set(callback.slug, callback);
+    this.callbacks.set(callback.id, callback);
   }
 
-  async deleteCallback(slug: string): Promise<boolean> {
-    return this.callbacks.delete(slug);
+  async deleteCallback(id: string): Promise<boolean> {
+    return this.callbacks.delete(id);
   }
 
   async listFlags(prefix: string, search?: string): Promise<FlagListResult> {

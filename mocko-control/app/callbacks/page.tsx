@@ -45,6 +45,7 @@ import {
   usePendingCallbacks,
 } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
+import { findBySlugPreferringUi, isOverriddenByUi } from "@/lib/utils/slugs";
 import type {
   CallbackDto,
   PendingCallbackDto,
@@ -193,14 +194,18 @@ const CallbacksPage: React.FC = () => {
     handleSearchChange("");
   }
 
-  function handleEdit(slug: string) {
-    router.push(buildCallbackUrl(slug, search));
+  function handleEdit(id: string) {
+    router.push(buildCallbackUrl(id, search));
+  }
+
+  function handleOverride(id: string) {
+    router.push(buildNewCallbackUrl(search, id));
   }
 
   async function handleFireConfirm(definition: CallbackDto, payload: unknown) {
     setIsFiring(true);
     try {
-      await fireCallback(definition.slug, payload);
+      await fireCallback(definition.id, payload);
       await mutatePending();
       toast.success("Callback fired.");
       setFireTarget(undefined);
@@ -244,7 +249,7 @@ const CallbacksPage: React.FC = () => {
   async function deleteSelectedCallback(definition: CallbackDto) {
     setIsDeleting(true);
     try {
-      await deleteCallback(definition.slug);
+      await deleteCallback(definition.id);
       await mutateDefinitions();
       toast.success("Callback deleted.");
     } catch {
@@ -370,9 +375,7 @@ const CallbacksPage: React.FC = () => {
                   <PendingCallbackCard
                     key={item.id}
                     pending={item}
-                    definition={definitions.find(
-                      (definition) => definition.slug === item.slug,
-                    )}
+                    definition={findBySlugPreferringUi(definitions, item.slug)}
                     triggeredByMockName={mockName(item.triggeredByMockId)}
                     now={now}
                     onFire={handleFirePending}
@@ -411,16 +414,24 @@ const CallbacksPage: React.FC = () => {
                 role="list"
                 aria-label="Callback definitions"
               >
-                {filteredDefinitions.map((definition) => (
-                  <CallbackDefinitionCard
-                    key={definition.slug}
-                    definition={definition}
-                    href={buildCallbackUrl(definition.slug, search)}
-                    onFire={setFireTarget}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
+                {filteredDefinitions.map((definition) => {
+                  const isOverridden = isOverriddenByUi(
+                    definition,
+                    definitions,
+                  );
+                  return (
+                    <CallbackDefinitionCard
+                      key={definition.id}
+                      definition={definition}
+                      href={buildCallbackUrl(definition.id, search)}
+                      canFire={!isOverridden}
+                      onFire={setFireTarget}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onOverride={isOverridden ? undefined : handleOverride}
+                    />
+                  );
+                })}
               </div>
             )}
             {isFiltered &&

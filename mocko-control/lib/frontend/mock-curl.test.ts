@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMockCurl } from "@/lib/frontend/mock-curl";
+import type { HostDto } from "@/lib/types/host-dtos";
 import type { HttpMethod } from "@/lib/types/mock";
 
 function curlOf({
@@ -8,7 +9,7 @@ function curlOf({
   host = undefined as string | undefined,
   template = undefined as string | undefined,
   baseUrl = "http://localhost:8080",
-  hosts = [] as { slug: string; source: string }[],
+  hosts = [] as Pick<HostDto, "slug" | "source" | "annotations">[],
 } = {}) {
   return buildMockCurl(
     {
@@ -115,12 +116,47 @@ describe("buildMockCurl", () => {
       expect(
         curlOf({
           host: "api",
-          hosts: [{ slug: "api", source: "api.example.com" }],
+          hosts: [{ slug: "api", source: "api.example.com", annotations: [] }],
         }),
       ).toBe(
         [
           "curl 'http://localhost:8080/users' \\",
           "  -H 'Host: api.example.com'",
+        ].join("\n"),
+      );
+    });
+
+    it("resolves a host slug regardless of case", () => {
+      expect(
+        curlOf({
+          host: "API",
+          hosts: [{ slug: "api", source: "api.example.com", annotations: [] }],
+        }),
+      ).toBe(
+        [
+          "curl 'http://localhost:8080/users' \\",
+          "  -H 'Host: api.example.com'",
+        ].join("\n"),
+      );
+    });
+
+    it("prefers the ui host when several hosts share the slug", () => {
+      expect(
+        curlOf({
+          host: "api",
+          hosts: [
+            {
+              slug: "API",
+              source: "file.example.com",
+              annotations: ["READ_ONLY", "SHADOWED"],
+            },
+            { slug: "api", source: "ui.example.com", annotations: [] },
+          ],
+        }),
+      ).toBe(
+        [
+          "curl 'http://localhost:8080/users' \\",
+          "  -H 'Host: ui.example.com'",
         ].join("\n"),
       );
     });
@@ -261,7 +297,7 @@ describe("buildMockCurl", () => {
         method: "POST",
         path: "/users/{userId}",
         host: "api",
-        hosts: [{ slug: "api", source: "api.example.com" }],
+        hosts: [{ slug: "api", source: "api.example.com", annotations: [] }],
         template,
       }),
     ).toBe(

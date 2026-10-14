@@ -18,12 +18,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Callout } from "@/components/callout";
+import { HostConflictBadge } from "@/components/host-conflict-badge";
+import { HostConflictNotice } from "@/components/host-conflict-notice";
+import { OverrideButton } from "@/components/override";
 import { useHostForm } from "@/lib/frontend/hooks/use-host-form";
-import type { HostDto } from "@/lib/types/host-dtos";
+import { buildNewHostUrl } from "@/lib/host/host-url";
+import type { HostDetailsDto } from "@/lib/types/host-dtos";
 import { cn } from "@/lib/utils";
 
 type HostFormProps = {
-  initial?: HostDto;
+  initial?: HostDetailsDto;
   mode: "create" | "edit";
 };
 
@@ -39,6 +43,9 @@ function getFormTitle(mode: HostFormProps["mode"], isReadOnly: boolean) {
 
 export function HostForm({ initial, mode }: HostFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
+  const isOverriddenByUi = Boolean(
+    initial?.conflict?.related.some((host) => host.origin === "UI"),
+  );
   const title = getFormTitle(mode, isReadOnly);
   const {
     confirmDiscard,
@@ -67,6 +74,12 @@ export function HostForm({ initial, mode }: HostFormProps) {
               Read Only
             </Badge>
           )}
+          {mode === "edit" && initial && (
+            <HostConflictBadge
+              annotations={initial.annotations}
+              className="text-xs"
+            />
+          )}
         </div>
         <Button
           variant="ghost"
@@ -79,12 +92,25 @@ export function HostForm({ initial, mode }: HostFormProps) {
         </Button>
       </div>
 
-      {isReadOnly && (
+      {isReadOnly && initial && (
         <Callout
           variant="info"
           title="Read-only host"
-          message="This host is defined in a .hcl file and cannot be edited here."
+          message={
+            isOverriddenByUi
+              ? "This host is defined in a .hcl file and cannot be edited here."
+              : "This host is defined in a .hcl file and cannot be edited here. Edit the file, or override it with a UI host, which takes priority."
+          }
+          action={
+            !isOverriddenByUi && (
+              <OverrideButton href={buildNewHostUrl(initial.id)} />
+            )
+          }
         />
+      )}
+
+      {mode === "edit" && initial?.conflict && (
+        <HostConflictNotice conflict={initial.conflict} />
       )}
 
       {showErrors && errors.form && (
@@ -162,6 +188,22 @@ export function HostForm({ initial, mode }: HostFormProps) {
             >
               {initial?.slug}
             </div>
+          </div>
+        )}
+
+        {initial?.filePath && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="host-source-file">Source file</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="host-source-file"
+                value={initial.filePath}
+                readOnly
+              />
+              <InputGroupAddon align="inline-end">
+                <CopyButton value={initial.filePath} label="Source file" />
+              </InputGroupAddon>
+            </InputGroup>
           </div>
         )}
 

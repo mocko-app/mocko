@@ -75,6 +75,21 @@ describe('mock-triggered callbacks (storeless)', () => {
     });
   });
 
+  it('triggers a callback whose slug differs only in case', async () => {
+    const path = randomPath();
+    await subject.createMock(`
+      mock "POST ${path}" {
+        body = "{{callback 'PAYMENT-APPROVED' (object key='cased' type='EMAIL')}}{}"
+      }
+    `);
+
+    const res = await subject.client.post(path, {});
+    expect(res.status).toBe(201);
+
+    await capture.waitForRequests(1);
+    expect(capture.requests[0].url).toBe('/payments/cased');
+  });
+
   it('prefers the helper delay over the stanza delay', async () => {
     const path = randomPath();
     await subject.createMock(`

@@ -11,7 +11,7 @@ import {
   toFormValidationErrors,
 } from "@/lib/frontend/api";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto } from "@/lib/types/host-dtos";
 
 type HostFormMode = "create" | "edit";
 
@@ -29,7 +29,7 @@ export type HostFormErrors = {
   destination?: string;
 };
 
-function getInitialFormState(initial?: HostDto): HostFormState {
+function getInitialFormState(initial?: HostDetailsDto): HostFormState {
   return {
     slug: initial?.slug ?? "",
     name: initial?.name ?? "",
@@ -67,7 +67,10 @@ function getFormErrors(
   return errors;
 }
 
-export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
+export function useHostForm(
+  initial: HostDetailsDto | undefined,
+  mode: HostFormMode,
+) {
   const router = useRouter();
   const [form, setForm] = useState<HostFormState>(() =>
     getInitialFormState(initial),
@@ -149,10 +152,10 @@ export function useHostForm(initial: HostDto | undefined, mode: HostFormMode) {
         toast.success("Host created.");
       } else {
         if (!initial) {
-          throw new Error("Host slug is required for edit mode");
+          throw new Error("Host id is required for edit mode");
         }
 
-        await patchHost(initial.slug, {
+        await patchHost(initial.id, {
           name: form.name,
           source: trimmedSource,
           destination: trimmedDestination || null,

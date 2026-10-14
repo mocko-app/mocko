@@ -36,7 +36,7 @@ export class ProxyRouter implements IRouter {
         return {
             method: '*',
             path: '/{any*}',
-            vhost: host.source,
+            vhost: host.source.toLowerCase(),
             handler: (req, h) => this.controller.proxyRequest(req, h, host.destination!, `@${host.slug}`),
             // @ts-expect-error Extra config for @mocko/h2o2, not on official hapi types
             config: {

@@ -1,5 +1,5 @@
 import { MockoExecution } from "../api/mock/mock.handler";
-import { Host } from "../definitions/data/host";
+import { findHostBySlug, findHostBySource, Host } from "../definitions/data/host";
 import { DefinitionProvider } from "src/definitions/definition.provider";
 import { firstString } from "../utils/utils";
 
@@ -32,13 +32,9 @@ export function setHeader(this: MockoExecution, key: unknown, value: unknown): v
     this.data.responseHeaders[key] = value;
 }
 
-function findHostBySlug(hosts: Host[], slug: string): Host | undefined {
-    return hosts.find(h => h.slug.toLowerCase() === slug.toLowerCase());
-}
-
 function getHost(hosts: Host[], proxyUri: string, header: string): [string, string | null] {
     if(typeof proxyUri !== 'string') {
-        const hostByHeader = hosts.find(h => h.source.toLowerCase() === header);
+        const hostByHeader = findHostBySource(hosts, header);
         if(!hostByHeader?.destination) {
             return ['', null];
         }

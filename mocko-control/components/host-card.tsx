@@ -6,7 +6,10 @@ import {
   PencilIcon,
   TrashIcon,
   ArrowRightIcon,
+  LayersIcon,
 } from "lucide-react";
+import { CopyButton } from "@/components/copy-button";
+import { HostConflictBadge } from "@/components/host-conflict-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,15 +19,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Host } from "@/lib/types/host";
+import type { HostDto } from "@/lib/types/host-dtos";
 
 export const HostCard: React.FC<{
-  host: Host;
-  onEdit: (slug: string) => void;
-  onDelete: (host: Host) => void;
-}> = ({ host, onEdit, onDelete }) => {
+  host: HostDto;
+  onEdit: (id: string) => void;
+  onDelete: (host: HostDto) => void;
+  onOverride?: (id: string) => void;
+}> = ({ host, onEdit, onDelete, onOverride }) => {
   const isReadOnly = host.annotations.includes("READ_ONLY");
-  const href = `/hosts/${host.slug}`;
+  const href = `/hosts/${host.id}`;
 
   return (
     <div
@@ -49,11 +53,28 @@ export const HostCard: React.FC<{
             {isReadOnly && (
               <Badge variant="annotationReadOnly">Read Only</Badge>
             )}
+            <HostConflictBadge
+              annotations={host.annotations}
+              className="relative z-10 pointer-events-auto"
+            />
           </div>
           {host.name && (
             <p className="truncate text-xs text-muted-foreground mt-0.5">
               {host.name}
             </p>
+          )}
+          {host.filePath && (
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-xs text-muted-foreground">
+                {host.filePath}
+              </p>
+              <CopyButton
+                value={host.filePath}
+                label="Source file"
+                revealOnHover
+                className="relative z-10 pointer-events-auto"
+              />
+            </div>
           )}
           {host.destination ? (
             <div className="flex items-center gap-1.5 font-mono text-xs mt-1.5 text-muted-foreground">
@@ -85,7 +106,7 @@ export const HostCard: React.FC<{
             <DropdownMenuContent align="end">
               {!isReadOnly ? (
                 <>
-                  <DropdownMenuItem onClick={() => onEdit(host.slug)}>
+                  <DropdownMenuItem onClick={() => onEdit(host.id)}>
                     <PencilIcon aria-hidden="true" />
                     Edit
                   </DropdownMenuItem>
@@ -99,10 +120,18 @@ export const HostCard: React.FC<{
                   </DropdownMenuItem>
                 </>
               ) : (
-                <DropdownMenuItem onClick={() => onEdit(host.slug)}>
-                  <PencilIcon aria-hidden="true" />
-                  View
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => onEdit(host.id)}>
+                    <PencilIcon aria-hidden="true" />
+                    View
+                  </DropdownMenuItem>
+                  {onOverride && (
+                    <DropdownMenuItem onClick={() => onOverride(host.id)}>
+                      <LayersIcon aria-hidden="true" />
+                      Override
+                    </DropdownMenuItem>
+                  )}
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

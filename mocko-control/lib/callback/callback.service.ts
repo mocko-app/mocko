@@ -1,5 +1,6 @@
 import { $template } from "bigodon/dist/parser";
 import { State } from "pierrejs";
+import { isFileDefinition } from "@/lib/conflict/conflicts";
 import { HttpResponseError } from "@/lib/http";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
@@ -12,6 +13,7 @@ import type {
   CreateCallbackInput,
   PatchCallbackInput,
 } from "@/lib/validation/callback.schema";
+import { isOverriddenByUi } from "@/lib/utils/slugs";
 
 export class CallbackService {
   constructor(private readonly store: Store) {}
@@ -20,10 +22,10 @@ export class CallbackService {
     return this.store.listCallbacks();
   }
 
-  async getCallback(slug: string): Promise<Callback> {
-    const callback = await this.store.getCallback(slug);
+  async getCallback(id: string): Promise<Callback> {
+    const callback = await this.store.getCallback(id);
     if (!callback) {
-      throw HttpResponseError.callbackNotFound(slug);
+      throw HttpResponseError.callbackNotFound(id);
     }
 
     return callback;
@@ -31,11 +33,17 @@ export class CallbackService {
 
   async createCallback(data: CreateCallbackInput): Promise<Callback> {
     const callbacks = await this.store.listCallbacks();
-    if (callbacks.some((callback) => callback.slug === data.slug)) {
+    const slug = data.slug.toLowerCase();
+    const taken = callbacks.some(
+      (callback) =>
+        !isFileDefinition(callback) && callback.slug.toLowerCase() === slug,
+    );
+    if (taken) {
       throw HttpResponseError.callbackSlugConflict(data.slug);
     }
 
     const callback: Callback = {
+      id: crypto.randomUUID(),
       slug: data.slug,
       ...this.toEditableFields(data),
       annotations: this.store.getCreatedAnnotations(),
@@ -48,18 +56,19 @@ export class CallbackService {
   }
 
   async updateCallback(
-    slug: string,
+    id: string,
     data: PatchCallbackInput,
   ): Promise<Callback> {
-    const currentCallback = await this.store.getCallback(slug);
+    const currentCallback = await this.store.getCallback(id);
     if (!currentCallback) {
-      throw HttpResponseError.callbackNotFound(slug);
+      throw HttpResponseError.callbackNotFound(id);
     }
     if (currentCallback.annotations.includes("READ_ONLY")) {
-      throw HttpResponseError.callbackReadOnly(slug);
+      throw HttpResponseError.callbackReadOnly(id);
     }
 
     const callback: Callback = {
+      id: currentCallback.id,
       slug: currentCallback.slug,
       ...this.toEditableFields(data),
       annotations: [...currentCallback.annotations],
@@ -71,14 +80,14 @@ export class CallbackService {
     return callback;
   }
 
-  async deleteCallback(slug: string): Promise<void> {
-    const deleted = await this.store.deleteCallback(slug);
+  async deleteCallback(id: string): Promise<void> {
+    const deleted = await this.store.deleteCallback(id);
     if (!deleted) {
-      const callback = await this.store.getCallback(slug);
+      const callback = await this.store.getCallback(id);
       if (callback?.annotations.includes("READ_ONLY")) {
-        throw HttpResponseError.callbackReadOnly(slug);
+        throw HttpResponseError.callbackReadOnly(id);
       }
-      throw HttpResponseError.callbackNotFound(slug);
+      throw HttpResponseError.callbackNotFound(id);
     }
 
     await this.store.deploy();
@@ -97,11 +106,20 @@ export class CallbackService {
   }
 
   async fire(
-    slug: string,
+    id: string,
     payload: unknown,
     delay?: number,
   ): Promise<PendingCallbackDto> {
-    return this.store.fireCallback(slug, payload, delay);
+    const callbacks = await this.store.listCallbacks();
+    const callback = callbacks.find((item) => item.id === id);
+    if (!callback) {
+      throw HttpResponseError.callbackNotFound(id);
+    }
+    if (isOverriddenByUi(callback, callbacks)) {
+      throw HttpResponseError.callbackShadowed(id);
+    }
+
+    return this.store.fireCallback(callback.slug, payload, delay);
   }
 
   async firePending(id: string): Promise<void> {
@@ -118,7 +136,7 @@ export class CallbackService {
 
   private toEditableFields(
     data: PatchCallbackInput,
-  ): Omit<Callback, "slug" | "annotations"> {
+  ): Omit<Callback, "id" | "slug" | "filePath" | "annotations"> {
     return {
       name: data.name || undefined,
       method: data.method,

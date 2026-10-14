@@ -9,7 +9,7 @@ import { isReservedPath, MockService } from './api/mock/mock.service';
 import { RouteRegistrar } from './route-registrar';
 import { Diagnostic, DiagnosticsCollector } from './definitions/diagnostics';
 import { Mock } from './definitions/data/mock';
-import { Host } from './definitions/data/host';
+import { findHostBySlug, findHostBySlugOrSource, Host, resolveVhost } from './definitions/data/host';
 import { Callback } from './definitions/data/callback';
 
 export { Diagnostic, DiagnosticSeverity } from './definitions/diagnostics';
@@ -42,7 +42,10 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     const collector = container.get(DiagnosticsCollector);
     collector.enable();
 
-    const { mocks, hosts, callbacks } = await container.get(DefinitionProvider).getDefinitions();
+    const definitionProvider = container.get(DefinitionProvider);
+    const { mocks, hosts } = await definitionProvider.getDefinitions();
+    const fileHosts = await definitionProvider.getFileHosts();
+    const fileCallbacks = await definitionProvider.getFileCallbacks();
 
     if(mocks.length === 0) {
         collector.push({
@@ -58,12 +61,13 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
         validateHostReference(mock, hosts, collector);
     }
 
-    for(const callback of callbacks) {
+    for(const callback of fileCallbacks) {
         validateCallbackHostReference(callback, hosts, collector);
     }
 
     reportConflicts(mocks, hosts, collector);
-    reportDuplicateCallbacks(callbacks, collector);
+    reportDuplicateSlugs('host', fileHosts, collector);
+    reportDuplicateSlugs('callback', fileCallbacks, collector);
     await registerRoutes(container);
 
     const diagnostics = withoutRedundantConflicts(collector.diagnostics);
@@ -72,7 +76,7 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     return {
         diagnostics,
         mockCount: mocks.length,
-        fileCount: countFiles(diagnostics, mocks, callbacks),
+        fileCount: countFiles(diagnostics, mocks, fileCallbacks),
     };
 }
 
@@ -107,9 +111,7 @@ function validateHostReference(mock: Mock, hosts: Host[], collector: Diagnostics
         return;
     }
 
-    const exists = hosts.some((host) =>
-        host.slug === mock.host || host.source === mock.host);
-    if(!exists) {
+    if(!findHostBySlugOrSource(hosts, mock.host)) {
         collector.push({
             code: 'host-not-found',
             severity: 'warning',
@@ -125,9 +127,7 @@ function validateCallbackHostReference(callback: Callback, hosts: Host[], collec
         return;
     }
 
-    const slug = callback.host.toLowerCase();
-    const exists = hosts.some((host) => host.slug.toLowerCase() === slug);
-    if(!exists) {
+    if(!findHostBySlug(hosts, callback.host)) {
         collector.push({
             code: 'host-not-found',
             severity: 'warning',
@@ -137,12 +137,18 @@ function validateCallbackHostReference(callback: Callback, hosts: Host[], collec
     }
 }
 
-function reportDuplicateCallbacks(callbacks: Callback[], collector: DiagnosticsCollector): void {
-    const bySlug = new Map<string, Callback[]>();
-    for(const callback of callbacks) {
-        const group = bySlug.get(callback.slug) || [];
-        group.push(callback);
-        bySlug.set(callback.slug, group);
+type SlugDefinition = {
+    slug: string,
+    filePath?: string,
+};
+
+function reportDuplicateSlugs(kind: 'host' | 'callback', definitions: SlugDefinition[], collector: DiagnosticsCollector): void {
+    const bySlug = new Map<string, SlugDefinition[]>();
+    for(const definition of definitions) {
+        const key = definition.slug.toLowerCase();
+        const group = bySlug.get(key) || [];
+        group.push(definition);
+        bySlug.set(key, group);
     }
 
     for(const group of bySlug.values()) {
@@ -150,12 +156,12 @@ function reportDuplicateCallbacks(callbacks: Callback[], collector: DiagnosticsC
 
         for(const duplicate of duplicates) {
             const message = duplicate.filePath === first.filePath
-                ? `callback '${duplicate.slug}' is defined more than once in '${first.filePath}', the first definition wins`
-                : `callback '${duplicate.slug}' is also defined in '${first.filePath}', the first definition wins`;
+                ? `${kind} '${duplicate.slug}' is defined more than once in '${first.filePath}', the first definition wins`
+                : `${kind} '${duplicate.slug}' is also defined in '${first.filePath}', the first definition wins`;
 
             collector.push({
-                code: 'duplicate-callback',
-                severity: 'warning',
+                code: `duplicate-${kind}`,
+                severity: 'error',
                 file: duplicate.filePath,
                 message,
             });
@@ -195,16 +201,6 @@ function reportConflicts(mocks: Mock[], hosts: Host[], collector: DiagnosticsCol
             });
         }
     }
-}
-
-function resolveVhost(hostName: string | undefined, hosts: Host[]): string | undefined {
-    if(!hostName) {
-        return undefined;
-    }
-
-    const host = hosts.find((item) =>
-        item.slug === hostName || item.source === hostName);
-    return host?.source || hostName;
 }
 
 async function registerRoutes(container: Container): Promise<void> {

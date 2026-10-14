@@ -112,6 +112,17 @@ describe('callback delivery (storeless)', () => {
     expect(JSON.parse(request.body)).toEqual({ key: 'john.doe@mocko.dev' });
   });
 
+  it('fires and delivers a callback whose slug differs only in case', async () => {
+    const res = await subject.client.post(
+      '/__mocko__/callbacks/PAYMENT-APPROVED/fire',
+      { payload: { key: 'cased', type: 'EMAIL' } },
+    );
+    expect(res.status).toBe(202);
+
+    await capture.waitForRequests(1);
+    expect(capture.requests[0].url).toBe('/payments/cased');
+  });
+
   it('keeps an explicit Content-Type header', async () => {
     await subject.client.post('/__mocko__/callbacks/custom-content-type/fire', {
       payload: 'text',

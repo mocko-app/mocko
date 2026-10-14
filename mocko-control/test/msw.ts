@@ -2,11 +2,12 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { VersionsDto } from "@/app/api/versions/route";
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto, HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type { OperationsResponse } from "@/lib/types/operation";
 
@@ -16,7 +17,9 @@ export type ApiState = {
   mocks: MockDto[];
   mockDetails: MockDetailsDto[];
   hosts: HostDto[];
+  hostDetails: HostDetailsDto[];
   callbacks: CallbackDto[];
+  callbackDetails: CallbackDetailsDto[];
   pendingCallbacks: PendingCallbacksDto;
   flagList: FlagListDto;
   flagValues: Record<string, FlagDto>;
@@ -29,7 +32,9 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
     mocks: initial.mocks ?? [],
     mockDetails: initial.mockDetails ?? [],
     hosts: initial.hosts ?? [],
+    hostDetails: initial.hostDetails ?? [],
     callbacks: initial.callbacks ?? [],
+    callbackDetails: initial.callbackDetails ?? [],
     pendingCallbacks: initial.pendingCallbacks ?? {
       isSupported: true,
       pending: [],
@@ -64,35 +69,43 @@ export function givenApi(initial: Partial<ApiState> = {}): ApiState {
       return HttpResponse.json(mock);
     }),
     http.get("/api/hosts", () => HttpResponse.json(state.hosts)),
-    http.get("/api/hosts/:slug", ({ params }) => {
-      const host = state.hosts.find((h) => h.slug === params.slug);
+    http.get("/api/hosts/:id", ({ params }) => {
+      const details = state.hostDetails.find((h) => h.id === params.id);
+      if (details) {
+        return HttpResponse.json(details);
+      }
+      const host = state.hosts.find((h) => h.id === params.id);
       if (!host) {
         return HttpResponse.json(
           {
             code: "HOST_NOT_FOUND",
-            message: `Host "${params.slug}" was not found`,
+            message: `Host "${params.id}" was not found`,
           },
           { status: 404 },
         );
       }
-      return HttpResponse.json(host);
+      return HttpResponse.json({ ...host, conflict: null });
     }),
     http.get("/api/callbacks", () => HttpResponse.json(state.callbacks)),
     http.get("/api/callbacks/pending", () =>
       HttpResponse.json(state.pendingCallbacks),
     ),
-    http.get("/api/callbacks/:slug", ({ params }) => {
-      const callback = state.callbacks.find((c) => c.slug === params.slug);
+    http.get("/api/callbacks/:id", ({ params }) => {
+      const details = state.callbackDetails.find((c) => c.id === params.id);
+      if (details) {
+        return HttpResponse.json(details);
+      }
+      const callback = state.callbacks.find((c) => c.id === params.id);
       if (!callback) {
         return HttpResponse.json(
           {
             code: "CALLBACK_NOT_FOUND",
-            message: `Callback "${params.slug}" was not found`,
+            message: `Callback "${params.id}" was not found`,
           },
           { status: 404 },
         );
       }
-      return HttpResponse.json(callback);
+      return HttpResponse.json({ ...callback, conflict: null });
     }),
     http.get("/api/flags", () => HttpResponse.json(state.flagList)),
     http.get("/api/flags/:key", ({ params }) => {

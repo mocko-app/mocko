@@ -5,6 +5,7 @@ import type {
   ValidationErrors,
 } from "@/lib/types/error-dtos";
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   CreateCallbackDto,
   PatchCallbackDto,
@@ -14,6 +15,7 @@ import type {
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
 import type {
   CreateHostDto,
+  HostDetailsDto,
   HostDto,
   PatchHostDto,
 } from "@/lib/types/host-dtos";
@@ -93,44 +95,44 @@ export const deleteMock = (id: string) =>
 
 export const getHosts = () => request(() => api.get<HostDto[]>("/api/hosts"));
 
-export const getHost = (slug: string) =>
-  request(() => api.get<HostDto>(`/api/hosts/${slug}`));
+export const getHost = (id: string) =>
+  request(() => api.get<HostDetailsDto>(`/api/hosts/${id}`));
 
 export const createHost = (payload: CreateHostDto) =>
   request(() => api.post<HostDto>("/api/hosts", payload));
 
-export const patchHost = (slug: string, payload: PatchHostDto) =>
-  request(() => api.patch<HostDto>(`/api/hosts/${slug}`, payload));
+export const patchHost = (id: string, payload: PatchHostDto) =>
+  request(() => api.patch<HostDetailsDto>(`/api/hosts/${id}`, payload));
 
-export const deleteHost = (slug: string) =>
-  request(() => api.delete<void>(`/api/hosts/${slug}`));
+export const deleteHost = (id: string) =>
+  request(() => api.delete<void>(`/api/hosts/${id}`));
 
 export const getCallbacks = () =>
   request(() => api.get<CallbackDto[]>("/api/callbacks"));
 
-export const getCallback = (slug: string) =>
+export const getCallback = (id: string) =>
   request(() =>
-    api.get<CallbackDto>(`/api/callbacks/${encodeURIComponent(slug)}`),
+    api.get<CallbackDetailsDto>(`/api/callbacks/${encodeURIComponent(id)}`),
   );
 
 export const createCallback = (payload: CreateCallbackDto) =>
   request(() => api.post<CallbackDto>("/api/callbacks", payload));
 
-export const patchCallback = (slug: string, payload: PatchCallbackDto) =>
+export const patchCallback = (id: string, payload: PatchCallbackDto) =>
   request(() =>
-    api.patch<CallbackDto>(
-      `/api/callbacks/${encodeURIComponent(slug)}`,
+    api.patch<CallbackDetailsDto>(
+      `/api/callbacks/${encodeURIComponent(id)}`,
       payload,
     ),
   );
 
-export const deleteCallback = (slug: string) =>
-  request(() => api.delete<void>(`/api/callbacks/${encodeURIComponent(slug)}`));
+export const deleteCallback = (id: string) =>
+  request(() => api.delete<void>(`/api/callbacks/${encodeURIComponent(id)}`));
 
-export const fireCallback = (slug: string, payload?: unknown) =>
+export const fireCallback = (id: string, payload?: unknown) =>
   request(() =>
     api.post<PendingCallbackDto>(
-      `/api/callbacks/${encodeURIComponent(slug)}/fire`,
+      `/api/callbacks/${encodeURIComponent(id)}/fire`,
       { payload },
     ),
   );

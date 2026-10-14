@@ -17,11 +17,12 @@ import {
 } from "@/lib/frontend/api";
 import { buildFlagListUrl } from "@/lib/flag/flag-list-url";
 import type {
+  CallbackDetailsDto,
   CallbackDto,
   PendingCallbacksDto,
 } from "@/lib/types/callback-dtos";
 import type { FlagDto, FlagListDto } from "@/lib/types/flag-dtos";
-import type { HostDto } from "@/lib/types/host-dtos";
+import type { HostDetailsDto, HostDto } from "@/lib/types/host-dtos";
 import type { MockDetailsDto, MockDto } from "@/lib/types/mock-dtos";
 import type { OperationsResponse } from "@/lib/types/operation";
 import type { VersionsDto } from "@/app/api/versions/route";
@@ -94,17 +95,17 @@ export function useHosts(options?: SWRConfiguration<HostDto[], ApiError>) {
 }
 
 export function useHost(
-  slug: string | undefined,
-  options?: SWRConfiguration<HostDto, ApiError>,
+  id: string | undefined,
+  options?: SWRConfiguration<HostDetailsDto, ApiError>,
 ) {
-  return useSWR<HostDto, ApiError>(
-    slug ? `/api/hosts/${slug}` : null,
+  return useSWR<HostDetailsDto, ApiError>(
+    id ? `/api/hosts/${id}` : null,
     async () => {
-      if (!slug) {
-        throw new Error("Host slug is required");
+      if (!id) {
+        throw new Error("Host id is required");
       }
 
-      return getHost(slug);
+      return getHost(id);
     },
     {
       refreshInterval: 0,
@@ -129,17 +130,17 @@ export function useCallbacks(
 }
 
 export function useCallbackDefinition(
-  slug: string | undefined,
-  options?: SWRConfiguration<CallbackDto, ApiError>,
+  id: string | undefined,
+  options?: SWRConfiguration<CallbackDetailsDto, ApiError>,
 ) {
-  return useSWR<CallbackDto, ApiError>(
-    slug ? `/api/callbacks/${encodeURIComponent(slug)}` : null,
+  return useSWR<CallbackDetailsDto, ApiError>(
+    id ? `/api/callbacks/${encodeURIComponent(id)}` : null,
     async () => {
-      if (!slug) {
-        throw new Error("Callback slug is required");
+      if (!id) {
+        throw new Error("Callback id is required");
       }
 
-      return getCallback(slug);
+      return getCallback(id);
     },
     {
       refreshInterval: 0,

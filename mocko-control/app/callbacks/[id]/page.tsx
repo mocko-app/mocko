@@ -21,12 +21,12 @@ function CallbackDetailPageInner() {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const listParams = useCallbackListParams();
-  const slug = useParam("slug");
-  const { data: callback, error, isLoading } = useCallbackDefinition(slug);
+  const id = useParam("id");
+  const { data: callback, error, isLoading } = useCallbackDefinition(id);
   const [isFireOpen, setIsFireOpen] = useState(false);
   const [isFiring, setIsFiring] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  useDocumentTitle(slug ? `Edit: ${slug}` : "Edit callback");
+  useDocumentTitle(callback ? `Edit: ${callback.slug}` : "Edit callback");
 
   if (isLoading) {
     return <CallbackFormSkeleton />;
@@ -53,7 +53,7 @@ function CallbackDetailPageInner() {
   async function handleFireConfirm(definition: CallbackDto, payload: unknown) {
     setIsFiring(true);
     try {
-      await fireCallback(definition.slug, payload);
+      await fireCallback(definition.id, payload);
       await mutate("/api/callbacks/pending");
       toast.success("Callback fired.");
       setIsFireOpen(false);
@@ -70,7 +70,7 @@ function CallbackDetailPageInner() {
     }
 
     try {
-      await deleteCallback(callback.slug);
+      await deleteCallback(callback.id);
       await mutate("/api/callbacks");
       toast.success("Callback deleted.");
       router.push(buildCallbackListUrl(listParams.search));

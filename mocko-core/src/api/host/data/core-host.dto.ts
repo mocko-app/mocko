@@ -6,6 +6,8 @@ export class CoreHostDto {
         public readonly name: string | undefined,
         public readonly source: string,
         public readonly destination: string | undefined,
+        public readonly id: string | undefined,
+        public readonly filePath: string | undefined,
     ) { }
 
     static ofHost(host: Host): CoreHostDto {
@@ -14,6 +16,8 @@ export class CoreHostDto {
             host.name,
             host.source,
             host.destination,
+            host.id,
+            host.filePath,
         );
     }
 }

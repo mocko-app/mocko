@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { CallbackActionsMenu } from "@/components/callbacks/callback-actions-menu";
+import { CallbackConflictBadge } from "@/components/callbacks/callback-conflict-badge";
+import { CopyButton } from "@/components/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { targetLabel } from "@/lib/callback/callback-format";
@@ -20,10 +22,12 @@ const METHOD_COLORS: Record<CallbackMethod, string> = {
 export const CallbackDefinitionCard: React.FC<{
   definition: CallbackDto;
   href: string;
+  canFire: boolean;
   onFire: (definition: CallbackDto) => void;
-  onEdit: (slug: string) => void;
+  onEdit: (id: string) => void;
   onDelete: (definition: CallbackDto) => void;
-}> = ({ definition, href, onFire, onEdit, onDelete }) => {
+  onOverride?: (id: string) => void;
+}> = ({ definition, href, canFire, onFire, onEdit, onDelete, onOverride }) => {
   const displayName = definition.name || definition.slug;
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
@@ -60,7 +64,24 @@ export const CallbackDefinitionCard: React.FC<{
             {isReadOnly && (
               <Badge variant="annotationReadOnly">Read Only</Badge>
             )}
+            <CallbackConflictBadge
+              annotations={definition.annotations}
+              className="relative z-10 pointer-events-auto"
+            />
           </div>
+          {definition.filePath && (
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <p className="truncate text-xs text-muted-foreground">
+                {definition.filePath}
+              </p>
+              <CopyButton
+                value={definition.filePath}
+                label="Source file"
+                revealOnHover
+                className="relative z-10 pointer-events-auto"
+              />
+            </div>
+          )}
           <div className="mt-1.5 flex items-center gap-2 font-mono text-xs">
             <span
               className={cn(
@@ -87,9 +108,11 @@ export const CallbackDefinitionCard: React.FC<{
                 aria-label={`Actions for ${displayName}`}
               />
             }
+            canFire={canFire}
             onFire={onFire}
             onEdit={onEdit}
             onDelete={onDelete}
+            onOverride={onOverride}
           />
         </div>
       </div>

@@ -122,6 +122,42 @@ describe("new mock page payload mapping", () => {
     expect(payloads[1].host).toBeNull();
   });
 
+  it("lists a slug shared by several hosts once, preferring the ui host", async () => {
+    givenApi({
+      hosts: [
+        aHost({
+          slug: "Payments",
+          name: "Payments file",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+        aHost({ slug: "payments", name: "Payments UI" }),
+        aHost({
+          slug: "PAYMENTS",
+          name: "Payments other file",
+          annotations: ["READ_ONLY"],
+        }),
+      ],
+    });
+    const payloads = capturePosts();
+    const { user } = renderWithProviders(<NewMockPage />);
+
+    await findCreateForm();
+    await fillRequiredFields(user);
+    await user.click(screen.getByText("Advanced options"));
+    await user.click(screen.getByLabelText("Host"));
+
+    const options = await screen.findAllByRole("option");
+    expect(options.map((option) => option.textContent)).toEqual([
+      "Any host",
+      "payments (Payments UI)",
+    ]);
+
+    await user.click(options[1]);
+    await user.click(screen.getByRole("button", { name: "Create" }));
+    await waitFor(() => expect(payloads).toHaveLength(1));
+    expect(payloads[0].host).toBe("payments");
+  });
+
   it("suggests creating a host when none exist", async () => {
     givenApi();
     const { user } = renderWithProviders(<NewMockPage />);

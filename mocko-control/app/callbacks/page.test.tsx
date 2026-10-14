@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import CallbacksPage from "./page";
-import CallbackDetailPage from "./[slug]/page";
+import CallbackDetailPage from "./[id]/page";
 import NewCallbackPage from "./new/page";
 import { aCallback, aMock, aPendingCallback } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
@@ -76,6 +76,29 @@ describe("callbacks page sections", () => {
     expect(screen.getByText("1 callback · 1 pending")).toBeInTheDocument();
   });
 
+  it("matches pending callbacks to their definition regardless of slug case", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "payment-approved", name: "Payment approved" }),
+      ],
+      pendingCallbacks: {
+        isSupported: true,
+        pending: [aPendingCallback({ slug: "Payment-Approved" })],
+      },
+    });
+
+    renderWithProviders(<CallbacksPage />);
+
+    const pendingList = await screen.findByRole("list", {
+      name: "Pending callbacks",
+    });
+    expect(
+      within(pendingList).getByRole("listitem", {
+        name: "Pending callback: Payment approved",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("shows the read-only badge for file-defined callbacks", async () => {
     givenApi({
       callbacks: [
@@ -89,6 +112,187 @@ describe("callbacks page sections", () => {
       name: "Callback: file-callback",
     });
     expect(within(card).getByText("Read Only")).toBeInTheDocument();
+  });
+});
+
+describe("callbacks page slug overlaps", () => {
+  it("lists every callback sharing a slug with per-id links and badges", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ id: "cb-ui", slug: "payment-approved", name: "UI" }),
+        aCallback({
+          id: "cb-file",
+          slug: "Payment-Approved",
+          name: "File",
+          filePath: "callbacks.hcl",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+
+    renderWithProviders(<CallbacksPage />);
+
+    const uiCard = await screen.findByRole("listitem", {
+      name: "Callback: UI",
+    });
+    expect(
+      within(uiCard).getByRole("link", { name: "Open UI" }),
+    ).toHaveAttribute("href", "/callbacks/cb-ui");
+    expect(within(uiCard).queryByText("Shadowed")).not.toBeInTheDocument();
+
+    const fileCard = screen.getByRole("listitem", { name: "Callback: File" });
+    expect(
+      within(fileCard).getByRole("link", { name: "Open File" }),
+    ).toHaveAttribute("href", "/callbacks/cb-file");
+    expect(within(fileCard).getByText("Shadowed")).toBeInTheDocument();
+    expect(within(fileCard).getByText("callbacks.hcl")).toBeInTheDocument();
+  });
+
+  it("hides Fire for a file callback shadowed by a UI callback", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "payment-approved", name: "UI" }),
+        aCallback({
+          slug: "payment-approved",
+          name: "File",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Actions for File" }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "View" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Fire" }),
+    ).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    await user.click(screen.getByRole("button", { name: "Actions for UI" }));
+    expect(
+      await screen.findByRole("menuitem", { name: "Fire" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps Fire for file callbacks that only conflict with each other", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({
+          slug: "payment-approved",
+          name: "First",
+          annotations: ["READ_ONLY", "CONFLICT"],
+        }),
+        aCallback({
+          slug: "payment-approved",
+          name: "Second",
+          annotations: ["READ_ONLY", "CONFLICT"],
+        }),
+      ],
+    });
+
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    const card = await screen.findByRole("listitem", {
+      name: "Callback: First",
+    });
+    expect(within(card).getByText("Conflict")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Actions for First" }));
+    expect(
+      await screen.findByRole("menuitem", { name: "Fire" }),
+    ).toBeInTheDocument();
+  });
+
+  it("names a pending callback after the UI definition when a file one shares the slug", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({
+          slug: "payment-approved",
+          name: "From file",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+        aCallback({ slug: "Payment-Approved", name: "From UI" }),
+      ],
+      pendingCallbacks: {
+        isSupported: true,
+        pending: [aPendingCallback({ slug: "payment-approved" })],
+      },
+    });
+
+    renderWithProviders(<CallbacksPage />);
+
+    const pendingList = await screen.findByRole("list", {
+      name: "Pending callbacks",
+    });
+    expect(
+      within(pendingList).getByRole("listitem", {
+        name: "Pending callback: From UI",
+      }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("callbacks page override action", () => {
+  it("opens the new callback form prefilled from a read-only callback", async () => {
+    givenRoute({ pathname: "/callbacks", search: "q=payment" });
+    givenApi({
+      callbacks: [
+        aCallback({
+          id: "cb-file",
+          slug: "payment-approved",
+          annotations: ["READ_ONLY"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Actions for payment-approved",
+      }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Override" }));
+
+    expect(router.push).toHaveBeenCalledWith(
+      "/callbacks/new?q=payment&from=cb-file",
+    );
+  });
+
+  it("offers no override for ui callbacks or file callbacks already overridden", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "payment-approved", name: "UI" }),
+        aCallback({
+          slug: "Payment-Approved",
+          name: "File",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Actions for UI" }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Edit" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    await user.click(screen.getByRole("button", { name: "Actions for File" }));
+    expect(
+      await screen.findByRole("menuitem", { name: "View" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -113,14 +317,14 @@ describe("callbacks page against an older core", () => {
 describe("callbacks page fire flow", () => {
   it("fires a definition with a JSON payload", async () => {
     givenApi({
-      callbacks: [aCallback({ slug: "payment-approved" })],
+      callbacks: [aCallback({ id: "cb-payment", slug: "payment-approved" })],
     });
 
     const firedPayloads: unknown[] = [];
     server.use(
-      http.post("/api/callbacks/:slug/fire", async ({ request, params }) => {
+      http.post("/api/callbacks/:id/fire", async ({ request, params }) => {
         firedPayloads.push({
-          slug: params.slug,
+          id: params.id,
           body: await request.json(),
         });
         return HttpResponse.json(aPendingCallback(), { status: 202 });
@@ -148,7 +352,7 @@ describe("callbacks page fire flow", () => {
 
     expect(await screen.findByText("Callback fired.")).toBeInTheDocument();
     expect(firedPayloads).toEqual([
-      { slug: "payment-approved", body: { payload: { key: "abc" } } },
+      { id: "cb-payment", body: { payload: { key: "abc" } } },
     ]);
   });
 
@@ -157,7 +361,7 @@ describe("callbacks page fire flow", () => {
 
     let fired = false;
     server.use(
-      http.post("/api/callbacks/:slug/fire", () => {
+      http.post("/api/callbacks/:id/fire", () => {
         fired = true;
         return HttpResponse.json(aPendingCallback(), { status: 202 });
       }),
@@ -296,16 +500,19 @@ describe("callbacks page pending actions", () => {
 describe("callbacks page delete flow", () => {
   it("asks for confirmation before deleting a callback", async () => {
     const state = givenApi({
-      callbacks: [aCallback({ slug: "alpha" }), aCallback({ slug: "beta" })],
+      callbacks: [
+        aCallback({ id: "cb-alpha", slug: "alpha" }),
+        aCallback({ id: "cb-beta", slug: "beta" }),
+      ],
     });
 
-    const deletedSlugs: string[] = [];
+    const deletedIds: string[] = [];
     server.use(
-      http.delete("/api/callbacks/:slug", ({ params }) => {
-        const slug = String(params.slug);
-        deletedSlugs.push(slug);
+      http.delete("/api/callbacks/:id", ({ params }) => {
+        const id = String(params.id);
+        deletedIds.push(id);
         state.callbacks = state.callbacks.filter(
-          (callback) => callback.slug !== slug,
+          (callback) => callback.id !== id,
         );
         return new HttpResponse(null, { status: 204 });
       }),
@@ -322,14 +529,14 @@ describe("callbacks page delete flow", () => {
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Delete callback");
-    expect(deletedSlugs).toEqual([]);
+    expect(deletedIds).toEqual([]);
 
     await user.click(
       within(dialog).getByRole("button", { name: "Confirm deletion of alpha" }),
     );
 
     expect(await screen.findByText("Callback deleted.")).toBeInTheDocument();
-    expect(deletedSlugs).toEqual(["alpha"]);
+    expect(deletedIds).toEqual(["cb-alpha"]);
     await waitFor(() =>
       expect(
         within(
@@ -375,6 +582,7 @@ const searchFixtures = () => [
     path: undefined,
   }),
   aCallback({
+    id: "cb-refund",
     slug: "refund-issued",
     name: "Refund issued",
     method: "DELETE",
@@ -615,9 +823,9 @@ describe("callbacks page search across callback detail", () => {
     const href = screen
       .getByRole("link", { name: "Open Refund issued" })
       .getAttribute("href")!;
-    expect(href).toBe("/callbacks/refund-issued?q=refund");
+    expect(href).toBe("/callbacks/cb-refund?q=refund");
     list.unmount();
-    browseTo(href, { slug: "refund-issued" });
+    browseTo(href, { id: "cb-refund" });
 
     const detail = renderWithProviders(<CallbackDetailPage />);
     await screen.findByRole("form", { name: "Edit callback" });
@@ -632,7 +840,7 @@ describe("callbacks page search across callback detail", () => {
 
   it("keeps the search after saving from the actions menu edit", async () => {
     server.use(
-      http.patch("/api/callbacks/:slug", () => HttpResponse.json(aCallback())),
+      http.patch("/api/callbacks/:id", () => HttpResponse.json(aCallback())),
     );
     const list = await renderSearchedList();
 
@@ -643,10 +851,10 @@ describe("callbacks page search across callback detail", () => {
       await screen.findByRole("menuitem", { name: "Edit" }),
     );
     expect(router.push).toHaveBeenLastCalledWith(
-      "/callbacks/refund-issued?q=refund",
+      "/callbacks/cb-refund?q=refund",
     );
     list.unmount();
-    givenRoute({ ...getRoute(), params: { slug: "refund-issued" } });
+    givenRoute({ ...getRoute(), params: { id: "cb-refund" } });
 
     const detail = renderWithProviders(<CallbackDetailPage />);
     await screen.findByRole("form", { name: "Edit callback" });

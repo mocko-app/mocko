@@ -6,6 +6,7 @@ export type CallbackHttpMethod = typeof CALLBACK_METHODS[number];
 export type CallbackSource = 'FILE' | 'DEPLOYED';
 
 export type Callback = {
+    id?: string,
     slug: string,
     name?: string,
     source?: CallbackSource,
@@ -91,4 +92,9 @@ export function callbackFromConfig(slug: string, data: any): Callback {
     } catch(error) {
         throw new Error(`On callback '${slug}', ${error.message}`);
     }
+}
+
+export function findCallbackBySlug(callbacks: Callback[], slug: string): Callback | undefined {
+    const target = slug.toLowerCase();
+    return callbacks.find((callback) => callback.slug.toLowerCase() === target);
 }

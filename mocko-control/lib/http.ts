@@ -63,8 +63,12 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(404, ErrorDto.ofFlagNotFound(key));
   }
 
-  static hostNotFound(slug: string): HttpResponseError {
-    return new HttpResponseError(404, ErrorDto.ofHostNotFound(slug));
+  static hostNotFound(id: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofHostNotFound(id));
+  }
+
+  static hostReadOnly(id: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofHostReadOnly(id));
   }
 
   static operationNotFound(id: string): HttpResponseError {
@@ -75,16 +79,20 @@ export class HttpResponseError extends Error {
     return new HttpResponseError(409, ErrorDto.ofHostSlugConflict(slug));
   }
 
-  static callbackNotFound(slug: string): HttpResponseError {
-    return new HttpResponseError(404, ErrorDto.ofCallbackNotFound(slug));
+  static callbackNotFound(id: string): HttpResponseError {
+    return new HttpResponseError(404, ErrorDto.ofCallbackNotFound(id));
   }
 
   static callbackSlugConflict(slug: string): HttpResponseError {
     return new HttpResponseError(409, ErrorDto.ofCallbackSlugConflict(slug));
   }
 
-  static callbackReadOnly(slug: string): HttpResponseError {
-    return new HttpResponseError(409, ErrorDto.ofCallbackReadOnly(slug));
+  static callbackReadOnly(id: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofCallbackReadOnly(id));
+  }
+
+  static callbackShadowed(id: string): HttpResponseError {
+    return new HttpResponseError(409, ErrorDto.ofCallbackShadowed(id));
   }
 
   static templateParseError(parsingError: ParsingError): HttpResponseError {

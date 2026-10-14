@@ -151,6 +151,80 @@ describe('proxy', () => {
     expect(res.status).toBe(500);
   });
 
+  it('resolves {{proxy}} host slugs regardless of case', async () => {
+    await content.createMock(`
+      mock "GET /cased/proxy-case" {
+        body = "cased"
+      }
+      mock "GET /cased/proxy-case-at" {
+        body = "cased"
+      }
+    `);
+    await subject.createMock(`
+      host "cased" {
+        source      = "cased.local"
+        destination = "http://localhost:${content.port}/cased"
+      }
+      mock "GET /proxy-case" {
+        body = "{{proxy 'CASED'}}"
+      }
+      mock "GET /proxy-case-at" {
+        body = "{{proxy '@CASED'}}"
+      }
+    `);
+
+    const bare = await subject.client.get('/proxy-case');
+    expect(bare.status).toBe(200);
+    expect(bare.data).toBe('cased');
+
+    const at = await subject.client.get('/proxy-case-at');
+    expect(at.status).toBe(200);
+    expect(at.data).toBe('cased');
+  });
+
+  it('proxies unmatched requests on a mixed-case host source regardless of request host case', async () => {
+    await content.createMock(`
+      mock "GET /upper/host-case" {
+        body = "upper"
+      }
+    `);
+    await subject.createMock(`
+      host "upper-source" {
+        source      = "Upper-Source.Local"
+        destination = "http://localhost:${content.port}/upper"
+      }
+    `);
+
+    for (const host of ['upper-source.local', 'UPPER-SOURCE.LOCAL']) {
+      const res = await subject.client.get('/host-case', {
+        headers: { Host: host },
+      });
+      expect(res.data).toBe('upper');
+    }
+  });
+
+  it('resolves the generic {{proxy}} helper by request host regardless of case', async () => {
+    await content.createMock(`
+      mock "GET /generic-case/host-generic-case" {
+        body = "generic case"
+      }
+    `);
+    await subject.createMock(`
+      host "generic-case" {
+        source      = "Generic-Case.Local"
+        destination = "http://localhost:${content.port}/generic-case"
+      }
+      mock "GET /host-generic-case" {
+        body = "{{proxy}}"
+      }
+    `);
+
+    const res = await subject.client.get('/host-generic-case', {
+      headers: { Host: 'GENERIC-CASE.local' },
+    });
+    expect(res.data).toBe('generic case');
+  });
+
   it('proxies depending on request host when no mock is mapped', async () => {
     await content.createMock(`
       mock "GET /{version}/host-default" {

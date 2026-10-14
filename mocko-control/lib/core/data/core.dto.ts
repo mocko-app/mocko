@@ -75,6 +75,8 @@ export type CoreHostDto = {
   name?: string;
   source: string;
   destination?: string;
+  id?: string;
+  filePath?: string;
 };
 
 export type CoreCallbackDto = {
@@ -88,6 +90,7 @@ export type CoreCallbackDto = {
   headers: Record<string, string>;
   body?: string;
   filePath?: string;
+  id?: string;
 };
 
 export type CorePendingCallbackDto = {

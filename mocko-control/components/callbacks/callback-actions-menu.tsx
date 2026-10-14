@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  LayersIcon,
   MoreHorizontalIcon,
   PencilIcon,
   TrashIcon,
@@ -18,10 +19,20 @@ import type { CallbackDto } from "@/lib/types/callback-dtos";
 export const CallbackActionsMenu: React.FC<{
   definition: CallbackDto;
   trigger: React.ReactElement;
+  canFire: boolean;
   onFire: (definition: CallbackDto) => void;
   onDelete: (definition: CallbackDto) => void;
-  onEdit?: (slug: string) => void;
-}> = ({ definition, trigger, onFire, onDelete, onEdit }) => {
+  onEdit?: (id: string) => void;
+  onOverride?: (id: string) => void;
+}> = ({
+  definition,
+  trigger,
+  canFire,
+  onFire,
+  onDelete,
+  onEdit,
+  onOverride,
+}) => {
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
   return (
@@ -31,15 +42,23 @@ export const CallbackActionsMenu: React.FC<{
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {onEdit && (
-          <DropdownMenuItem onClick={() => onEdit(definition.slug)}>
+          <DropdownMenuItem onClick={() => onEdit(definition.id)}>
             <PencilIcon aria-hidden="true" />
             {isReadOnly ? "View" : "Edit"}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={() => onFire(definition)}>
-          <ZapIcon aria-hidden="true" />
-          Fire
-        </DropdownMenuItem>
+        {isReadOnly && onOverride && (
+          <DropdownMenuItem onClick={() => onOverride(definition.id)}>
+            <LayersIcon aria-hidden="true" />
+            Override
+          </DropdownMenuItem>
+        )}
+        {canFire && (
+          <DropdownMenuItem onClick={() => onFire(definition)}>
+            <ZapIcon aria-hidden="true" />
+            Fire
+          </DropdownMenuItem>
+        )}
         {!isReadOnly && (
           <>
             <DropdownMenuSeparator />
