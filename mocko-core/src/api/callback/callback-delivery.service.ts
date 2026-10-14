@@ -10,10 +10,8 @@ import { FlagService } from "../flag/flag.service";
 import * as LogHelpers from "../../helpers/log";
 import * as FlagHelpers from "../../helpers/flag";
 import { PendingCallback } from "./callback.repository";
-import { callbackDebugInfo } from "../../utils/callback-debug";
 
 const debug = require('debug')('mocko:proxy:callback:delivery');
-const payloadDebug = require('debug')('mocko:proxy:callback:payload');
 
 const DELIVERY_TIMEOUT_MS = 30_000;
 
@@ -45,16 +43,7 @@ export class CallbackDeliveryService {
     }
 
     private async doDeliver(pending: PendingCallback): Promise<void> {
-        debug(
-            `callback '%s' (%s) timing: pid=%d createdAt=%d dueAt=%d latenessMs=%d triggeredByMockId=%s`,
-            pending.slug,
-            pending.id,
-            process.pid,
-            pending.createdAt,
-            pending.dueAt,
-            Date.now() - pending.dueAt,
-            pending.triggeredByMockId
-        );
+        debug(`delivering callback '${pending.slug}' (${pending.id})`);
         const definitions = await this.definitionProvider.getDefinitions();
         const definition = definitions.callbacks
             .find((callback) => callback.slug === pending.slug);
@@ -63,24 +52,18 @@ export class CallbackDeliveryService {
             throw new Error(`no callback definition found with slug '${pending.slug}', it may have been removed while the callback was pending`);
         }
 
-        if(debug.enabled) {
-            debug('callback %s selected definition: %j', pending.id, callbackDebugInfo(definition));
-        }
-        payloadDebug('callback %s (%s) delivery input=%j template=%j', pending.id, pending.slug, pending.payload, definition.body);
-
         const context: RenderContext = {
             payload: pending.payload,
             data: definitions.data || {},
         };
 
-        const url = await this.resolveUrl(definition, definitions.hosts, context, pending.id);
+        const url = await this.resolveUrl(definition, definitions.hosts, context);
         const body = typeof definition.body === 'string'
             ? await this.render(definition.body, context)
             : undefined;
         const headers = await this.renderHeaders(definition, body, context);
 
-        debug(`sending callback '${pending.slug}' (${pending.id}): ${definition.method} ${url}`);
-        payloadDebug('callback %s (%s) outgoing body=%j', pending.id, pending.slug, body);
+        debug(`sending ${definition.method} ${url}`);
         const res = await Wreck.request(definition.method, url, {
             payload: body,
             headers,
@@ -90,14 +73,14 @@ export class CallbackDeliveryService {
 
         const status = res.statusCode ?? 0;
         if(status < 200 || status >= 300) {
-            this.logger.warn(`Callback '${pending.slug}' (${pending.id}) delivery to ${definition.method} ${url} returned status ${status}`);
+            this.logger.warn(`Callback '${pending.slug}' delivery to ${definition.method} ${url} returned status ${status}`);
             return;
         }
 
-        debug(`callback '${pending.slug}' (${pending.id}) delivered with status ${status}`);
+        debug(`callback '${pending.slug}' delivered with status ${status}`);
     }
 
-    private async resolveUrl(definition: Callback, hosts: Host[], context: RenderContext, pendingId: string): Promise<string> {
+    private async resolveUrl(definition: Callback, hosts: Host[], context: RenderContext): Promise<string> {
         if(definition.url) {
             return await this.render(definition.url, context);
         }
@@ -109,10 +92,6 @@ export class CallbackDeliveryService {
         }
         if(!host.destination) {
             throw new Error(`host '${definition.host}' has no destination to deliver to`);
-        }
-
-        if(debug.enabled) {
-            debug('callback %s resolved host: selected=%j matches=%j', pendingId, host, hosts.filter((item) => item.slug.toLowerCase() === slug));
         }
 
         const path = await this.render(definition.path!, context);

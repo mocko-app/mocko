@@ -9,7 +9,6 @@ import { CallbackRedisRepository } from "./callback.redis-repository";
 import { CallbackPendingRepository, PendingCallback } from "./callback.repository";
 
 const debug = require('debug')('mocko:proxy:callback:scheduler');
-const payloadDebug = require('debug')('mocko:proxy:callback:payload');
 
 const WAKE_CAP_MS = 10_000;
 
@@ -71,10 +70,8 @@ export class CallbackSchedulerService {
             triggeredByMockId: request.triggeredByMockId,
         };
 
-        payloadDebug('callback %s (%s) scheduling input=%j', pending.id, pending.slug, pending.payload);
         await this.repository.schedule(pending);
         debug(`scheduled callback '${pending.slug}' (${pending.id}) due in ${request.delay}ms`);
-        debug('callback %s queued: store=%s pid=%d createdAt=%d dueAt=%d triggeredByMockId=%s', pending.id, this.usesSharedStore ? 'redis' : 'memory', process.pid, pending.createdAt, pending.dueAt, pending.triggeredByMockId);
         this.armTimer(pending.dueAt);
         return pending;
     }

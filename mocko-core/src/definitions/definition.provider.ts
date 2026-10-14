@@ -15,10 +15,8 @@ import { Host } from "./data/host";
 import { Callback } from "./data/callback";
 import { mergeData } from "../utils/utils";
 import { DiagnosticsCollector } from "./diagnostics";
-import { callbackDebugInfo } from "../utils/callback-debug";
 
 const debug = require('debug')('mocko:proxy:definition:provider');
-const callbackDebug = require('debug')('mocko:proxy:callback:definitions');
 
 const { readFile, readdir, lstat } = promises;
 
@@ -37,7 +35,6 @@ export type FileOrDir = {
 export class DefinitionProvider {
     private definitions: MockoDefinition;
     private deployDefinition: MockoDefinition | null = null;
-    private definitionBuild = 0;
 
     constructor(
         @inject(Logger)
@@ -62,14 +59,10 @@ export class DefinitionProvider {
 
     async getFileCallbacks(): Promise<Callback[]> {
         const fileDefinitions = await this.getFileDefinitions();
-        if(callbackDebug.enabled) {
-            callbackDebug('listing callbacks freshly read from files (cached build %d): %j', this.definitionBuild, fileDefinitions.callbacks.map(callbackDebugInfo));
-        }
         return fileDefinitions.callbacks;
     }
 
     clearDefinitions(): void {
-        callbackDebug('clearing definition cache after build %d', this.definitionBuild);
         this.definitions = null;
     }
 
@@ -82,33 +75,12 @@ export class DefinitionProvider {
         const fileDefinitions = await this.getFileDefinitions();
         const deployDefinitions = this.deployDefinition;
 
-        const redisDefinitions = this.redis.isEnabled ? await this.getRedisDefinitions() : null;
-        const definitions = this.mergeDefinitions(fileDefinitions, redisDefinitions, deployDefinitions);
-        this.definitionBuild += 1;
-
-        if(callbackDebug.enabled) {
-            const origins = [
-                ...(deployDefinitions?.callbacks || []).map(() => 'deploy'),
-                ...(redisDefinitions?.callbacks || []).map(() => 'redis'),
-                ...fileDefinitions.callbacks.map(() => 'file'),
-            ];
-            const loaded = definitions.callbacks.map((callback, index) => ({
-                ...callbackDebugInfo(callback),
-                origin: origins[index],
-            }));
-            callbackDebug('built callback definitions (build %d, pid %d): %j', this.definitionBuild, process.pid, loaded);
-            const selected = new Map<string, typeof loaded[number]>();
-            for(const callback of loaded) {
-                const winner = selected.get(callback.slug);
-                if(winner) {
-                    callbackDebug('callback definition shadowed (build %d): selected=%j shadowed=%j', this.definitionBuild, winner, callback);
-                } else {
-                    selected.set(callback.slug, callback);
-                }
-            }
+        if(this.redis.isEnabled) {
+            const redisDefinitions = await this.getRedisDefinitions();
+            return this.mergeDefinitions(fileDefinitions, redisDefinitions, deployDefinitions);
         }
 
-        return definitions;
+        return this.mergeDefinitions(fileDefinitions, null, deployDefinitions);
     }
 
     private async getFileDefinitions(): Promise<MockoDefinition> {
