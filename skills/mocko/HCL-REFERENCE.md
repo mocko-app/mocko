@@ -105,7 +105,7 @@ mock "GET /passthrough" {
 
 Host slugs and sources match case-insensitively: `host = "Backend"` and `{{proxy 'BACKEND'}}` both target host `backend`, and a source of `API.example.com` matches requests for `api.example.com`. Slugs still display as written.
 
-One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and proxying and callbacks use the UI host's `destination`. If two files define the same host slug, only the first one loaded is used.
+One host is used per slug. A host defined in the UI (or deployed via the API) replaces any file host with the same slug, ignoring case: the file host is ignored entirely, so its `source` no longer matches anything, mocks with `host = "<slug>"` answer on the UI host's source, and proxying and callbacks use the UI host's `destination`. If two file host blocks share a slug, only the first one loaded is used and `mocko validate` reports the other as an error.
 
 ## Callback blocks
 
@@ -144,7 +144,7 @@ callback "payment-approved" {
 - `Content-Type` defaults to `application/json` when a `body` is set and no header overrides it.
 - An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
 - Callback slugs match case-insensitively: `{{callback 'Payment-Approved'}}` and firing `Payment-Approved` both use `payment-approved`.
-- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely.
+- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely. Two file callbacks sharing a slug are reported by `mocko validate` as an error.
 
 ## Match priority
 

@@ -5,6 +5,7 @@ export type Host = {
     name?: string,
     source: string,
     destination?: string,
+    filePath?: string,
 };
 
 const hostSchema = Joi.object({

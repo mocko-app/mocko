@@ -235,6 +235,10 @@ export class DefinitionProvider {
             });
         });
         definition.mocks = this.withFileMetadata(path, definition.mocks);
+        definition.hosts = definition.hosts.map((host) => ({
+            ...host,
+            filePath: file,
+        }));
         definition.callbacks = definition.callbacks.map((callback) => ({
             ...callback,
             filePath: file,

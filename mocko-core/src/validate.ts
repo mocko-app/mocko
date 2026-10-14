@@ -44,6 +44,7 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
 
     const definitionProvider = container.get(DefinitionProvider);
     const { mocks, hosts } = await definitionProvider.getDefinitions();
+    const fileHosts = await definitionProvider.getFileHosts();
     const fileCallbacks = await definitionProvider.getFileCallbacks();
 
     if(mocks.length === 0) {
@@ -65,7 +66,8 @@ export async function validate(options: ValidationOptions = {}): Promise<Validat
     }
 
     reportConflicts(mocks, hosts, collector);
-    reportDuplicateCallbacks(fileCallbacks, collector);
+    reportDuplicateSlugs('host', fileHosts, collector);
+    reportDuplicateSlugs('callback', fileCallbacks, collector);
     await registerRoutes(container);
 
     const diagnostics = withoutRedundantConflicts(collector.diagnostics);
@@ -135,12 +137,18 @@ function validateCallbackHostReference(callback: Callback, hosts: Host[], collec
     }
 }
 
-function reportDuplicateCallbacks(callbacks: Callback[], collector: DiagnosticsCollector): void {
-    const bySlug = new Map<string, Callback[]>();
-    for(const callback of callbacks) {
-        const group = bySlug.get(callback.slug) || [];
-        group.push(callback);
-        bySlug.set(callback.slug, group);
+type SlugDefinition = {
+    slug: string,
+    filePath?: string,
+};
+
+function reportDuplicateSlugs(kind: 'host' | 'callback', definitions: SlugDefinition[], collector: DiagnosticsCollector): void {
+    const bySlug = new Map<string, SlugDefinition[]>();
+    for(const definition of definitions) {
+        const key = definition.slug.toLowerCase();
+        const group = bySlug.get(key) || [];
+        group.push(definition);
+        bySlug.set(key, group);
     }
 
     for(const group of bySlug.values()) {
@@ -148,12 +156,12 @@ function reportDuplicateCallbacks(callbacks: Callback[], collector: DiagnosticsC
 
         for(const duplicate of duplicates) {
             const message = duplicate.filePath === first.filePath
-                ? `callback '${duplicate.slug}' is defined more than once in '${first.filePath}', the first definition wins`
-                : `callback '${duplicate.slug}' is also defined in '${first.filePath}', the first definition wins`;
+                ? `${kind} '${duplicate.slug}' is defined more than once in '${first.filePath}', the first definition wins`
+                : `${kind} '${duplicate.slug}' is also defined in '${first.filePath}', the first definition wins`;
 
             collector.push({
-                code: 'duplicate-callback',
-                severity: 'warning',
+                code: `duplicate-${kind}`,
+                severity: 'error',
                 file: duplicate.filePath,
                 message,
             });

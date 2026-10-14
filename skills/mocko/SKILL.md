@@ -43,7 +43,7 @@ Options:
 
 Checks every mock without starting a server and exits 1 when any is broken; built for CI, but also the fastest way to check mocks you just wrote or edited. Run it after changing `.hcl` files when a Mocko server isn't already running.
 
-Errors (exit 1): HCL files that fail to parse (silently ignored at startup), invalid mock, host, or callback definitions, routes that fail to map (duplicated method+path, query params in the path), body templates that fail to compile (mock responds 500 to every request), mocks on the reserved `/__mocko__` path, and folders with no mocks. Note that template errors that only happen at render time (unknown helpers, bad `setStatus` values) are NOT caught, they still 500 at request time.
+Errors (exit 1): HCL files that fail to parse (silently ignored at startup), invalid mock, host, or callback definitions, host or callback slugs defined more than once across files (ignoring case; only the first is used), routes that fail to map (duplicated method+path, query params in the path), body templates that fail to compile (mock responds 500 to every request), mocks on the reserved `/__mocko__` path, and folders with no mocks. Note that template errors that only happen at render time (unknown helpers, bad `setStatus` values) are NOT caught, they still 500 at request time.
 
 Warnings (exit 0 unless `--strict`): paths with `:param`, `*`, or `${param}` (Mocko parameters are `{param}`), mocks whose `host` matches no host block, and callbacks whose `host` matches no host block.
 

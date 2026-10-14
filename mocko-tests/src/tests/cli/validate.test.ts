@@ -338,7 +338,71 @@ describe('mocko validate', () => {
     );
   });
 
-  it('warns on duplicate callback slugs attributing both files', async () => {
+  it('fails on host slugs defined in two files, reporting the second', async () => {
+    const dir = await writeMocks({
+      'one.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        host "bar" {
+          source = "bar-one.local"
+        }
+      `,
+      'nested/two.hcl': `
+        host "bar" {
+          source = "bar-two.local"
+        }
+      `,
+    });
+    const result = await runValidate('--json', dir);
+
+    expect(result.code).toBe(1);
+    const report = JSON.parse(result.stdout);
+    const duplicates = report.diagnostics.filter(
+      (d: { code: string }) => d.code === 'duplicate-host',
+    );
+    expect(duplicates).toEqual([
+      expect.objectContaining({
+        severity: 'error',
+        file: 'nested/two.hcl',
+        message:
+          "host 'bar' is also defined in 'one.hcl', the first definition wins",
+      }),
+    ]);
+  });
+
+  it('fails on host slugs that differ only in case within one file', async () => {
+    const dir = await writeMocks({
+      'hosts.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        host "Bar" {
+          source = "bar-one.local"
+        }
+        host "bar" {
+          source = "bar-two.local"
+        }
+      `,
+    });
+    const result = await runValidate('--json', dir);
+
+    expect(result.code).toBe(1);
+    const report = JSON.parse(result.stdout);
+    const duplicates = report.diagnostics.filter(
+      (d: { code: string }) => d.code === 'duplicate-host',
+    );
+    expect(duplicates).toHaveLength(1);
+    expect(duplicates[0]).toMatchObject({
+      severity: 'error',
+      file: 'hosts.hcl',
+    });
+    expect(duplicates[0].message).toBe(
+      "host 'bar' is defined more than once in 'hosts.hcl', the first definition wins",
+    );
+  });
+
+  it('fails on callback slugs defined in two files, reporting the second', async () => {
     const dir = await writeMocks({
       'one.hcl': `
         mock "GET /a" {
@@ -348,7 +412,38 @@ describe('mocko validate', () => {
           url = "http://localhost:9998/one"
         }
       `,
-      'two.hcl': `
+      'nested/two.hcl': `
+        callback "dupe" {
+          url = "http://localhost:9998/two"
+        }
+      `,
+    });
+    const result = await runValidate('--json', dir);
+
+    expect(result.code).toBe(1);
+    const report = JSON.parse(result.stdout);
+    const duplicates = report.diagnostics.filter(
+      (d: { code: string }) => d.code === 'duplicate-callback',
+    );
+    expect(duplicates).toEqual([
+      expect.objectContaining({
+        severity: 'error',
+        file: 'nested/two.hcl',
+        message:
+          "callback 'dupe' is also defined in 'one.hcl', the first definition wins",
+      }),
+    ]);
+  });
+
+  it('fails on callback slugs that differ only in case within one file', async () => {
+    const dir = await writeMocks({
+      'callbacks.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        callback "Dupe" {
+          url = "http://localhost:9998/one"
+        }
         callback "dupe" {
           url = "http://localhost:9998/two"
         }
@@ -356,9 +451,42 @@ describe('mocko validate', () => {
     });
     const result = await runValidate(dir);
 
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain(
+      "callback 'dupe' is defined more than once in 'callbacks.hcl'",
+    );
+    expect(result.stdout).toContain('1 error, 0 warnings');
+  });
+
+  it('does not report distinct or single host and callback slugs', async () => {
+    const dir = await writeMocks({
+      'one.hcl': `
+        mock "GET /a" {
+          body = "x"
+        }
+        host "bar" {
+          source = "bar.local"
+        }
+        host "baz" {
+          source = "baz.local"
+        }
+        callback "approved" {
+          url = "http://localhost:9998/approved"
+        }
+      `,
+      'two.hcl': `
+        host "qux" {
+          source = "qux.local"
+        }
+        callback "declined" {
+          url = "http://localhost:9998/declined"
+        }
+      `,
+    });
+    const result = await runValidate(dir);
+
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain("callback 'dupe' is also defined in");
-    expect(result.stdout).toContain('the first definition wins');
+    expect(result.stdout).toContain('No issues found');
   });
 
   it('fails on warnings when --strict is set', async () => {
