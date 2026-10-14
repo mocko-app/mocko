@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import CallbacksPage from "./page";
+import CallbackDetailPage from "./[slug]/page";
+import NewCallbackPage from "./new/page";
 import { aCallback, aMock, aPendingCallback } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
+import { getRoute, givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
 
 describe("callbacks page loading state", () => {
@@ -336,5 +339,331 @@ describe("callbacks page failure handling", () => {
     expect(
       await screen.findByText("Could not fetch callbacks"),
     ).toBeInTheDocument();
+  });
+});
+
+function getListedDefinitionNames(): string[] {
+  const list = screen.getByRole("list", { name: "Callback definitions" });
+  return within(list)
+    .getAllByRole("listitem")
+    .map((item) => item.getAttribute("aria-label") ?? "");
+}
+
+const searchFixtures = () => [
+  aCallback({
+    slug: "payment-approved",
+    name: "Payment approved",
+    method: "POST",
+    host: "workflows",
+    path: "/payments/approved",
+  }),
+  aCallback({
+    slug: "order-shipped",
+    method: "PUT",
+    url: "https://shipping.example.com/orders",
+    host: undefined,
+    path: undefined,
+  }),
+  aCallback({
+    slug: "refund-issued",
+    name: "Refund issued",
+    method: "DELETE",
+    host: "billing",
+    path: "/refunds",
+  }),
+];
+
+describe("callbacks page search", () => {
+  it("filters definitions by slug, name, method, host and target", async () => {
+    givenApi({ callbacks: searchFixtures() });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    const searchInput = await screen.findByRole("textbox", {
+      name: "Search callbacks",
+    });
+
+    const cases: [string, string[]][] = [
+      ["order-ship", ["Callback: order-shipped"]],
+      ["REFUND", ["Callback: Refund issued"]],
+      ["put", ["Callback: order-shipped"]],
+      ["@workflows", ["Callback: Payment approved"]],
+      ["shipping.example", ["Callback: order-shipped"]],
+      ["/refunds", ["Callback: Refund issued"]],
+    ];
+    for (const [query, expected] of cases) {
+      await user.clear(searchInput);
+      await user.type(searchInput, query);
+      expect(getListedDefinitionNames()).toEqual(expected);
+    }
+  });
+
+  it("does not match headers or body", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({
+          slug: "with-body",
+          headers: { "X-Event": "order.paid" },
+          body: '{ "event": "order.paid" }',
+        }),
+        aCallback({ slug: "other" }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+      "order.paid",
+    );
+
+    expect(
+      screen.getByText("No callbacks match your search."),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves pending callbacks untouched and shows filtered counts", async () => {
+    givenApi({
+      callbacks: searchFixtures(),
+      pendingCallbacks: {
+        isSupported: true,
+        pending: [aPendingCallback({ slug: "payment-approved" })],
+      },
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+      "refund",
+    );
+
+    expect(getListedDefinitionNames()).toEqual(["Callback: Refund issued"]);
+    expect(
+      within(
+        screen.getByRole("list", { name: "Pending callbacks" }),
+      ).getAllByRole("listitem"),
+    ).toHaveLength(1);
+    expect(
+      screen.getByText("1 of 3 callbacks · 1 pending"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("1 / 3")).toBeInTheDocument();
+    expect(
+      screen.getByText("2 more callbacks were filtered out."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows an empty search state and clears it", async () => {
+    givenApi({ callbacks: searchFixtures() });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    const searchInput = await screen.findByRole("textbox", {
+      name: "Search callbacks",
+    });
+    await user.type(searchInput, "nothing-matches");
+
+    expect(
+      screen.getByText("No callbacks match your search."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("list", { name: "Callback definitions" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+
+    expect(searchInput).toHaveValue("");
+    expect(getListedDefinitionNames()).toHaveLength(3);
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/callbacks",
+    );
+  });
+
+  it("shows the search box from a single definition on", async () => {
+    givenApi({ callbacks: [aCallback({ slug: "only-one" })] });
+    renderWithProviders(<CallbacksPage />);
+
+    expect(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the search box when there are no definitions", async () => {
+    givenApi({
+      callbacks: [],
+      pendingCallbacks: {
+        isSupported: true,
+        pending: [aPendingCallback({ slug: "deleted-callback" })],
+      },
+    });
+    renderWithProviders(<CallbacksPage />);
+
+    await screen.findByRole("list", { name: "Pending callbacks" });
+    expect(
+      screen.queryByRole("textbox", { name: "Search callbacks" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the search box for the empty and unsupported states", async () => {
+    givenApi({ callbacks: [] });
+    const empty = renderWithProviders(<CallbacksPage />);
+    await screen.findByText("No callbacks yet");
+    expect(
+      screen.queryByRole("textbox", { name: "Search callbacks" }),
+    ).not.toBeInTheDocument();
+    empty.unmount();
+
+    givenApi({
+      callbacks: [],
+      pendingCallbacks: { isSupported: false, pending: [] },
+    });
+    renderWithProviders(<CallbacksPage />);
+    await screen.findByText("Your Mocko core doesn't support callbacks");
+    expect(
+      screen.queryByRole("textbox", { name: "Search callbacks" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("callbacks page search URL", () => {
+  it("writes the search to the URL with replace", async () => {
+    givenRoute({ pathname: "/callbacks" });
+    givenApi({ callbacks: searchFixtures() });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+      "refund",
+    );
+
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/callbacks?q=refund",
+    );
+    expect(router.push).not.toHaveBeenCalled();
+    expect(window.history.pushState).not.toHaveBeenCalled();
+  });
+
+  it("restores the search from the URL", async () => {
+    givenRoute({ pathname: "/callbacks", search: "q=refund" });
+    givenApi({ callbacks: searchFixtures() });
+    renderWithProviders(<CallbacksPage />);
+
+    expect(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+    ).toHaveValue("refund");
+    expect(getListedDefinitionNames()).toEqual(["Callback: Refund issued"]);
+  });
+
+  it("drops an empty search param from the URL", async () => {
+    givenRoute({ pathname: "/callbacks", search: "q=" });
+    givenApi({ callbacks: searchFixtures() });
+    renderWithProviders(<CallbacksPage />);
+
+    await screen.findByRole("textbox", { name: "Search callbacks" });
+    expect(window.history.replaceState).toHaveBeenLastCalledWith(
+      null,
+      "",
+      "/callbacks",
+    );
+  });
+});
+
+describe("callbacks page search across callback detail", () => {
+  async function renderSearchedList() {
+    givenRoute({ pathname: "/callbacks" });
+    givenApi({ callbacks: searchFixtures() });
+    const list = renderWithProviders(<CallbacksPage />);
+    await list.user.type(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+      "refund",
+    );
+    expect(getListedDefinitionNames()).toEqual(["Callback: Refund issued"]);
+    return list;
+  }
+
+  function browseTo(href: string, params: Record<string, string>) {
+    const url = new URL(href, "http://localhost");
+    givenRoute({
+      pathname: url.pathname,
+      params,
+      search: url.search.replace(/^\?/, ""),
+    });
+  }
+
+  async function expectListKeepsSearch() {
+    expect(getRoute().pathname).toBe("/callbacks");
+    renderWithProviders(<CallbacksPage />);
+    expect(
+      await screen.findByRole("textbox", { name: "Search callbacks" }),
+    ).toHaveValue("refund");
+    expect(getListedDefinitionNames()).toEqual(["Callback: Refund issued"]);
+  }
+
+  it("keeps the search after opening a callback and closing it", async () => {
+    const list = await renderSearchedList();
+
+    const href = screen
+      .getByRole("link", { name: "Open Refund issued" })
+      .getAttribute("href")!;
+    expect(href).toBe("/callbacks/refund-issued?q=refund");
+    list.unmount();
+    browseTo(href, { slug: "refund-issued" });
+
+    const detail = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "Edit callback" });
+    await detail.user.click(
+      screen.getByRole("button", { name: "Close and return to callbacks" }),
+    );
+    expect(router.push).toHaveBeenLastCalledWith("/callbacks?q=refund");
+    detail.unmount();
+
+    await expectListKeepsSearch();
+  });
+
+  it("keeps the search after saving from the actions menu edit", async () => {
+    server.use(
+      http.patch("/api/callbacks/:slug", () => HttpResponse.json(aCallback())),
+    );
+    const list = await renderSearchedList();
+
+    await list.user.click(
+      screen.getByRole("button", { name: "Actions for Refund issued" }),
+    );
+    await list.user.click(
+      await screen.findByRole("menuitem", { name: "Edit" }),
+    );
+    expect(router.push).toHaveBeenLastCalledWith(
+      "/callbacks/refund-issued?q=refund",
+    );
+    list.unmount();
+    givenRoute({ ...getRoute(), params: { slug: "refund-issued" } });
+
+    const detail = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "Edit callback" });
+    await detail.user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Callback updated.")).toBeInTheDocument();
+    expect(router.push).toHaveBeenLastCalledWith("/callbacks?q=refund");
+    detail.unmount();
+
+    await expectListKeepsSearch();
+  });
+
+  it("carries the search into add callback and back on cancel", async () => {
+    const list = await renderSearchedList();
+
+    const href = screen
+      .getByRole("button", { name: "Add new callback" })
+      .getAttribute("href")!;
+    expect(href).toBe("/callbacks/new?q=refund");
+    list.unmount();
+    browseTo(href, {});
+
+    const form = renderWithProviders(<NewCallbackPage />);
+    await screen.findByRole("form", { name: "Add callback" });
+    await form.user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(router.push).toHaveBeenLastCalledWith("/callbacks?q=refund");
+    form.unmount();
+
+    await expectListKeepsSearch();
   });
 });
