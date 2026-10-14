@@ -1,8 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { HourglassIcon, XIcon, ZapIcon } from "lucide-react";
+import {
+  HourglassIcon,
+  MoreHorizontalIcon,
+  XIcon,
+  ZapIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatCountdown } from "@/lib/callback/callback-format";
 import type {
   CallbackDto,
@@ -68,25 +80,35 @@ export const PendingCallbackCard: React.FC<{
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onFire(pending)}
-            aria-label={`Fire ${displayName} now`}
-          >
-            <ZapIcon aria-hidden="true" />
-            Fire now
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-[#444] hover:text-red-400 hover:bg-transparent"
-            onClick={() => onCancel(pending)}
-            aria-label={`Cancel pending ${displayName}`}
-          >
-            <XIcon aria-hidden="true" />
-          </Button>
+        <div className="flex items-center shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
+                  aria-label={`Actions for pending ${displayName}`}
+                />
+              }
+            >
+              <MoreHorizontalIcon aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onFire(pending)}>
+                <ZapIcon aria-hidden="true" />
+                Fire now
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => onCancel(pending)}
+              >
+                <XIcon aria-hidden="true" />
+                Cancel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

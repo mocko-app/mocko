@@ -179,8 +179,9 @@ mock "GET /payments/{id}" {
         The control panel&apos;s Callbacks tab lists every scheduled delivery
         with a live countdown, which mock triggered it, and its payload. From
         there you can fire one immediately instead of waiting out a delay,
-        cancel it, or clear everything. Definitions get a Fire button too, with
-        a payload editor, so you can push a webhook to your service without
+        cancel it, or clear everything. Definitions can be fired from their
+        actions menu too, with a payload editor, so you can push a webhook to
+        your service without
         involving a mock at all. The tab also creates and edits callbacks, the
         same way it manages{" "}
         <DocsLink href="/creating-mocks/ui-mocks">UI mocks</DocsLink>;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CircleHelpIcon, XIcon } from "lucide-react";
+import { CallbackActionsMenu } from "@/components/callbacks/callback-actions-menu";
 import { Callout } from "@/components/callout";
 import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
 import { HeadersEditor } from "@/components/headers-editor";
@@ -35,6 +36,8 @@ import { cn } from "@/lib/utils";
 type CallbackFormProps = {
   initial?: CallbackDto;
   mode: "create" | "edit";
+  onFire?: (definition: CallbackDto) => void;
+  onDelete?: (definition: CallbackDto) => void;
 };
 
 function getFormTitle(mode: CallbackFormProps["mode"], isReadOnly: boolean) {
@@ -89,7 +92,12 @@ function FieldLabel({
   );
 }
 
-export function CallbackForm({ initial, mode }: CallbackFormProps) {
+export function CallbackForm({
+  initial,
+  mode,
+  onFire,
+  onDelete,
+}: CallbackFormProps) {
   const isReadOnly = initial?.annotations.includes("READ_ONLY") ?? false;
   const title = getFormTitle(mode, isReadOnly);
   const { data: hosts } = useHosts();
@@ -117,12 +125,28 @@ export function CallbackForm({ initial, mode }: CallbackFormProps) {
       aria-label={title}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">{title}</h1>
-          {isReadOnly && (
-            <Badge variant="annotationReadOnly" className="text-xs">
-              Read Only
-            </Badge>
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {isReadOnly && (
+              <Badge variant="annotationReadOnly" className="text-xs">
+                Read Only
+              </Badge>
+            )}
+          </div>
+          {mode === "edit" && initial && (
+            <CallbackActionsMenu
+              definition={initial}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label={`Actions for ${initial.name || initial.slug}`}
+                />
+              }
+              onFire={(definition) => onFire?.(definition)}
+              onDelete={(definition) => onDelete?.(definition)}
+            />
           )}
         </div>
         <Button

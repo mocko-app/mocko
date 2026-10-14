@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import CallbackDetailPage from "./page";
-import { aCallback } from "@/test/fixtures";
+import { aCallback, aPendingCallback } from "@/test/fixtures";
 import { givenApi, server } from "@/test/msw";
 import { givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
@@ -133,5 +133,100 @@ describe("callback detail page", () => {
     renderWithProviders(<CallbackDetailPage />);
 
     expect(await screen.findByText("Callback not found")).toBeInTheDocument();
+  });
+});
+
+describe("callback detail page actions menu", () => {
+  it("fires the callback from the header menu and stays on the page", async () => {
+    givenEditableCallback();
+    const firedPayloads: unknown[] = [];
+    server.use(
+      http.post("/api/callbacks/:slug/fire", async ({ request, params }) => {
+        firedPayloads.push({
+          slug: params.slug,
+          body: await request.json(),
+        });
+        return HttpResponse.json(aPendingCallback(), { status: 202 });
+      }),
+    );
+    const { user } = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "Edit callback" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Payment approved" }),
+    );
+    expect(
+      screen.queryByRole("menuitem", { name: "Edit" }),
+    ).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("menuitem", { name: "Fire" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "Confirm firing Payment approved",
+      }),
+    );
+
+    expect(await screen.findByText("Callback fired.")).toBeInTheDocument();
+    expect(firedPayloads).toEqual([{ slug: "payment-approved", body: {} }]);
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("deletes the callback from the header menu after confirmation", async () => {
+    givenEditableCallback();
+    const deletedSlugs: string[] = [];
+    server.use(
+      http.delete("/api/callbacks/:slug", ({ params }) => {
+        deletedSlugs.push(String(params.slug));
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { user } = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "Edit callback" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Payment approved" }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(deletedSlugs).toEqual([]);
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "Confirm deletion of payment-approved",
+      }),
+    );
+
+    expect(await screen.findByText("Callback deleted.")).toBeInTheDocument();
+    expect(deletedSlugs).toEqual(["payment-approved"]);
+    expect(router.push).toHaveBeenCalledWith("/callbacks");
+  });
+
+  it("offers only Fire for a read-only callback", async () => {
+    givenRoute({
+      pathname: "/callbacks/file-callback",
+      params: { slug: "file-callback" },
+    });
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "file-callback", annotations: ["READ_ONLY"] }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "View callback" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for file-callback" }),
+    );
+
+    expect(
+      await screen.findByRole("menuitem", { name: "Fire" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Delete" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "View" }),
+    ).not.toBeInTheDocument();
   });
 });
