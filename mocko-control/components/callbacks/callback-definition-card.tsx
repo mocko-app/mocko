@@ -26,7 +26,8 @@ export const CallbackDefinitionCard: React.FC<{
   onFire: (definition: CallbackDto) => void;
   onEdit: (id: string) => void;
   onDelete: (definition: CallbackDto) => void;
-}> = ({ definition, href, canFire, onFire, onEdit, onDelete }) => {
+  onOverride?: (id: string) => void;
+}> = ({ definition, href, canFire, onFire, onEdit, onDelete, onOverride }) => {
   const displayName = definition.name || definition.slug;
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
@@ -111,6 +112,7 @@ export const CallbackDefinitionCard: React.FC<{
             onFire={onFire}
             onEdit={onEdit}
             onDelete={onDelete}
+            onOverride={onOverride}
           />
         </div>
       </div>

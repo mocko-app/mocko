@@ -236,6 +236,66 @@ describe("callbacks page slug overlaps", () => {
   });
 });
 
+describe("callbacks page override action", () => {
+  it("opens the new callback form prefilled from a read-only callback", async () => {
+    givenRoute({ pathname: "/callbacks", search: "q=payment" });
+    givenApi({
+      callbacks: [
+        aCallback({
+          id: "cb-file",
+          slug: "payment-approved",
+          annotations: ["READ_ONLY"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Actions for payment-approved",
+      }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Override" }));
+
+    expect(router.push).toHaveBeenCalledWith(
+      "/callbacks/new?q=payment&from=cb-file",
+    );
+  });
+
+  it("offers no override for ui callbacks or file callbacks already overridden", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ slug: "payment-approved", name: "UI" }),
+        aCallback({
+          slug: "Payment-Approved",
+          name: "File",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+    const { user } = renderWithProviders(<CallbacksPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Actions for UI" }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Edit" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    await user.click(screen.getByRole("button", { name: "Actions for File" }));
+    expect(
+      await screen.findByRole("menuitem", { name: "View" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("callbacks page against an older core", () => {
   it("shows the upgrade empty state and hides the add button", async () => {
     givenApi({

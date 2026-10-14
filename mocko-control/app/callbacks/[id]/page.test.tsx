@@ -118,6 +118,10 @@ describe("callback detail page", () => {
 
     await screen.findByRole("form", { name: "View callback" });
     expect(screen.getByText("Read-only callback")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Override" })).toHaveAttribute(
+      "href",
+      "/callbacks/new?from=cb-file",
+    );
     expect(
       screen.queryByRole("button", { name: "Save" }),
     ).not.toBeInTheDocument();
@@ -209,10 +213,11 @@ describe("callback detail page actions menu", () => {
     expect(router.push).toHaveBeenCalledWith("/callbacks?q=payment");
   });
 
-  it("offers only Fire for a read-only callback", async () => {
+  it("offers Fire and Override for a read-only callback", async () => {
     givenRoute({
       pathname: "/callbacks/cb-file",
       params: { id: "cb-file" },
+      search: "q=file",
     });
     givenApi({
       callbacks: [
@@ -239,6 +244,11 @@ describe("callback detail page actions menu", () => {
     expect(
       screen.queryByRole("menuitem", { name: "View" }),
     ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("menuitem", { name: "Override" }));
+    expect(router.push).toHaveBeenCalledWith(
+      "/callbacks/new?q=file&from=cb-file",
+    );
   });
 });
 
@@ -286,12 +296,19 @@ describe("callback detail page conflicts", () => {
       "callbacks/payments.hcl",
     );
 
+    expect(
+      screen.queryByRole("button", { name: "Override" }),
+    ).not.toBeInTheDocument();
+
     await user.click(
       screen.getByRole("button", { name: "Actions for payment-approved" }),
     );
     await screen.findByRole("menu");
     expect(
       screen.queryByRole("menuitem", { name: "Fire" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Override" }),
     ).not.toBeInTheDocument();
   });
 

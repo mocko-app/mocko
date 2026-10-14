@@ -198,6 +198,10 @@ const CallbacksPage: React.FC = () => {
     router.push(buildCallbackUrl(id, search));
   }
 
+  function handleOverride(id: string) {
+    router.push(buildNewCallbackUrl(search, id));
+  }
+
   async function handleFireConfirm(definition: CallbackDto, payload: unknown) {
     setIsFiring(true);
     try {
@@ -410,17 +414,24 @@ const CallbacksPage: React.FC = () => {
                 role="list"
                 aria-label="Callback definitions"
               >
-                {filteredDefinitions.map((definition) => (
-                  <CallbackDefinitionCard
-                    key={definition.id}
-                    definition={definition}
-                    href={buildCallbackUrl(definition.id, search)}
-                    canFire={!isOverriddenByUi(definition, definitions)}
-                    onFire={setFireTarget}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
+                {filteredDefinitions.map((definition) => {
+                  const isOverridden = isOverriddenByUi(
+                    definition,
+                    definitions,
+                  );
+                  return (
+                    <CallbackDefinitionCard
+                      key={definition.id}
+                      definition={definition}
+                      href={buildCallbackUrl(definition.id, search)}
+                      canFire={!isOverridden}
+                      onFire={setFireTarget}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onOverride={isOverridden ? undefined : handleOverride}
+                    />
+                  );
+                })}
               </div>
             )}
             {isFiltered &&

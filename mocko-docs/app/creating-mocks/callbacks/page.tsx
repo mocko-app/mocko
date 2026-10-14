@@ -227,7 +227,11 @@ await mocko.clearPendingCallbacks();`}</DocsCodeBlock>
         </li>
         <li>
           Definitions merge like hosts: a UI-created callback with the same slug
-          as a file-defined one takes precedence.
+          as a file-defined one, ignoring case, takes precedence. Mocks that
+          trigger the slug deliver through the UI callback, and the file one
+          cannot be fired until the UI callback is deleted. To set one up, pick{" "}
+          <strong className="text-foreground">Override</strong> on a file
+          callback: it opens the new callback form prefilled from that callback.
         </li>
         <li>
           <DocsCode>mocko validate</DocsCode> checks callback blocks: target

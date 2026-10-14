@@ -144,7 +144,7 @@ callback "payment-approved" {
 - `Content-Type` defaults to `application/json` when a `body` is set and no header overrides it.
 - An invalid stanza is skipped with a warning (and reported by `mocko validate`); triggering it then fails as an unknown slug.
 - Callback slugs match case-insensitively: `{{callback 'Payment-Approved'}}` and firing `Payment-Approved` both use `payment-approved`.
-- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely. Two file callbacks sharing a slug are reported by `mocko validate` as an error.
+- One callback is used per slug, like hosts: a UI/deployed callback replaces any file callback with the same slug (ignoring case), and the file one is ignored entirely: `{{callback '<slug>'}}` delivers through the UI callback, and firing the file one from the UI or the control API is refused until the UI callback is deleted. This is how to override a file callback without editing the file: in the UI, the file callback's "Override" action opens the new-callback form prefilled from it. Two file callbacks sharing a slug are reported by `mocko validate` as an error.
 
 ## Match priority
 

@@ -1,6 +1,8 @@
 import {
+  createCaptureServer,
   createRedisClient,
   createRedisReplicaSet,
+  createRedisSubject,
   createRedisTestConfig,
   describeRedis,
   flushRedis,
@@ -119,6 +121,66 @@ describeRedis('redis callbacks persistence', () => {
       });
     } finally {
       redisClient.disconnect();
+    }
+  });
+
+  it('overrides a file callback with a ui callback and rejects a second ui callback in redis mode', async () => {
+    const fileTarget = await createCaptureServer();
+    const uiTarget = await createCaptureServer();
+    try {
+      const created = await createRedisSubject({
+        options: { '--ui': true },
+        mode: 'url',
+      });
+      replicas = [created.subject];
+      redis = created.redis;
+      const subject = created.subject;
+
+      await subject.createMock(`
+        callback "overridden" {
+          url = "${fileTarget.url}/from-file"
+        }
+        mock "POST /trigger-overridden" {
+          body = "{{callback 'overridden'}}{}"
+        }
+      `);
+
+      const control = subject.ensureControl();
+      const revision = await subject.getRevision();
+      const createRes = await control.post('/api/callbacks', {
+        slug: 'Overridden',
+        url: `${uiTarget.url}/from-ui`,
+      });
+      expect(createRes.status).toBe(201);
+      await subject.waitForRemap(revision);
+
+      const duplicateRes = await control.post('/api/callbacks', {
+        slug: 'OVERRIDDEN',
+        url: `${uiTarget.url}/second`,
+      });
+      expect(duplicateRes.status).toBe(409);
+      expect(duplicateRes.data.code).toBe('CALLBACK_SLUG_CONFLICT');
+
+      const triggerRes = await subject.client.post('/trigger-overridden', {});
+      expect(triggerRes.status).toBe(201);
+      await uiTarget.waitForRequests(1);
+      expect(uiTarget.requests[0].url).toBe('/from-ui');
+
+      const fileCallback = (await control.get('/api/callbacks')).data.find(
+        (callback: { annotations: string[] }) =>
+          callback.annotations.includes('READ_ONLY'),
+      );
+      expect(fileCallback.annotations).toEqual(['READ_ONLY', 'SHADOWED']);
+      const fireRes = await control.post(
+        `/api/callbacks/${fileCallback.id}/fire`,
+        {},
+      );
+      expect(fireRes.status).toBe(409);
+      expect(fireRes.data.code).toBe('CALLBACK_SHADOWED');
+      expect(fileTarget.requests).toHaveLength(0);
+    } finally {
+      await fileTarget.stop();
+      await uiTarget.stop();
     }
   });
 });

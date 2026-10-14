@@ -18,8 +18,16 @@ export function buildCallbackUrl(id: string, search: string): string {
   return withSearch(`/callbacks/${id}`, search);
 }
 
-export function buildNewCallbackUrl(search: string): string {
-  return withSearch("/callbacks/new", search);
+export function buildNewCallbackUrl(search: string, from?: string): string {
+  const params = new URLSearchParams();
+  if (search) {
+    params.set("q", search);
+  }
+  if (from) {
+    params.set("from", from);
+  }
+  const query = params.toString();
+  return query ? `/callbacks/new?${query}` : "/callbacks/new";
 }
 
 export function parseCallbackListParams(

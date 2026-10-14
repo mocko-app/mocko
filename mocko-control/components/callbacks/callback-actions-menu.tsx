@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  LayersIcon,
   MoreHorizontalIcon,
   PencilIcon,
   TrashIcon,
@@ -22,7 +23,16 @@ export const CallbackActionsMenu: React.FC<{
   onFire: (definition: CallbackDto) => void;
   onDelete: (definition: CallbackDto) => void;
   onEdit?: (id: string) => void;
-}> = ({ definition, trigger, canFire, onFire, onDelete, onEdit }) => {
+  onOverride?: (id: string) => void;
+}> = ({
+  definition,
+  trigger,
+  canFire,
+  onFire,
+  onDelete,
+  onEdit,
+  onOverride,
+}) => {
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
   return (
@@ -35,6 +45,12 @@ export const CallbackActionsMenu: React.FC<{
           <DropdownMenuItem onClick={() => onEdit(definition.id)}>
             <PencilIcon aria-hidden="true" />
             {isReadOnly ? "View" : "Edit"}
+          </DropdownMenuItem>
+        )}
+        {isReadOnly && onOverride && (
+          <DropdownMenuItem onClick={() => onOverride(definition.id)}>
+            <LayersIcon aria-hidden="true" />
+            Override
           </DropdownMenuItem>
         )}
         {canFire && (

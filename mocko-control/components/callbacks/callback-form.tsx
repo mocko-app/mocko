@@ -10,6 +10,7 @@ import { ConfirmDiscardDialog } from "@/components/confirm-discard-dialog";
 import { CopyButton } from "@/components/copy-button";
 import { HeadersEditor } from "@/components/headers-editor";
 import { BodyEditor } from "@/components/monaco-editor";
+import { OverrideButton } from "@/components/override";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { buildNewCallbackUrl } from "@/lib/callback/callback-list-url";
 import { useHosts } from "@/lib/frontend/hooks/resources";
+import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import {
   useCallbackForm,
   type CallbackTargetMode,
@@ -116,6 +119,7 @@ export function CallbackForm({
     Boolean(initial?.conflict?.related.some((item) => item.origin === "UI"));
   const title = getFormTitle(mode, isReadOnly);
   const { data: hosts } = useHosts();
+  const listParams = useCallbackListParams();
   const {
     confirmDiscard,
     errors,
@@ -135,6 +139,10 @@ export function CallbackForm({
     (host) => host.slug,
   );
   const hasNoHosts = hosts !== undefined && hostSlugs.length === 0;
+  const overrideUrl =
+    isReadOnly && !isOverriddenByUi && initial
+      ? buildNewCallbackUrl(listParams.search, initial.id)
+      : undefined;
 
   return (
     <form
@@ -171,6 +179,9 @@ export function CallbackForm({
               canFire={!isOverriddenByUi}
               onFire={(definition) => onFire?.(definition)}
               onDelete={(definition) => onDelete?.(definition)}
+              onOverride={
+                overrideUrl ? () => navigateWithGuard(overrideUrl) : undefined
+              }
             />
           )}
         </div>
@@ -189,7 +200,12 @@ export function CallbackForm({
         <Callout
           variant="info"
           title="Read-only callback"
-          message="This callback is defined in a .hcl file and cannot be edited here."
+          message={
+            overrideUrl
+              ? "This callback is defined in a .hcl file and cannot be edited here. Edit the file, or override it with a UI callback, which takes priority."
+              : "This callback is defined in a .hcl file and cannot be edited here."
+          }
+          action={overrideUrl && <OverrideButton href={overrideUrl} />}
         />
       )}
 

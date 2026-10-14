@@ -1,5 +1,6 @@
 import { $template } from "bigodon/dist/parser";
 import { State } from "pierrejs";
+import { isFileDefinition } from "@/lib/conflict/conflicts";
 import { HttpResponseError } from "@/lib/http";
 import { getStore } from "@/lib/store";
 import type { Store } from "@/lib/store/store";
@@ -33,7 +34,11 @@ export class CallbackService {
   async createCallback(data: CreateCallbackInput): Promise<Callback> {
     const callbacks = await this.store.listCallbacks();
     const slug = data.slug.toLowerCase();
-    if (callbacks.some((callback) => callback.slug.toLowerCase() === slug)) {
+    const taken = callbacks.some(
+      (callback) =>
+        !isFileDefinition(callback) && callback.slug.toLowerCase() === slug,
+    );
+    if (taken) {
       throw HttpResponseError.callbackSlugConflict(data.slug);
     }
 
