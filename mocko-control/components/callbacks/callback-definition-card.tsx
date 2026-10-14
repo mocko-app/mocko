@@ -19,10 +19,11 @@ const METHOD_COLORS: Record<CallbackMethod, string> = {
 
 export const CallbackDefinitionCard: React.FC<{
   definition: CallbackDto;
+  href: string;
   onFire: (definition: CallbackDto) => void;
   onEdit: (slug: string) => void;
   onDelete: (definition: CallbackDto) => void;
-}> = ({ definition, onFire, onEdit, onDelete }) => {
+}> = ({ definition, href, onFire, onEdit, onDelete }) => {
   const displayName = definition.name || definition.slug;
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
@@ -33,7 +34,7 @@ export const CallbackDefinitionCard: React.FC<{
       aria-label={`Callback: ${displayName}`}
     >
       <Link
-        href={`/callbacks/${definition.slug}`}
+        href={href}
         aria-label={`Open ${displayName}`}
         className="absolute inset-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
       />

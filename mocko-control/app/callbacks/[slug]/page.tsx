@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -9,15 +9,18 @@ import { CallbackFormSkeleton } from "@/components/detail-form-skeleton";
 import { CallbackForm } from "@/components/callbacks/callback-form";
 import { FireCallbackDialog } from "@/components/callbacks/fire-callback-dialog";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { buildCallbackListUrl } from "@/lib/callback/callback-list-url";
 import { ApiError, deleteCallback, fireCallback } from "@/lib/frontend/api";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useCallbackDefinition } from "@/lib/frontend/hooks/resources";
+import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 import type { CallbackDto } from "@/lib/types/callback-dtos";
 
-export default function CallbackDetailPage() {
+function CallbackDetailPageInner() {
   const router = useRouter();
   const { mutate } = useSWRConfig();
+  const listParams = useCallbackListParams();
   const slug = useParam("slug");
   const { data: callback, error, isLoading } = useCallbackDefinition(slug);
   const [isFireOpen, setIsFireOpen] = useState(false);
@@ -70,7 +73,7 @@ export default function CallbackDetailPage() {
       await deleteCallback(callback.slug);
       await mutate("/api/callbacks");
       toast.success("Callback deleted.");
-      router.push("/callbacks");
+      router.push(buildCallbackListUrl(listParams.search));
     } catch {
       toast.error("Failed to delete callback.");
     }
@@ -110,5 +113,13 @@ export default function CallbackDetailPage() {
         </ConfirmDeleteDialog>
       )}
     </>
+  );
+}
+
+export default function CallbackDetailPage() {
+  return (
+    <Suspense>
+      <CallbackDetailPageInner />
+    </Suspense>
   );
 }

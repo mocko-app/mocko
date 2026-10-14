@@ -10,6 +10,8 @@ import {
   patchCallback,
   toFormValidationErrors,
 } from "@/lib/frontend/api";
+import { buildCallbackListUrl } from "@/lib/callback/callback-list-url";
+import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import { useUnsavedChangesGuard } from "@/lib/frontend/hooks/use-unsaved-changes-guard";
 import type { CallbackMethod } from "@/lib/types/callback";
 import type { CallbackDto, PatchCallbackDto } from "@/lib/types/callback-dtos";
@@ -123,6 +125,8 @@ export function useCallbackForm(
   mode: CallbackFormMode,
 ) {
   const router = useRouter();
+  const listParams = useCallbackListParams();
+  const listUrl = buildCallbackListUrl(listParams.search);
   const [form, setForm] = useState<CallbackFormState>(() =>
     getInitialFormState(initial),
   );
@@ -221,7 +225,7 @@ export function useCallbackForm(
       }
 
       await mutate("/api/callbacks");
-      router.push("/callbacks");
+      router.push(listUrl);
     } catch (error) {
       if (
         error instanceof ApiError &&
@@ -261,6 +265,7 @@ export function useCallbackForm(
     isDirty,
     isSubmitting,
     keepEditing,
+    listUrl,
     navigateWithGuard,
     set,
     showErrors,

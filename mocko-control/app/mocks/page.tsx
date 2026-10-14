@@ -11,10 +11,10 @@ import { LabelFilterBar } from "@/components/label-filter-bar";
 import { ListPageHeader } from "@/components/list-page-header";
 import { MockCard } from "@/components/mock-card";
 import {
-  EmptyMocks,
   EmptySearchResult,
   FilteredOutNotice,
-} from "@/components/mocks-empty-states";
+} from "@/components/list-filter-states";
+import { EmptyMocks } from "@/components/mocks-empty-states";
 import {
   LabelBarSkeleton,
   MocksListSkeleton,
@@ -215,7 +215,11 @@ const MocksPage: React.FC = () => {
       {isLoading && <MocksListSkeleton />}
 
       {!isLoading && filtered.length === 0 && isFiltered && (
-        <EmptySearchResult onClear={clearFilters} />
+        <EmptySearchResult
+          message="No mocks match the current filters."
+          clearLabel="Clear filters"
+          onClear={clearFilters}
+        />
       )}
 
       {!isLoading && filtered.length === 0 && !isFiltered && <EmptyMocks />}
@@ -243,6 +247,9 @@ const MocksPage: React.FC = () => {
           {isFiltered && filteredOutCount > 0 && (
             <FilteredOutNotice
               count={filteredOutCount}
+              singular="mock"
+              plural="mocks"
+              clearLabel="Clear filters"
               onClear={clearFilters}
             />
           )}

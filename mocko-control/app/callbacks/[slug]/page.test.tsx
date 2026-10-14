@@ -172,8 +172,13 @@ describe("callback detail page actions menu", () => {
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("deletes the callback from the header menu after confirmation", async () => {
+  it("deletes from the header menu and returns to the filtered list", async () => {
     givenEditableCallback();
+    givenRoute({
+      pathname: "/callbacks/payment-approved",
+      params: { slug: "payment-approved" },
+      search: "q=payment",
+    });
     const deletedSlugs: string[] = [];
     server.use(
       http.delete("/api/callbacks/:slug", ({ params }) => {
@@ -199,7 +204,7 @@ describe("callback detail page actions menu", () => {
 
     expect(await screen.findByText("Callback deleted.")).toBeInTheDocument();
     expect(deletedSlugs).toEqual(["payment-approved"]);
-    expect(router.push).toHaveBeenCalledWith("/callbacks");
+    expect(router.push).toHaveBeenCalledWith("/callbacks?q=payment");
   });
 
   it("offers only Fire for a read-only callback", async () => {

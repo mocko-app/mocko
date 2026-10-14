@@ -108,6 +108,7 @@ export function CallbackForm({
     isConfirmingDiscard,
     isSubmitting,
     keepEditing,
+    listUrl,
     navigateWithGuard,
     set,
     showErrors,
@@ -153,7 +154,7 @@ export function CallbackForm({
           variant="ghost"
           size="icon-lg"
           type="button"
-          onClick={() => navigateWithGuard("/callbacks")}
+          onClick={() => navigateWithGuard(listUrl)}
           aria-label="Close and return to callbacks"
         >
           <XIcon aria-hidden="true" />
@@ -415,7 +416,7 @@ export function CallbackForm({
         <Button
           variant="outline"
           type="button"
-          onClick={() => navigateWithGuard("/callbacks")}
+          onClick={() => navigateWithGuard(listUrl)}
         >
           {isReadOnly ? "Close" : "Cancel"}
         </Button>
