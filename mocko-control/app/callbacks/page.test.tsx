@@ -129,8 +129,11 @@ describe("callbacks page fire flow", () => {
 
     const { user } = renderWithProviders(<CallbacksPage />);
     await user.click(
-      await screen.findByRole("button", { name: "Fire payment-approved" }),
+      await screen.findByRole("button", {
+        name: "Actions for payment-approved",
+      }),
     );
+    await user.click(await screen.findByRole("menuitem", { name: "Fire" }));
 
     const dialog = await screen.findByRole("dialog");
     await user.type(
@@ -162,8 +165,11 @@ describe("callbacks page fire flow", () => {
 
     const { user } = renderWithProviders(<CallbacksPage />);
     await user.click(
-      await screen.findByRole("button", { name: "Fire payment-approved" }),
+      await screen.findByRole("button", {
+        name: "Actions for payment-approved",
+      }),
     );
+    await user.click(await screen.findByRole("menuitem", { name: "Fire" }));
 
     const dialog = await screen.findByRole("dialog");
     await user.type(
@@ -206,8 +212,11 @@ describe("callbacks page pending actions", () => {
 
     const { user } = renderWithProviders(<CallbacksPage />);
     await user.click(
-      await screen.findByRole("button", { name: "Fire payment-approved now" }),
+      await screen.findByRole("button", {
+        name: "Actions for pending payment-approved",
+      }),
     );
+    await user.click(await screen.findByRole("menuitem", { name: "Fire now" }));
 
     expect(await screen.findByText("Callback fired.")).toBeInTheDocument();
     expect(firedIds).toEqual(["pending-1"]);
@@ -241,9 +250,10 @@ describe("callbacks page pending actions", () => {
     const { user } = renderWithProviders(<CallbacksPage />);
     await user.click(
       await screen.findByRole("button", {
-        name: "Cancel pending payment-approved",
+        name: "Actions for pending payment-approved",
       }),
     );
+    await user.click(await screen.findByRole("menuitem", { name: "Cancel" }));
 
     expect(
       await screen.findByText("Pending callback cancelled."),
