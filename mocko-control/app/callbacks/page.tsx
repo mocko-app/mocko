@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { HourglassIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Callout } from "@/components/callout";
@@ -11,9 +11,21 @@ import { FireCallbackDialog } from "@/components/callbacks/fire-callback-dialog"
 import { PendingCallbackCard } from "@/components/callbacks/pending-callback-card";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/empty-state";
+import {
+  EmptySearchResult,
+  FilteredOutNotice,
+} from "@/components/list-filter-states";
 import { ListPageHeader } from "@/components/list-page-header";
+import { PageSearchInput } from "@/components/page-search-input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  buildCallbackListUrl,
+  buildCallbackUrl,
+  buildNewCallbackUrl,
+  parseCallbackListParams,
+} from "@/lib/callback/callback-list-url";
+import { filterCallbacks } from "@/lib/callback/filter";
 import {
   cancelPendingCallback,
   clearPendingCallbacks,
@@ -32,6 +44,7 @@ import {
   useMocks,
   usePendingCallbacks,
 } from "@/lib/frontend/hooks/resources";
+import { replaceUrl } from "@/lib/frontend/replace-url";
 import type {
   CallbackDto,
   PendingCallbackDto,
@@ -39,7 +52,7 @@ import type {
 
 const SectionHeader: React.FC<{
   title: string;
-  count: number;
+  count: React.ReactNode;
   actions?: React.ReactNode;
 }> = ({ title, count, actions }) => {
   return (
@@ -54,6 +67,8 @@ const SectionHeader: React.FC<{
     </div>
   );
 };
+
+const EMPTY_DEFINITIONS: CallbackDto[] = [];
 
 const CallbacksListSkeleton: React.FC = () => {
   return (
@@ -98,6 +113,13 @@ const DocsLink: React.FC = () => (
 const CallbacksPage: React.FC = () => {
   useDocumentTitle("Callbacks");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const { search } = useMemo(
+    () => parseCallbackListParams(new URLSearchParams(query)),
+    [query],
+  );
+  const [searchInputValue, setSearchInputValue] = useState(search);
   const now = useNow(1000);
   const {
     data: definitionsData,
@@ -118,15 +140,38 @@ const CallbacksPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<CallbackDto>();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const definitions = definitionsData ?? [];
+  const definitions = definitionsData ?? EMPTY_DEFINITIONS;
   const pending = pendingData?.pending ?? [];
   const isSupported = pendingData?.isSupported ?? true;
   const isLoading = isLoadingDefinitions || isLoadingPending;
   const error = definitionsError || pendingError;
 
+  useEffect(() => {
+    setSearchInputValue(search);
+  }, [search]);
+
+  useEffect(() => {
+    const canonical = buildCallbackListUrl(search);
+    const current = query ? `/callbacks?${query}` : "/callbacks";
+    if (canonical !== current) {
+      replaceUrl(canonical);
+    }
+  }, [query, search]);
+
+  const filteredDefinitions = useMemo(
+    () => filterCallbacks(definitions, search),
+    [definitions, search],
+  );
+  const isFiltered = search.length > 0;
+  const filteredOutCount = definitions.length - filteredDefinitions.length;
+  const definitionsNoun = definitions.length === 1 ? "callback" : "callbacks";
+  const definitionsCount = isFiltered
+    ? `${filteredDefinitions.length} of ${definitions.length} ${definitionsNoun}`
+    : `${definitions.length} ${definitionsNoun}`;
+
   const countsDescription =
     !isSupported || error ? undefined : definitionsData && pendingData ? (
-      `${definitions.length} ${definitions.length === 1 ? "callback" : "callbacks"} · ${pending.length} pending`
+      `${definitionsCount} · ${pending.length} pending`
     ) : isLoading ? (
       <Skeleton className="my-0.5 h-4 w-28" />
     ) : undefined;
@@ -139,8 +184,17 @@ const CallbacksPage: React.FC = () => {
     return mocksData?.find((mock) => mock.id === mockId)?.name;
   }
 
+  function handleSearchChange(value: string) {
+    setSearchInputValue(value);
+    replaceUrl(buildCallbackListUrl(value));
+  }
+
+  function clearSearch() {
+    handleSearchChange("");
+  }
+
   function handleEdit(slug: string) {
-    router.push(`/callbacks/${slug}`);
+    router.push(buildCallbackUrl(slug, search));
   }
 
   async function handleFireConfirm(definition: CallbackDto, payload: unknown) {
@@ -224,7 +278,10 @@ const CallbacksPage: React.FC = () => {
             <Button
               nativeButton={false}
               render={
-                <Link href="/callbacks/new" aria-label="Add new callback" />
+                <Link
+                  href={buildNewCallbackUrl(search)}
+                  aria-label="Add new callback"
+                />
               }
             >
               <PlusIcon aria-hidden="true" />
@@ -327,22 +384,58 @@ const CallbacksPage: React.FC = () => {
               </div>
             )}
 
-            <SectionHeader title="Definitions" count={definitions.length} />
-            <div
-              className="flex flex-col gap-2"
-              role="list"
-              aria-label="Callback definitions"
-            >
-              {definitions.map((definition) => (
-                <CallbackDefinitionCard
-                  key={definition.slug}
-                  definition={definition}
-                  onFire={setFireTarget}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
+            <SectionHeader
+              title="Definitions"
+              count={
+                isFiltered
+                  ? `${filteredDefinitions.length} / ${definitions.length}`
+                  : definitions.length
+              }
+            />
+            {definitions.length > 0 && (
+              <PageSearchInput
+                className="mb-3"
+                value={searchInputValue}
+                onChange={handleSearchChange}
+                placeholder="Search callbacks…"
+                ariaLabel="Search callbacks"
+              />
+            )}
+            {definitions.length > 0 && filteredDefinitions.length === 0 ? (
+              <EmptySearchResult
+                message="No callbacks match your search."
+                clearLabel="Clear search"
+                onClear={clearSearch}
+              />
+            ) : (
+              <div
+                className="flex flex-col gap-2"
+                role="list"
+                aria-label="Callback definitions"
+              >
+                {filteredDefinitions.map((definition) => (
+                  <CallbackDefinitionCard
+                    key={definition.slug}
+                    definition={definition}
+                    href={buildCallbackUrl(definition.slug, search)}
+                    onFire={setFireTarget}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+            {isFiltered &&
+              filteredDefinitions.length > 0 &&
+              filteredOutCount > 0 && (
+                <FilteredOutNotice
+                  count={filteredOutCount}
+                  singular="callback"
+                  plural="callbacks"
+                  clearLabel="Clear search"
+                  onClear={clearSearch}
                 />
-              ))}
-            </div>
+              )}
           </>
         )}
 
@@ -375,4 +468,10 @@ const CallbacksPage: React.FC = () => {
   );
 };
 
-export default CallbacksPage;
+export default function CallbacksPageWrapper() {
+  return (
+    <Suspense>
+      <CallbacksPage />
+    </Suspense>
+  );
+}

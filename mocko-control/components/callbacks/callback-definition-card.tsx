@@ -1,21 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import {
-  MoreHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-  ZapIcon,
-} from "lucide-react";
+import { CallbackActionsMenu } from "@/components/callbacks/callback-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { targetLabel } from "@/lib/callback/callback-format";
 import type { CallbackMethod } from "@/lib/types/callback";
 import type { CallbackDto } from "@/lib/types/callback-dtos";
@@ -31,10 +19,11 @@ const METHOD_COLORS: Record<CallbackMethod, string> = {
 
 export const CallbackDefinitionCard: React.FC<{
   definition: CallbackDto;
+  href: string;
   onFire: (definition: CallbackDto) => void;
   onEdit: (slug: string) => void;
   onDelete: (definition: CallbackDto) => void;
-}> = ({ definition, onFire, onEdit, onDelete }) => {
+}> = ({ definition, href, onFire, onEdit, onDelete }) => {
   const displayName = definition.name || definition.slug;
   const isReadOnly = definition.annotations.includes("READ_ONLY");
 
@@ -45,7 +34,7 @@ export const CallbackDefinitionCard: React.FC<{
       aria-label={`Callback: ${displayName}`}
     >
       <Link
-        href={`/callbacks/${definition.slug}`}
+        href={href}
         aria-label={`Open ${displayName}`}
         className="absolute inset-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
       />
@@ -87,53 +76,21 @@ export const CallbackDefinitionCard: React.FC<{
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 pointer-events-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onFire(definition)}
-            aria-label={`Fire ${displayName}`}
-          >
-            <ZapIcon aria-hidden="true" />
-            Fire
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
-                  aria-label={`Actions for ${displayName}`}
-                />
-              }
-            >
-              <MoreHorizontalIcon aria-hidden="true" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {!isReadOnly ? (
-                <>
-                  <DropdownMenuItem onClick={() => onEdit(definition.slug)}>
-                    <PencilIcon aria-hidden="true" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => onDelete(definition)}
-                  >
-                    <TrashIcon aria-hidden="true" />
-                    Delete
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <DropdownMenuItem onClick={() => onEdit(definition.slug)}>
-                  <PencilIcon aria-hidden="true" />
-                  View
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center shrink-0 pointer-events-auto">
+          <CallbackActionsMenu
+            definition={definition}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-[#444] hover:text-[#888] hover:bg-transparent focus-visible:text-[#888]"
+                aria-label={`Actions for ${displayName}`}
+              />
+            }
+            onFire={onFire}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         </div>
       </div>
     </div>

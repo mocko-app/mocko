@@ -1,16 +1,31 @@
 "use client";
 
+import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
+import { toast } from "sonner";
 import { Callout } from "@/components/callout";
 import { CallbackFormSkeleton } from "@/components/detail-form-skeleton";
 import { CallbackForm } from "@/components/callbacks/callback-form";
-import { ApiError } from "@/lib/frontend/api";
+import { FireCallbackDialog } from "@/components/callbacks/fire-callback-dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { buildCallbackListUrl } from "@/lib/callback/callback-list-url";
+import { ApiError, deleteCallback, fireCallback } from "@/lib/frontend/api";
 import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useCallbackDefinition } from "@/lib/frontend/hooks/resources";
+import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import { useParam } from "@/lib/frontend/hooks/use-param";
+import type { CallbackDto } from "@/lib/types/callback-dtos";
 
-export default function CallbackDetailPage() {
+function CallbackDetailPageInner() {
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
+  const listParams = useCallbackListParams();
   const slug = useParam("slug");
   const { data: callback, error, isLoading } = useCallbackDefinition(slug);
+  const [isFireOpen, setIsFireOpen] = useState(false);
+  const [isFiring, setIsFiring] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   useDocumentTitle(slug ? `Edit: ${slug}` : "Edit callback");
 
   if (isLoading) {
@@ -35,5 +50,76 @@ export default function CallbackDetailPage() {
     );
   }
 
-  return <CallbackForm initial={callback} mode="edit" />;
+  async function handleFireConfirm(definition: CallbackDto, payload: unknown) {
+    setIsFiring(true);
+    try {
+      await fireCallback(definition.slug, payload);
+      await mutate("/api/callbacks/pending");
+      toast.success("Callback fired.");
+      setIsFireOpen(false);
+    } catch {
+      toast.error("Failed to fire callback.");
+    } finally {
+      setIsFiring(false);
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    if (!callback) {
+      return;
+    }
+
+    try {
+      await deleteCallback(callback.slug);
+      await mutate("/api/callbacks");
+      toast.success("Callback deleted.");
+      router.push(buildCallbackListUrl(listParams.search));
+    } catch {
+      toast.error("Failed to delete callback.");
+    }
+  }
+
+  return (
+    <>
+      <CallbackForm
+        initial={callback}
+        mode="edit"
+        onFire={() => setIsFireOpen(true)}
+        onDelete={() => setIsConfirmingDelete(true)}
+      />
+      {isFireOpen && (
+        <FireCallbackDialog
+          definition={callback}
+          isFiring={isFiring}
+          onFire={handleFireConfirm}
+          onClose={() => !isFiring && setIsFireOpen(false)}
+        />
+      )}
+      {isConfirmingDelete && (
+        <ConfirmDeleteDialog
+          open={true}
+          title="Delete callback"
+          itemLabel={callback.slug}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setIsConfirmingDelete(false)}
+          onDontAskAgain={() => {}}
+          showDontAskAgain={false}
+        >
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground font-mono">
+            {callback.slug}
+          </span>
+          ? Mocks triggering this callback will fail until it is recreated.
+        </ConfirmDeleteDialog>
+      )}
+    </>
+  );
+}
+
+export default function CallbackDetailPage() {
+  return (
+    <Suspense>
+      <CallbackDetailPageInner />
+    </Suspense>
+  );
 }
