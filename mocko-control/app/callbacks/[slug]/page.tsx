@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Callout } from "@/components/callout";
 import { CallbackFormSkeleton } from "@/components/detail-form-skeleton";
 import { CallbackForm } from "@/components/callbacks/callback-form";
@@ -8,7 +9,7 @@ import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useCallbackDefinition } from "@/lib/frontend/hooks/resources";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 
-export default function CallbackDetailPage() {
+function CallbackDetailPageInner() {
   const slug = useParam("slug");
   const { data: callback, error, isLoading } = useCallbackDefinition(slug);
   useDocumentTitle(slug ? `Edit: ${slug}` : "Edit callback");
@@ -36,4 +37,12 @@ export default function CallbackDetailPage() {
   }
 
   return <CallbackForm initial={callback} mode="edit" />;
+}
+
+export default function CallbackDetailPage() {
+  return (
+    <Suspense>
+      <CallbackDetailPageInner />
+    </Suspense>
+  );
 }
