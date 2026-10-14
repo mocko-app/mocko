@@ -47,7 +47,11 @@ import {
   usePendingCallbacks,
 } from "@/lib/frontend/hooks/resources";
 import { replaceUrl } from "@/lib/frontend/replace-url";
-import { findBySlugPreferringUi, isOverriddenByUi } from "@/lib/utils/slugs";
+import {
+  findBySlugPreferringUi,
+  isOverriddenByUi,
+  overridesFileDefinition,
+} from "@/lib/utils/slugs";
 import type {
   CallbackDto,
   PendingCallbackDto,
@@ -488,7 +492,10 @@ const CallbacksPage: React.FC = () => {
           <span className="font-medium text-foreground font-mono">
             {deleteTarget.slug}
           </span>
-          ? Mocks triggering this callback will fail until it is recreated.
+          ?{" "}
+          {overridesFileDefinition(deleteTarget, definitions)
+            ? "The file callback with the same slug takes over again."
+            : "Mocks triggering this callback will fail until it is recreated."}
         </ConfirmDeleteDialog>
       )}
     </div>

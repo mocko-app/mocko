@@ -16,6 +16,7 @@ import { useCallbackDefinition } from "@/lib/frontend/hooks/resources";
 import { useCallbackListParams } from "@/lib/frontend/hooks/use-callback-list-params";
 import { useParam } from "@/lib/frontend/hooks/use-param";
 import type { CallbackDto } from "@/lib/types/callback-dtos";
+import { fileTakesOverOnDelete } from "@/lib/utils/slugs";
 
 function CallbackDetailPageInner() {
   const router = useRouter();
@@ -109,7 +110,12 @@ function CallbackDetailPageInner() {
           <span className="font-medium text-foreground font-mono">
             {callback.slug}
           </span>
-          ? Mocks triggering this callback will fail until it is recreated.
+          ?{" "}
+          {fileTakesOverOnDelete(
+            callback.conflict?.related.map((item) => item.origin) ?? [],
+          )
+            ? "The file callback with the same slug takes over again."
+            : "Mocks triggering this callback will fail until it is recreated."}
         </ConfirmDeleteDialog>
       )}
     </>

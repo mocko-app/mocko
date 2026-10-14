@@ -1083,3 +1083,62 @@ describe("callbacks page search across callback detail", () => {
     await expectListKeepsSearch();
   });
 });
+
+describe("callbacks page delete confirmation copy", () => {
+  async function openDeleteDialog(slug: string) {
+    const { user } = renderWithProviders(<CallbacksPage />);
+    await user.click(
+      await screen.findByRole("button", { name: `Actions for ${slug}` }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    return await screen.findByRole("dialog");
+  }
+
+  it("says the file callback takes over when deleting its ui override", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({ id: "cb-ui", slug: "Payment-Approved", annotations: [] }),
+        aCallback({
+          id: "cb-file",
+          slug: "payment-approved",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+
+    const dialog = await openDeleteDialog("Payment-Approved");
+
+    expect(dialog).toHaveTextContent(
+      "The file callback with the same slug takes over again.",
+    );
+    expect(dialog).not.toHaveTextContent("will fail");
+  });
+
+  it("keeps the failure warning while another ui callback shares the slug", async () => {
+    givenApi({
+      callbacks: [
+        aCallback({
+          id: "cb-ui-1",
+          slug: "payment-approved",
+          annotations: ["CONFLICT"],
+        }),
+        aCallback({
+          id: "cb-ui-2",
+          slug: "Payment-Approved",
+          annotations: ["CONFLICT"],
+        }),
+        aCallback({
+          id: "cb-file",
+          slug: "payment-approved",
+          annotations: ["READ_ONLY", "CONFLICT"],
+        }),
+      ],
+    });
+
+    const dialog = await openDeleteDialog("Payment-Approved");
+
+    expect(dialog).toHaveTextContent(
+      "Mocks triggering this callback will fail until it is recreated.",
+    );
+  });
+});

@@ -201,6 +201,9 @@ describe("callback detail page actions menu", () => {
     await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
 
     const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "Mocks triggering this callback will fail until it is recreated.",
+    );
     expect(deletedIds).toEqual([]);
     await user.click(
       within(dialog).getByRole("button", {
@@ -310,6 +313,41 @@ describe("callback detail page conflicts", () => {
     expect(
       screen.queryByRole("menuitem", { name: "Override" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("says the file callback takes over when deleting the ui override", async () => {
+    givenCallbackDetails(
+      aCallbackDetails({
+        id: "cb-ui",
+        slug: "payment-approved",
+        conflict: {
+          role: "active",
+          related: [
+            {
+              id: "cb-file",
+              slug: "payment-approved",
+              name: undefined,
+              method: "POST",
+              filePath: "callbacks.hcl",
+              origin: "FILE",
+            },
+          ],
+        },
+      }),
+    );
+    const { user } = renderWithProviders(<CallbackDetailPage />);
+    await screen.findByRole("form", { name: "Edit callback" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Actions for payment-approved" }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "The file callback with the same slug takes over again.",
+    );
+    expect(dialog).not.toHaveTextContent("will fail");
   });
 
   it("keeps Fire for the UI callback shadowing a file callback", async () => {

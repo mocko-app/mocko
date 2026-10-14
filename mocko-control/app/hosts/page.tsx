@@ -21,7 +21,7 @@ import { useDocumentTitle } from "@/lib/frontend/hooks/use-document-title";
 import { useHosts } from "@/lib/frontend/hooks/resources";
 import { buildNewHostUrl } from "@/lib/host/host-url";
 import type { HostDto } from "@/lib/types/host-dtos";
-import { isOverriddenByUi } from "@/lib/utils/slugs";
+import { isOverriddenByUi, overridesFileDefinition } from "@/lib/utils/slugs";
 
 const HostsListSkeleton: React.FC = () => {
   return (
@@ -182,8 +182,10 @@ const HostsPage: React.FC = () => {
           <span className="font-medium text-foreground font-mono">
             {deleteTarget.slug}
           </span>
-          ? This will remove the host permanently. Mocks referencing this host
-          will no longer be scoped.
+          ?{" "}
+          {overridesFileDefinition(deleteTarget, hosts)
+            ? "The file host with the same slug takes over again, with its own source and destination."
+            : "This will remove the host permanently. Mocks referencing this host will no longer be scoped."}
         </ConfirmDeleteDialog>
       )}
     </div>
