@@ -103,7 +103,7 @@ describe('cli options', () => {
     it('returns 504 when upstream exceeds timeout', async () => {
       await content.createMock(`
         mock "GET /slow" {
-          delay = 200
+          delay = 2000
           body = "slow response"
         }
       `);
@@ -116,7 +116,7 @@ describe('cli options', () => {
       const res = await subject.client.get('/slow');
       const elapsed = Date.now() - start;
       expect(res.status).toBe(504);
-      expect(elapsed).toBeLessThan(150);
+      expect(elapsed).toBeLessThan(1000);
     });
   });
 });

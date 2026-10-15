@@ -166,7 +166,7 @@ export function CallbackForm({
               />
             )}
           </div>
-          {mode === "edit" && initial && (
+          {mode === "edit" && initial && !isOverriddenByUi && (
             <CallbackActionsMenu
               definition={initial}
               trigger={

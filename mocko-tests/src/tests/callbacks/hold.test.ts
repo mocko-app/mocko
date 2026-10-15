@@ -226,7 +226,7 @@ describe('fire now pre-check (storeless)', () => {
 
   it('refuses to fire when the definition was removed and keeps the callbacks', async () => {
     const ids = await scheduleScheduledAndHeld();
-    await subject.writeFileAndWaitForRemap(filename, host(capture.url));
+    await subject.writeFileAndRemap(filename, host(capture.url));
 
     for (const id of ids) {
       const res = await subject.client.post(
@@ -242,10 +242,7 @@ describe('fire now pre-check (storeless)', () => {
     ).data.find((item: { id: string }) => item.id === ids[1]);
     expect(held.heldAt).toEqual(expect.any(Number));
 
-    await subject.writeFileAndWaitForRemap(
-      filename,
-      host(capture.url) + callback,
-    );
+    await subject.writeFileAndRemap(filename, host(capture.url) + callback);
     const fired = await subject.client.post(
       `/__mocko__/callbacks/pending/${ids[1]}/fire`,
     );
@@ -256,7 +253,7 @@ describe('fire now pre-check (storeless)', () => {
 
   it('refuses to fire when the host lost its destination and keeps the callbacks', async () => {
     const ids = await scheduleScheduledAndHeld();
-    await subject.writeFileAndWaitForRemap(filename, host(null) + callback);
+    await subject.writeFileAndRemap(filename, host(null) + callback);
 
     for (const id of ids) {
       const res = await subject.client.post(
@@ -269,9 +266,6 @@ describe('fire now pre-check (storeless)', () => {
     await sleep(300);
     expect(capture.requests).toHaveLength(0);
 
-    await subject.writeFileAndWaitForRemap(
-      filename,
-      host(capture.url) + callback,
-    );
+    await subject.writeFileAndRemap(filename, host(capture.url) + callback);
   });
 });

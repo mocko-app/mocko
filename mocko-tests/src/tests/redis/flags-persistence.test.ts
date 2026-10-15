@@ -38,16 +38,18 @@ describeRedis('redis flags persistence', () => {
     }));
 
     const control = subject.ensureControl();
-    const createMockRes = await control.post('/api/mocks', {
-      name: 'flag reader',
-      method: 'GET',
-      path: route,
-      response: {
-        code: 200,
-        body: `{{getFlag '${flagKey}'}}`,
-        headers: {},
-      },
-    });
+    const createMockRes = await subject.withRemap(() =>
+      control.post('/api/mocks', {
+        name: 'flag reader',
+        method: 'GET',
+        path: route,
+        response: {
+          code: 200,
+          body: `{{getFlag '${flagKey}'}}`,
+          headers: {},
+        },
+      }),
+    );
     expect(createMockRes.status).toBe(201);
 
     const putRes = await setControlFlag(control, flagKey, 'active');

@@ -39,16 +39,18 @@ describeRedis('redis mock failures', () => {
     }));
 
     const control = subject.ensureControl();
-    const createRes = await control.post('/api/mocks', {
-      name: 'failing mock',
-      method: 'GET',
-      path: route,
-      response: {
-        code: 200,
-        body: "{{getFlag 'foo::bar'}}",
-        headers: {},
-      },
-    });
+    const createRes = await subject.withRemap(() =>
+      control.post('/api/mocks', {
+        name: 'failing mock',
+        method: 'GET',
+        path: route,
+        response: {
+          code: 200,
+          body: "{{getFlag 'foo::bar'}}",
+          headers: {},
+        },
+      }),
+    );
     expect(createRes.status).toBe(201);
     const createdMock = createRes.data;
 
@@ -109,16 +111,18 @@ describeRedis('redis mock failures', () => {
     }));
 
     const control = subject.ensureControl();
-    const createRes = await control.post('/api/mocks', {
-      name: 'failing mock',
-      method: 'GET',
-      path: route,
-      response: {
-        code: 200,
-        body: "{{getFlag 'foo::bar'}}",
-        headers: {},
-      },
-    });
+    const createRes = await subject.withRemap(() =>
+      control.post('/api/mocks', {
+        name: 'failing mock',
+        method: 'GET',
+        path: route,
+        response: {
+          code: 200,
+          body: "{{getFlag 'foo::bar'}}",
+          headers: {},
+        },
+      }),
+    );
     expect(createRes.status).toBe(201);
     const createdMock = createRes.data;
 

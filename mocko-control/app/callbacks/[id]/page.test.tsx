@@ -286,7 +286,7 @@ describe("callback detail page conflicts", () => {
         },
       }),
     );
-    const { user } = renderWithProviders(<CallbackDetailPage />);
+    renderWithProviders(<CallbackDetailPage />);
 
     await screen.findByRole("form", { name: "View callback" });
     expect(
@@ -303,15 +303,8 @@ describe("callback detail page conflicts", () => {
       screen.queryByRole("button", { name: "Override" }),
     ).not.toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole("button", { name: "Actions for payment-approved" }),
-    );
-    await screen.findByRole("menu");
     expect(
-      screen.queryByRole("menuitem", { name: "Fire" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("menuitem", { name: "Override" }),
+      screen.queryByRole("button", { name: "Actions for payment-approved" }),
     ).not.toBeInTheDocument();
   });
 

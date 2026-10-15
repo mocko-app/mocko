@@ -109,7 +109,7 @@ describe('resilience to malformed input', () => {
     afterAll(() => subject.stop());
 
     it('does not crash when a malformed file is added while running', async () => {
-      await subject.writeFileAndWaitForRemap(
+      await subject.writeFileAndRemap(
         path.join(subject.dir, 'bad.hcl'),
         'this { is not valid hcl !!!',
       );
