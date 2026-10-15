@@ -38,6 +38,11 @@ describe('callback route authorization', () => {
     expect(pendingRes.status).toBe(200);
     expect(pendingRes.data).toHaveLength(1);
 
+    const holdRes = await subject.client.post(
+      `/__mocko__/callbacks/pending/${fireRes.data.id}/hold`,
+    );
+    expect(holdRes.status).toBe(200);
+
     const clearRes = await subject.client.delete(
       '/__mocko__/callbacks/pending',
     );
@@ -70,6 +75,11 @@ describe('callback route authorization', () => {
     );
     expect(unauthorizedPending.status).toBe(401);
 
+    const unauthorizedHold = await subject.client.post(
+      '/__mocko__/callbacks/pending/any-id/hold',
+    );
+    expect(unauthorizedHold.status).toBe(401);
+
     const headers = { Authorization: 'Bearer secret' };
     const fireRes = await subject.client.post(
       '/__mocko__/callbacks/payment-approved/fire',
@@ -84,5 +94,12 @@ describe('callback route authorization', () => {
     );
     expect(pendingRes.status).toBe(200);
     expect(pendingRes.data).toHaveLength(1);
+
+    const holdRes = await subject.client.post(
+      `/__mocko__/callbacks/pending/${fireRes.data.id}/hold`,
+      undefined,
+      { headers },
+    );
+    expect(holdRes.status).toBe(200);
   });
 });

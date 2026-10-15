@@ -5,6 +5,7 @@ import type {
   CoreDeployDefinition,
   CoreFlagDto,
   CoreFlagListDto,
+  CoreHealthDto,
   CoreHostDto,
   CoreMockDetailsDto,
   CoreMockDto,
@@ -43,14 +44,18 @@ export class CoreClient {
   }
 
   async getCoreVersion(): Promise<string | null> {
-    try {
-      const response = await this.http.get<{ version?: string }>(
-        "/__mocko__/health",
-      );
-      return response.data?.version ?? null;
-    } catch {
-      return null;
+    return (await this.getCoreHealth())?.version ?? null;
+  }
+
+  async getCoreCapabilities(): Promise<string[]> {
+    const capabilities = (await this.getCoreHealth())?.capabilities;
+    if (!Array.isArray(capabilities)) {
+      return [];
     }
+
+    return capabilities.filter(
+      (capability): capability is string => typeof capability === "string",
+    );
   }
 
   async deploy(definition: CoreDeployDefinition): Promise<void> {
@@ -133,6 +138,17 @@ export class CoreClient {
     }
   }
 
+  async holdPendingCoreCallback(id: string): Promise<CorePendingCallbackDto> {
+    try {
+      const response = await this.http.post<CorePendingCallbackDto>(
+        `/__mocko__/callbacks/pending/${encodeURIComponent(id)}/hold`,
+      );
+      return response.data;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
   async cancelPendingCoreCallback(id: string): Promise<void> {
     try {
       await this.http.delete(
@@ -203,6 +219,15 @@ export class CoreClient {
       await this.http.delete(`/__mocko__/flags/${encodedKey}`);
     } catch (error) {
       throw this.mapError(error);
+    }
+  }
+
+  private async getCoreHealth(): Promise<CoreHealthDto | null> {
+    try {
+      const response = await this.http.get<CoreHealthDto>("/__mocko__/health");
+      return response.data ?? null;
+    } catch {
+      return null;
     }
   }
 

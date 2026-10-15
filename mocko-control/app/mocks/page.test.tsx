@@ -3,7 +3,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import MocksPage from "./page";
 import EditMockPage from "./[id]/page";
-import { aMock, aMockDetails } from "@/test/fixtures";
+import { aHost, aMock, aMockDetails } from "@/test/fixtures";
 import { givenApi, givenApiError, server } from "@/test/msw";
 import { getRoute, givenRoute, router } from "@/test/navigation";
 import { renderWithProviders } from "@/test/render";
@@ -899,5 +899,30 @@ describe("mocks page conflict badges", () => {
     expect(
       within(plainCard).queryByText("Invalid Template"),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("mocks page host labels", () => {
+  it("marks a mock host as a named host regardless of case", async () => {
+    givenApi({
+      hosts: [aHost({ slug: "backend" })],
+      mocks: [
+        aMock({ name: "Named host mock", host: "BACKEND" }),
+        aMock({ name: "Raw host mock", host: "api.example.com" }),
+      ],
+    });
+    renderWithProviders(<MocksPage />);
+
+    const namedCard = await screen.findByRole("listitem", {
+      name: "Mock: Named host mock",
+    });
+    expect(
+      await within(namedCard).findByText("(@BACKEND)"),
+    ).toBeInTheDocument();
+
+    const rawCard = screen.getByRole("listitem", {
+      name: "Mock: Raw host mock",
+    });
+    expect(within(rawCard).getByText("(api.example.com)")).toBeInTheDocument();
   });
 });

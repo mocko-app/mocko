@@ -248,3 +248,46 @@ describe("hosts page header counts", () => {
     expect(screen.getByText("1 host")).toBeInTheDocument();
   });
 });
+
+describe("hosts page delete confirmation copy", () => {
+  async function openDeleteDialog(slug: string) {
+    const { user } = renderWithProviders(<HostsPage />);
+    await user.click(
+      await screen.findByRole("button", { name: `Actions for ${slug}` }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    return await screen.findByRole("dialog");
+  }
+
+  it("says the file host takes over when deleting its ui override", async () => {
+    givenApi({
+      hosts: [
+        aHost({ id: "ui-id", slug: "Payments", annotations: [] }),
+        aHost({
+          id: "file-id",
+          slug: "payments",
+          annotations: ["READ_ONLY", "SHADOWED"],
+        }),
+      ],
+    });
+
+    const dialog = await openDeleteDialog("Payments");
+
+    expect(dialog).toHaveTextContent(
+      "The file host with the same slug takes over again, with its own source and destination.",
+    );
+    expect(dialog).not.toHaveTextContent("no longer be scoped");
+  });
+
+  it("warns that mocks lose their scope when no file host remains", async () => {
+    givenApi({
+      hosts: [aHost({ id: "ui-id", slug: "payments", annotations: [] })],
+    });
+
+    const dialog = await openDeleteDialog("payments");
+
+    expect(dialog).toHaveTextContent(
+      "Mocks referencing this host will no longer be scoped.",
+    );
+  });
+});

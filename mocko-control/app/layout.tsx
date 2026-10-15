@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import { BottomTabBar } from "@/components/bottom-tab-bar";
 import { Sidebar } from "@/components/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -21,11 +22,15 @@ export const viewport: Viewport = {
   themeColor: "#25d278",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Keep pages dynamic: Next seeds its client route cache from a static
+  // prerender with the hard-load URL's query, and later navigations to that
+  // pathname restore the stale query.
+  await connection();
   return (
     <html lang="en" className="h-full dark">
       <body className="h-full bg-background text-foreground antialiased">

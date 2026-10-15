@@ -69,6 +69,47 @@ describeRedis('callback scheduling on redis', () => {
         await second.subject.stop();
       }
     }, 30_000);
+
+    it('keeps a held callback held across a restart', async () => {
+      capture.clear();
+      const first = await createRedisSubject({ redis });
+      await first.subject.createMock(definitions(capture));
+
+      const fired = await first.subject.client.post(
+        '/__mocko__/callbacks/durable/fire',
+        { payload: { id: 'held-survivor' }, delay: 500 },
+      );
+      const held = await first.subject.client.post(
+        `/__mocko__/callbacks/pending/${fired.data.id}/hold`,
+      );
+      expect(held.status).toBe(200);
+      await first.subject.stop();
+
+      const second = await createRedisSubject({ redis });
+      try {
+        await second.subject.createMock(definitions(capture));
+        await sleep(1500);
+        expect(capture.requests).toHaveLength(0);
+
+        const pending = await second.subject.client.get(
+          '/__mocko__/callbacks/pending',
+        );
+        expect(pending.data).toHaveLength(1);
+        expect(pending.data[0]).toMatchObject({
+          id: fired.data.id,
+          heldAt: held.data.heldAt,
+        });
+
+        const fire = await second.subject.client.post(
+          `/__mocko__/callbacks/pending/${fired.data.id}/fire`,
+        );
+        expect(fire.status).toBe(202);
+        await capture.waitForRequests(1);
+        expect(capture.requests[0].url).toBe('/durable/held-survivor');
+      } finally {
+        await second.subject.stop();
+      }
+    }, 30_000);
   });
 
   describe('multi-replica behavior', () => {
@@ -148,6 +189,44 @@ describeRedis('callback scheduling on redis', () => {
       await sleep(1500);
       expect(capture.requests).toHaveLength(1);
       expect(capture.requests[0].url).toBe('/durable/mock-triggered');
+    }, 30_000);
+
+    it('never delivers a held callback from either replica and fires it exactly once', async () => {
+      capture.clear();
+      const fired = await replicaA.client.post(
+        '/__mocko__/callbacks/durable/fire',
+        { payload: { id: 'held-cluster' }, delay: 800 },
+      );
+      const held = await replicaB.client.post(
+        `/__mocko__/callbacks/pending/${fired.data.id}/hold`,
+      );
+      expect(held.status).toBe(200);
+
+      await sleep(2000);
+      expect(capture.requests).toHaveLength(0);
+
+      const fromA = await replicaA.client.get('/__mocko__/callbacks/pending');
+      expect(fromA.data).toEqual([
+        expect.objectContaining({
+          id: fired.data.id,
+          heldAt: held.data.heldAt,
+        }),
+      ]);
+
+      const fires = await Promise.all([
+        replicaA.client.post(
+          `/__mocko__/callbacks/pending/${fired.data.id}/fire`,
+        ),
+        replicaB.client.post(
+          `/__mocko__/callbacks/pending/${fired.data.id}/fire`,
+        ),
+      ]);
+      expect(fires.map((res) => res.status).sort()).toEqual([202, 404]);
+
+      await capture.waitForRequests(1);
+      await sleep(500);
+      expect(capture.requests).toHaveLength(1);
+      expect(capture.requests[0].url).toBe('/durable/held-cluster');
     }, 30_000);
 
     it('shows a cluster-accurate pending list from any replica', async () => {

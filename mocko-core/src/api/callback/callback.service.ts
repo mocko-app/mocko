@@ -33,18 +33,38 @@ export class CallbackService {
     }
 
     async firePending(id: string): Promise<void> {
-        const pending = await this.scheduler.repository.claim(id);
+        const pending = await this.scheduler.repository.find(id);
         if(!pending) {
-            throw Boom.notFound(`No pending callback found with id '${id}'`);
+            throw this.pendingNotFound(id);
         }
 
-        void this.delivery.deliver(pending);
+        await this.assertTriggerable(pending.slug, Boom.badData);
+        const claimed = await this.scheduler.repository.claim(id);
+        if(!claimed) {
+            throw this.pendingNotFound(id);
+        }
+
+        void this.delivery.deliver(claimed);
+    }
+
+    async holdPending(id: string): Promise<PendingCallbackDto> {
+        const held = await this.scheduler.repository.hold(id, Date.now());
+        if(held) {
+            return PendingCallbackDto.ofPending(held);
+        }
+
+        const existing = await this.scheduler.repository.find(id);
+        if(existing?.heldAt !== undefined) {
+            throw Boom.conflict(`Pending callback '${id}' is already held`);
+        }
+
+        throw this.pendingNotFound(id);
     }
 
     async cancelPending(id: string): Promise<void> {
         const cancelled = await this.scheduler.repository.cancel(id);
         if(!cancelled) {
-            throw Boom.notFound(`No pending callback found with id '${id}'`);
+            throw this.pendingNotFound(id);
         }
     }
 
@@ -52,12 +72,19 @@ export class CallbackService {
         await this.scheduler.repository.clear();
     }
 
-    private async assertTriggerable(slug: string): Promise<void> {
+    private pendingNotFound(id: string): Boom.Boom {
+        return Boom.notFound(`No pending callback found with id '${id}'`);
+    }
+
+    private async assertTriggerable(
+        slug: string,
+        missingDefinitionError: (message: string) => Boom.Boom = Boom.notFound,
+    ): Promise<void> {
         const definitions = await this.definitionProvider.getDefinitions();
         const definition = findCallbackBySlug(definitions.callbacks, slug);
 
         if(!definition) {
-            throw Boom.notFound(`No callback found with slug '${slug}'`);
+            throw missingDefinitionError(`No callback found with slug '${slug}'`);
         }
 
         if(definition.host) {

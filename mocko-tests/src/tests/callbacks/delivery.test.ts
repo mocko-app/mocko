@@ -339,7 +339,7 @@ describe('callback render-at-fire semantics (storeless)', () => {
       delay: 1200,
     });
 
-    await subject.writeFileAndWaitForRemap(
+    await subject.writeFileAndRemap(
       filename,
       definitionWith('version two', capture),
     );
@@ -353,7 +353,7 @@ describe('callback render-at-fire semantics (storeless)', () => {
       delay: 800,
     });
 
-    await subject.writeFileAndWaitForRemap(
+    await subject.writeFileAndRemap(
       filename,
       `
       host "target" {

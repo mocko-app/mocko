@@ -179,11 +179,22 @@ mock "GET /payments/{id}" {
         The control panel&apos;s Callbacks tab lists every scheduled delivery
         with a live countdown, which mock triggered it, and its payload. From
         there you can fire one immediately instead of waiting out a delay,
-        cancel it, or clear everything. Definitions can be fired from their
-        actions menu too, with a payload editor, so you can push a webhook to
-        your service without involving a mock at all. The tab also creates and
-        edits callbacks, the same way it manages{" "}
-        <DocsLink href="/creating-mocks/ui-mocks">UI mocks</DocsLink>;
+        cancel it, hold it, or clear everything.
+      </DocsP>
+      <DocsP>
+        A held callback never fires on its own. It stays at the top of the list
+        until you pick <strong className="text-foreground">Fire now</strong>,
+        which delivers it right away and removes it, or{" "}
+        <strong className="text-foreground">Cancel</strong>. Fire now renders it
+        with the definition as it is at that moment, so you can hold a webhook,
+        run something first, even edit or override the callback, and then send
+        it. Clear all removes held callbacks too.
+      </DocsP>
+      <DocsP>
+        Definitions can be fired from their actions menu too, with a payload
+        editor, so you can push a webhook to your service without involving a
+        mock at all. The tab also creates and edits callbacks, the same way it
+        manages <DocsLink href="/creating-mocks/ui-mocks">UI mocks</DocsLink>;
         file-defined callbacks show as read only.
       </DocsP>
 
@@ -212,7 +223,9 @@ await mocko.clearPendingCallbacks();`}</DocsCodeBlock>
           Because rendering happens at delivery, editing a callback&apos;s body,
           or repointing its host, affects deliveries already scheduled. If the
           definition is deleted while pending, the delivery is dropped with a
-          warning in the server log.
+          warning in the server log. Firing a pending callback by hand checks
+          first: if its definition is gone, or its host no longer exists or has
+          no destination, the fire is refused and the callback stays pending.
         </li>
         <li>
           Delivery failures (connection errors, non-2xx responses) are logged
@@ -222,7 +235,8 @@ await mocko.clearPendingCallbacks();`}</DocsCodeBlock>
           In storeless mode, pending callbacks live in memory and are lost on
           restart. With <DocsLink href="/running/persistence">Redis</DocsLink>{" "}
           they survive restarts and are delivered exactly once across replicas,
-          so long-delayed callbacks, even days out, are safe.
+          so long-delayed callbacks, even days out, are safe. Held callbacks
+          follow the same storage and never expire.
         </li>
         <li>
           Definitions merge like hosts: a UI-created callback with the same slug

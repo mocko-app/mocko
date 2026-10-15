@@ -13,7 +13,6 @@ const WATCHER_READY_TIMEOUT_MS = 10000;
 const WATCHER_BOOTSTRAP_DELAY_MS = 500;
 const REMAP_TIMEOUT_MS = 10000;
 const CONTROL_START_TIMEOUT_MS = 15000;
-const CREATE_MOCK_RETRY_COUNT = 3;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export type InstanceOptions = Record<
@@ -22,6 +21,12 @@ export type InstanceOptions = Record<
 > & {
   mocksFolder?: false;
 };
+
+const liveInstances = new Set<MockoInstance>();
+
+export async function stopAllInstances(): Promise<void> {
+  await Promise.all([...liveInstances].map((instance) => instance.stop()));
+}
 
 export class MockoInstance {
   readonly client: AxiosInstance;
@@ -100,7 +105,9 @@ export class MockoInstance {
         SILENT: 'true',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true,
     });
+    liveInstances.add(this);
     this.proc.stdout?.on('data', (chunk) => {
       this.output += chunk.toString();
     });
@@ -191,25 +198,6 @@ export class MockoInstance {
     }
   }
 
-  async writeFileAndWaitForRemap(
-    filename: string,
-    content: string,
-    retryCount = CREATE_MOCK_RETRY_COUNT,
-  ): Promise<void> {
-    const revision = await this.getRevision();
-    await fs.writeFile(filename, content);
-    if (!this.watchEnabled) {
-      return;
-    }
-
-    await this.waitForRevisionAfterWrite(
-      filename,
-      content,
-      revision,
-      retryCount,
-    );
-  }
-
   async getRevision(): Promise<number> {
     const res = await this.client.get<HealthResponse>('/__mocko__/health');
     return res.data.revision;
@@ -219,11 +207,18 @@ export class MockoInstance {
     revision: number,
     timeout = REMAP_TIMEOUT_MS,
   ): Promise<void> {
-    if (!this.watchEnabled) {
-      return;
-    }
+    await waitForHealth(this.client, revision + 1, timeout);
+    // Revisions only count finished remaps, so a stray one (e.g. the watcher
+    // reacting late to an earlier file write) can satisfy the wait before ours
+    // lands. An explicit remap reads current state, so routes are fresh either way.
+    await this.remap();
+  }
 
-    await this.waitForRevision(revision, timeout);
+  async withRemap<T>(action: () => Promise<T>): Promise<T> {
+    const revision = await this.getRevision();
+    const result = await action();
+    await this.waitForRemap(revision);
+    return result;
   }
 
   async stop(): Promise<void> {
@@ -250,35 +245,8 @@ export class MockoInstance {
     );
   }
 
-  private async waitForRevision(
-    revision: number,
-    timeout: number,
-  ): Promise<void> {
-    await waitForHealth(this.client, revision + 1, timeout);
-  }
-
-  private async waitForRevisionAfterWrite(
-    filename: string,
-    content: string,
-    revision: number,
-    retryCount: number,
-  ): Promise<void> {
-    for (let attempt = 1; attempt <= retryCount; attempt++) {
-      try {
-        await this.waitForRevision(revision, REMAP_TIMEOUT_MS);
-        return;
-      } catch (error) {
-        if (attempt === retryCount) {
-          throw error;
-        }
-
-        await fs.writeFile(filename, content);
-        await sleep(WATCHER_BOOTSTRAP_DELAY_MS);
-      }
-    }
-  }
-
   private async stopProcess(timeout = 5000): Promise<void> {
+    liveInstances.delete(this);
     if (!this.proc || this.exitCode !== null) {
       return;
     }
@@ -298,14 +266,20 @@ export class MockoInstance {
       };
 
       this.proc.once('close', () => done());
-      this.proc.kill('SIGTERM');
+      this.signalProcessGroup('SIGTERM');
 
       timeoutId = setTimeout(() => {
         if (this.exitCode === null) {
-          this.proc.kill('SIGKILL');
+          this.signalProcessGroup('SIGKILL');
         }
         done();
       }, timeout);
     });
+  }
+
+  private signalProcessGroup(signal: NodeJS.Signals): void {
+    try {
+      process.kill(-this.proc.pid!, signal);
+    } catch {}
   }
 }

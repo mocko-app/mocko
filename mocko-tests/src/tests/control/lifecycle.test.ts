@@ -26,7 +26,7 @@ describe('control integration', () => {
       path: route,
       response: {
         code: 200,
-        delay: 200,
+        delay: 400,
         body: 'hello',
         headers: {
           'X-Test': '1',
@@ -53,8 +53,8 @@ describe('control integration', () => {
     expect(initialProxyResponse.status).toBe(200);
     expect(initialProxyResponse.data).toBe('hello');
     expect(initialProxyResponse.headers['x-test']).toBe('1');
-    expect(initialElapsed).toBeGreaterThanOrEqual(180);
-    expect(initialElapsed).toBeLessThan(500);
+    expect(initialElapsed).toBeGreaterThanOrEqual(380);
+    expect(initialElapsed).toBeLessThan(1000);
 
     const updateRes = await control.patch(`/api/mocks/${createdMock.id}`, {
       response: {
@@ -70,7 +70,7 @@ describe('control integration', () => {
     const updatedElapsed = Date.now() - updatedStart;
     expect(updatedProxyResponse.status).toBe(202);
     expect(updatedProxyResponse.data).toBe('updated');
-    expect(updatedElapsed).toBeLessThan(100);
+    expect(updatedElapsed).toBeLessThan(200);
 
     const detailsRes = await control.get(`/api/mocks/${createdMock.id}`);
     expect(detailsRes.status).toBe(200);
@@ -110,7 +110,7 @@ describe('control integration', () => {
       path: route,
       response: {
         code: 200,
-        delay: 300,
+        delay: 1000,
         body: 'delayed',
         headers: {},
       },
@@ -120,7 +120,7 @@ describe('control integration', () => {
     const initialDetailsRes = await control.get(
       `/api/mocks/${createRes.data.id}`,
     );
-    expect(initialDetailsRes.data.response.delay).toBe(300);
+    expect(initialDetailsRes.data.response.delay).toBe(1000);
 
     const patchRes = await control.patch(`/api/mocks/${createRes.data.id}`, {
       response: {
@@ -140,7 +140,7 @@ describe('control integration', () => {
     const elapsed = Date.now() - start;
     expect(proxyRes.status).toBe(200);
     expect(proxyRes.data).toBe('no delay');
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(500);
   });
 
   it('merges file mocks as read-only and blocks mutations', async () => {

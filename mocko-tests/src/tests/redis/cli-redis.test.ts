@@ -31,16 +31,18 @@ describeRedis('cli redis wiring', () => {
     }));
 
     const control = subject.ensureControl();
-    const createRes = await control.post('/api/mocks', {
-      name: 'cli url redis',
-      method: 'GET',
-      path: route,
-      response: {
-        code: 200,
-        body: 'url redis',
-        headers: {},
-      },
-    });
+    const createRes = await subject.withRemap(() =>
+      control.post('/api/mocks', {
+        name: 'cli url redis',
+        method: 'GET',
+        path: route,
+        response: {
+          code: 200,
+          body: 'url redis',
+          headers: {},
+        },
+      }),
+    );
 
     expect(createRes.status).toBe(201);
     expect(createRes.data.annotations).not.toContain('READ_ONLY');
@@ -57,16 +59,18 @@ describeRedis('cli redis wiring', () => {
     }));
 
     const control = subject.ensureControl();
-    const createRes = await control.post('/api/mocks', {
-      name: 'cli params redis',
-      method: 'GET',
-      path: route,
-      response: {
-        code: 200,
-        body: 'params redis',
-        headers: {},
-      },
-    });
+    const createRes = await subject.withRemap(() =>
+      control.post('/api/mocks', {
+        name: 'cli params redis',
+        method: 'GET',
+        path: route,
+        response: {
+          code: 200,
+          body: 'params redis',
+          headers: {},
+        },
+      }),
+    );
 
     expect(createRes.status).toBe(201);
     expect(createRes.data.annotations).not.toContain('READ_ONLY');

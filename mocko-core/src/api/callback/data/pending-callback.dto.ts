@@ -8,6 +8,7 @@ export class PendingCallbackDto {
         public readonly dueAt: number,
         public readonly createdAt: number,
         public readonly triggeredByMockId: string | undefined,
+        public readonly heldAt: number | undefined,
     ) { }
 
     static ofPending(pending: PendingCallback): PendingCallbackDto {
@@ -18,6 +19,7 @@ export class PendingCallbackDto {
             pending.dueAt,
             pending.createdAt,
             pending.triggeredByMockId,
+            pending.heldAt,
         );
     }
 }

@@ -220,6 +220,85 @@ describe('control callbacks integration', () => {
     );
   });
 
+  it('holds pending callbacks through the control api and lists them first', async () => {
+    subject = await createSubject({ '--ui': true });
+    const control = subject.ensureControl();
+
+    const createRes = await control.post('/api/callbacks', {
+      slug: 'holdable',
+      url: `${capture.url}/holdable/{{payload}}`,
+    });
+    expect(createRes.status).toBe(201);
+    const fireUrl = `/api/callbacks/${createRes.data.id}/fire`;
+
+    const soon = await control.post(fireUrl, {
+      payload: 'soon',
+      delay: 30_000,
+    });
+    const first = await control.post(fireUrl, {
+      payload: 'first',
+      delay: 60_000,
+    });
+    const second = await control.post(fireUrl, {
+      payload: 'second',
+      delay: 90_000,
+    });
+
+    const firstHold = await control.post(
+      `/api/callbacks/pending/${first.data.id}/hold`,
+    );
+    expect(firstHold.status).toBe(200);
+    expect(firstHold.data.heldAt).toEqual(expect.any(Number));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const secondHold = await control.post(
+      `/api/callbacks/pending/${second.data.id}/hold`,
+    );
+    expect(secondHold.status).toBe(200);
+
+    const listRes = await control.get('/api/callbacks/pending');
+    expect(listRes.status).toBe(200);
+    expect(listRes.data.canHold).toBe(true);
+    expect(listRes.data.pending.map((item: { id: string }) => item.id)).toEqual(
+      [second.data.id, first.data.id, soon.data.id],
+    );
+    expect(listRes.data.pending[1].heldAt).toBe(firstHold.data.heldAt);
+    expect(listRes.data.pending[2].heldAt).toBeUndefined();
+
+    const againRes = await control.post(
+      `/api/callbacks/pending/${first.data.id}/hold`,
+    );
+    expect(againRes.status).toBe(409);
+    expect(
+      (await control.post('/api/callbacks/pending/missing/hold')).status,
+    ).toBe(404);
+
+    const fireNowRes = await control.post(
+      `/api/callbacks/pending/${first.data.id}/fire`,
+    );
+    expect(fireNowRes.status).toBe(202);
+    await capture.waitForRequests(1);
+    expect(capture.requests[0].url).toBe('/holdable/first');
+
+    const revision = await subject.getRevision();
+    const deleteRes = await control.delete(
+      `/api/callbacks/${createRes.data.id}`,
+    );
+    expect(deleteRes.status).toBe(204);
+    await subject.waitForRemap(revision);
+    const refusedRes = await control.post(
+      `/api/callbacks/pending/${second.data.id}/fire`,
+    );
+    expect(refusedRes.status).toBe(422);
+    expect(refusedRes.data.message).toBe(
+      "No callback found with slug 'holdable'",
+    );
+    expect(
+      (await control.get('/api/callbacks/pending')).data.pending.map(
+        (item: { id: string }) => item.id,
+      ),
+    ).toEqual([second.data.id, soon.data.id]);
+  });
+
   it('returns validation errors for callback management routes', async () => {
     subject = await createSubject({ '--ui': true });
     const control = subject.ensureControl();

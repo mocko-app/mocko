@@ -100,6 +100,12 @@ export type CorePendingCallbackDto = {
   dueAt: number;
   createdAt: number;
   triggeredByMockId?: string;
+  heldAt?: number;
+};
+
+export type CoreHealthDto = {
+  version?: string;
+  capabilities?: string[];
 };
 
 export type CoreFlagKeyDto = {

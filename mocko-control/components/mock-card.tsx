@@ -23,7 +23,8 @@ function getHostLabel(host: string | undefined, hostSlugs: readonly string[]) {
     return null;
   }
 
-  if (hostSlugs.includes(host)) {
+  const slug = host.toLowerCase();
+  if (hostSlugs.some((hostSlug) => hostSlug.toLowerCase() === slug)) {
     return `(@${host})`;
   }
 

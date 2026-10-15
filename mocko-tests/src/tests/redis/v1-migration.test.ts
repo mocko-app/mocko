@@ -182,14 +182,12 @@ describeRedis('v1 migration operations', () => {
       v1MigrationData: { sourcePrefix: redis.prefix },
     });
     await waitForOperation(subject, createRes.data.id, 'READY');
-    await control.patch(`/api/operations/${createRes.data.id}`, {
-      status: 'EXECUTING',
+    const doneOperation = await subject.withRemap(async () => {
+      await control.patch(`/api/operations/${createRes.data.id}`, {
+        status: 'EXECUTING',
+      });
+      return await waitForOperation(subject!, createRes.data.id, 'DONE');
     });
-    const doneOperation = await waitForOperation(
-      subject,
-      createRes.data.id,
-      'DONE',
-    );
     expect(doneOperation.v1MigrationData.mocksMigrated).toBe(2);
     expect(doneOperation.v1MigrationData.flagsMigrated).toBe(3);
     expect(doneOperation.v1MigrationData.flagsSkipped).toBe(0);
@@ -263,9 +261,11 @@ describeRedis('v1 migration operations', () => {
 
     expect((await subject.client.get('/broken')).status).toBe(500);
 
-    const updateRes = await control.patch(`/api/mocks/${brokenMock.id}`, {
-      response: { code: 200, body: 'fixed', headers: {} },
-    });
+    const updateRes = await subject.withRemap(() =>
+      control.patch(`/api/mocks/${brokenMock.id}`, {
+        response: { code: 200, body: 'fixed', headers: {} },
+      }),
+    );
     expect(updateRes.status).toBe(200);
     expect(updateRes.data.annotations).not.toContain('INVALID_TEMPLATE');
 
@@ -418,12 +418,14 @@ async function runMigration(subject: MockoInstance, sourcePrefix: string) {
   });
   expect(createRes.status).toBe(201);
   await waitForOperation(subject, createRes.data.id, 'READY');
-  const executeRes = await control.patch(
-    `/api/operations/${createRes.data.id}`,
-    { status: 'EXECUTING' },
-  );
-  expect(executeRes.status).toBe(200);
-  return await waitForOperation(subject, createRes.data.id, 'DONE');
+  return await subject.withRemap(async () => {
+    const executeRes = await control.patch(
+      `/api/operations/${createRes.data.id}`,
+      { status: 'EXECUTING' },
+    );
+    expect(executeRes.status).toBe(200);
+    return await waitForOperation(subject, createRes.data.id, 'DONE');
+  });
 }
 
 async function getFlag(subject: MockoInstance, key: string) {

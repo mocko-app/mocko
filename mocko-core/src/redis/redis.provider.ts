@@ -51,8 +51,8 @@ export class RedisProvider {
         return JSON.parse(str) as T;
     }
 
-    async del(key: string): Promise<void> {
-        await this.connector.del(key);
+    async del(...keys: string[]): Promise<void> {
+        await this.connector.del(...keys);
     }
 
     async set<T>(key: string, value: T, ttlMillis?: number): Promise<void> {
@@ -75,6 +75,10 @@ export class RedisProvider {
 
     async hset(key: string, fields: Record<string, string>): Promise<void> {
         await this.connector.hset(key, fields);
+    }
+
+    async hdel(key: string, field: string): Promise<number> {
+        return await this.connector.hdel(key, field);
     }
 
     async zadd(key: string, score: number, member: string): Promise<void> {

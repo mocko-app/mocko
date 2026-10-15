@@ -104,6 +104,8 @@ Notes:
 - The payload must be JSON serializable; it is available as `payload` in the callback's templates, which render at delivery time.
 - In tests, never sleep through a delay: schedule, assert on `listPendingCallbacks()`, then `firePendingCallback(id)` to deliver immediately.
 - `clearPendingCallbacks()` in a `beforeEach` keeps parallel-unsafe pending state out of other tests.
+- `listPendingCallbacks()` can also return callbacks someone held in the control panel; those have `heldAt` (epoch ms) set and never fire on their own (`dueAt` is when they would have fired). `firePendingCallback`, `cancelPendingCallback` and `clearPendingCallbacks` work on them. There is no SDK method to hold a callback.
+- `firePendingCallback` throws if the callback's definition was deleted or its host no longer exists or has no destination (`HTTP 422`); the callback stays pending.
 - Unknown slugs and hosts without destinations throw (`Mocko failed to fire callback "slug": HTTP 404` / `422`).
 
 ## Auth Rules

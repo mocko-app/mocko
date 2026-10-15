@@ -1,3 +1,5 @@
+import type { ConflictOrigin } from "@/lib/types/conflict-dtos";
+
 type SlugDefinition = {
   slug: string;
   annotations: readonly string[];
@@ -28,6 +30,29 @@ export function findBySlugPreferringUi<T extends SlugDefinition>(
   const target = slug.toLowerCase();
   return uniqueBySlugPreferringUi(items).find(
     (item) => item.slug.toLowerCase() === target,
+  );
+}
+
+export function fileTakesOverOnDelete(
+  otherOrigins: readonly ConflictOrigin[],
+): boolean {
+  return otherOrigins.includes("FILE") && !otherOrigins.includes("UI");
+}
+
+export function overridesFileDefinition<T extends SlugDefinition>(
+  item: T,
+  items: readonly T[],
+): boolean {
+  if (!isUiDefinition(item)) {
+    return false;
+  }
+
+  const target = item.slug.toLowerCase();
+  const others = items.filter(
+    (other) => other !== item && other.slug.toLowerCase() === target,
+  );
+  return fileTakesOverOnDelete(
+    others.map((other) => (isUiDefinition(other) ? "UI" : "FILE")),
   );
 }
 
